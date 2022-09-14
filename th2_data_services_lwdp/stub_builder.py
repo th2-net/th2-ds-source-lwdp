@@ -19,7 +19,7 @@ from th2_data_services.provider.v6.struct import (
 )
 
 
-class Provider6EventStubBuilder(IEventStub):
+class EventStubBuilder(IEventStub):
     def __init__(self, event_struct=http_provider6_event_struct):
         """Event stub builder for Provider v6.
 
@@ -51,7 +51,7 @@ class Provider6EventStubBuilder(IEventStub):
         }
 
 
-class Provider6MessageStubBuilder(IMessageStub):
+class MessageStubBuilder(IMessageStub):
     def __init__(self, message_struct=http_provider6_message_struct):
         """Event stub builder for Provider 6.
 
@@ -81,5 +81,5 @@ class Provider6MessageStubBuilder(IMessageStub):
         }
 
 
-provider6_event_stub_builder = Provider6EventStubBuilder()
-provider6_message_stub_builder = Provider6MessageStubBuilder()
+provider6_event_stub_builder = EventStubBuilder()
+provider6_message_stub_builder = MessageStubBuilder()

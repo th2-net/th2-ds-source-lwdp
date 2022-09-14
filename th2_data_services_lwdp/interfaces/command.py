@@ -14,8 +14,8 @@
 
 from abc import abstractmethod
 
-from th2_data_services.provider.interfaces.command import IHTTPProviderCommand, IGRPCProviderCommand
-from th2_data_services_lwdp.data_source.grpc import GRPCProvider6DataSource
+from th2_data_services.provider.interfaces.command import IGRPCProviderCommand
+from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
 
 
 class IGRPCCommand(IGRPCProviderCommand):
@@ -26,5 +26,5 @@ class IGRPCCommand(IGRPCProviderCommand):
     """
 
     @abstractmethod
-    def handle(self, data_source: GRPCProvider6DataSource):
+    def handle(self, data_source: GRPCDataSource):
         pass
