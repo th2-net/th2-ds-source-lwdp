@@ -19,7 +19,7 @@ from th2_grpc_data_provider.data_provider_pb2 import Filter as grpc_Filter, Filt
 import google.protobuf.wrappers_pb2
 
 
-class Provider6Filter(IProviderFilter):
+class Filter(IProviderFilter):
     """General interface for Filters of Provider v6."""
 
     def __init__(
@@ -85,16 +85,16 @@ class Provider6Filter(IProviderFilter):
         )
 
 
-class _Provider6FilterBase(Provider6Filter):
+class _FilterBase(Filter):
     FILTER_NAME = "FILTER_NAME"
 
     def __init__(self, values: Sequence[Any], negative: bool = False, conjunct: bool = False):
         super().__init__(self.FILTER_NAME, values, negative, conjunct)
 
 
-class Provider6EventFilter(_Provider6FilterBase):
+class EventFilter(_FilterBase):
     """Base class for Event Filters of Provider v5."""
 
 
-class Provider6MessageFilter(_Provider6FilterBase):
+class MessageFilter(_FilterBase):
     """Base class for Message Filters of Provider v5."""

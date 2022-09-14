@@ -19,26 +19,27 @@ from typing import List, Iterable, Generator, Union
 from grpc._channel import _InactiveRpcError
 from th2_grpc_data_provider.data_provider_pb2 import EventResponse, MessageGroupResponse, MessageStreamPointer
 
+
 from th2_data_services import Data
-from th2_data_services.provider.v6.filters.filter import Provider6Filter as Filter
+from th2_data_services_lwdp.filters.filter import Filter as Filter
 from th2_data_services.provider.command import ProviderAdaptableCommand
 from th2_data_services.provider.exceptions import EventNotFound, MessageNotFound
-from th2_data_services.provider.v6.adapters.basic_adapters import GRPCObjectToDictAdapter
-from th2_data_services.provider.v6.adapters.event_adapters import DeleteEventWrappersAdapter
-from th2_data_services.provider.v6.adapters.message_adapters import DeleteMessageWrappersAdapter
-from th2_data_services.provider.v6.interfaces.command import IGRPCProvider6Command
+from th2_data_services_lwdp.adapters.basic_adapters import GRPCObjectToDictAdapter
+from th2_data_services_lwdp.adapters.event_adapters import DeleteEventWrappersAdapter
+from th2_data_services_lwdp.adapters.message_adapters import DeleteMessageWrappersAdapter
+from th2_data_services_lwdp.interfaces.command import IGRPCCommand
 
-from th2_data_services.provider.v6.data_source.grpc import GRPCProvider6DataSource
-from th2_data_services.provider.v6.provider_api import GRPCProvider6API
+from th2_data_services_lwdp.data_source.grpc import GRPCProvider6DataSource
+from th2_data_services_lwdp.provider_api import GRPCProvider6API
 
 import logging
 
-from th2_data_services.provider.v6.streams import Streams
+from th2_data_services_lwdp.streams import Streams
 
 logger = logging.getLogger(__name__)
 
 
-class GetEventByIdGRPCObject(IGRPCProvider6Command, ProviderAdaptableCommand):
+class GetEventByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the event by id as GRPC object.
@@ -65,7 +66,7 @@ class GetEventByIdGRPCObject(IGRPCProvider6Command, ProviderAdaptableCommand):
         return event
 
 
-class GetEventById(IGRPCProvider6Command, ProviderAdaptableCommand):
+class GetEventById(IGRPCCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
@@ -107,7 +108,7 @@ class GetEventById(IGRPCProvider6Command, ProviderAdaptableCommand):
         return event
 
 
-class GetEventsById(IGRPCProvider6Command, ProviderAdaptableCommand):
+class GetEventsById(IGRPCCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
@@ -141,7 +142,7 @@ class GetEventsById(IGRPCProvider6Command, ProviderAdaptableCommand):
         return response
 
 
-class GetEventsGRPCObjects(IGRPCProvider6Command, ProviderAdaptableCommand):
+class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream as GRPC object by options.
@@ -218,7 +219,7 @@ class GetEventsGRPCObjects(IGRPCProvider6Command, ProviderAdaptableCommand):
                 yield response.event
 
 
-class GetEvents(IGRPCProvider6Command, ProviderAdaptableCommand):
+class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.

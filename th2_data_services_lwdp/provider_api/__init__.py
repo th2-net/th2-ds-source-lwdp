@@ -12,5 +12,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .grpc import GRPCProvider6API
-from .http import HTTPProvider6API
+from .grpc import GRPCAPI

@@ -22,21 +22,19 @@ from th2_data_services.provider.exceptions import CommandError
 from th2_data_services.provider.interfaces import IEventStruct, IMessageStruct
 
 if TYPE_CHECKING:
-    from th2_data_services.provider.v6.interfaces.command import IGRPCProvider6Command
+    from th2_data_services_lwdp.interfaces.command import IGRPCProvider6Command
 
 from th2_data_services.provider.interfaces.data_source import IGRPCProviderDataSource
 
 import logging
 
 from th2_data_services.provider.interfaces.stub_builder import IEventStub, IMessageStub
-from th2_data_services.provider.v6.provider_api import GRPCProvider6API
-from th2_data_services.provider.v6.struct import (
-    HTTPProvider6EventStruct,
-    HTTPProvider6MessageStruct,
-    grpc_provider6_message_struct,
-    grpc_provider6_event_struct,
+from th2_data_services_lwdp.provider_api import GRPCAPI
+from th2_data_services_lwdp.struct import (
+    grpc_message_struct,
+    grpc_event_struct,
 )
-from th2_data_services.provider.v6.stub_builder import (
+from th2_data_services_lwdp.stub_builder import (
     provider6_event_stub_builder,
     provider6_message_stub_builder,
 )
@@ -44,7 +42,7 @@ from th2_data_services.provider.v6.stub_builder import (
 logger = logging.getLogger(__name__)
 
 
-class GRPCProvider6DataSource(IGRPCProviderDataSource):
+class GRPCDataSource(IGRPCProviderDataSource):
     """DataSource class which provide work with rpt-data-provider.
 
     Rpt-data-provider version: 6.x.y
@@ -54,8 +52,8 @@ class GRPCProvider6DataSource(IGRPCProviderDataSource):
     def __init__(
         self,
         url: str,
-        event_struct: IEventStruct = grpc_provider6_event_struct,
-        message_struct: IMessageStruct = grpc_provider6_message_struct,
+        event_struct: IEventStruct = grpc_event_struct,
+        message_struct: IMessageStruct = grpc_message_struct,
         event_stub_builder: IEventStub = provider6_event_stub_builder,
         message_stub_builder: IMessageStub = provider6_message_stub_builder,
     ):
@@ -76,7 +74,7 @@ class GRPCProvider6DataSource(IGRPCProviderDataSource):
             message_stub_builder=message_stub_builder,
         )
 
-        self.__provider_api = GRPCProvider6API(url)
+        self.__provider_api = GRPCAPI(url)
 
         logger.info(url)
 
@@ -100,16 +98,6 @@ class GRPCProvider6DataSource(IGRPCProviderDataSource):
             )
 
     @property
-    def source_api(self) -> GRPCProvider6API:
+    def source_api(self) -> GRPCAPI:
         """Returns Provider API."""
         return self.__provider_api
-
-    @property
-    def event_struct(self) -> HTTPProvider6EventStruct:
-        """Returns event structure class."""
-        return self._event_struct
-
-    @property
-    def message_struct(self) -> HTTPProvider6MessageStruct:
-        """Returns message structure class."""
-        return self._message_struct

@@ -12,4 +12,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .grpc import GRPCProvider6DataSource
+from .grpc import GRPCDataSource

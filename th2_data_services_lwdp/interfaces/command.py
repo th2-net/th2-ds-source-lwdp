@@ -15,23 +15,10 @@
 from abc import abstractmethod
 
 from th2_data_services.provider.interfaces.command import IHTTPProviderCommand, IGRPCProviderCommand
-from th2_data_services.provider.v6.data_source.grpc import GRPCProvider6DataSource
-from th2_data_services.provider.v6.data_source.http import HTTPProvider6DataSource
+from th2_data_services_lwdp.data_source.grpc import GRPCProvider6DataSource
 
 
-class IHTTPProvider6Command(IHTTPProviderCommand):
-    """Interface of command for rpt-data-provider.
-
-    Rpt-data-provider version: 5.x.y
-    Protocol: HTTP
-    """
-
-    @abstractmethod
-    def handle(self, data_source: HTTPProvider6DataSource):
-        pass
-
-
-class IGRPCProvider6Command(IGRPCProviderCommand):
+class IGRPCCommand(IGRPCProviderCommand):
     """Interface of command for rpt-data-provider.
 
     Rpt-data-provider version: 5.x.y

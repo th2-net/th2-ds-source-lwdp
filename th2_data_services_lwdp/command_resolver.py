@@ -15,19 +15,16 @@
 from typing import Union, Type
 
 from th2_data_services.provider.interfaces import IProviderDataSource
-from th2_data_services.provider.v6.commands.grpc import GetEventsById as GetEventsByIdFromGRPC
-from th2_data_services.provider.v6.commands.http import GetEventsById as GetEventsByIdFromHTTP
+from th2_data_services_lwdp.commands.grpc import GetEventsById as GetEventsByIdFromGRPC
 
-from th2_data_services.provider.v6.commands.grpc import GetEventById as GetEventByIdFromGRPC
-from th2_data_services.provider.v6.commands.http import GetEventById as GetEventByIdFromHTTP
+from th2_data_services_lwdp.commands.grpc import GetEventById as GetEventByIdFromGRPC
 
-from th2_data_services.provider.v6.data_source.grpc import GRPCProvider6DataSource
-from th2_data_services.provider.v6.data_source.http import HTTPProvider6DataSource
+from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
 
 
 def resolver_get_event_by_id(
     data_source: IProviderDataSource,
-) -> Union[Type[GetEventByIdFromHTTP], Type[GetEventByIdFromGRPC]]:
+) -> Type[GetEventByIdFromGRPC]:
     """Resolves what 'GetEventById' command you need to use based Data Source.
 
     Args:
@@ -36,17 +33,15 @@ def resolver_get_event_by_id(
     Returns:
         GetEventById command.
     """
-    if isinstance(data_source, GRPCProvider6DataSource):
+    if isinstance(data_source, GRPCDataSource):
         return GetEventByIdFromGRPC
-    elif isinstance(data_source, HTTPProvider6DataSource):
-        return GetEventByIdFromHTTP
     else:
         raise ValueError("Unknown DataSource Object")
 
 
 def resolver_get_events_by_id(
     data_source: IProviderDataSource,
-) -> Union[Type[GetEventsByIdFromHTTP], Type[GetEventsByIdFromGRPC]]:
+) ->  Type[GetEventsByIdFromGRPC]:
     """Resolves what 'GetEventsById' command you need to use based Data Source.
 
     Args:
@@ -55,9 +50,7 @@ def resolver_get_events_by_id(
     Returns:
         GetEventsById command.
     """
-    if isinstance(data_source, GRPCProvider6DataSource):
+    if isinstance(data_source, GRPCDataSource):
         return GetEventsByIdFromGRPC
-    elif isinstance(data_source, HTTPProvider6DataSource):
-        return GetEventsByIdFromHTTP
     else:
         raise ValueError("Unknown DataSource Object")

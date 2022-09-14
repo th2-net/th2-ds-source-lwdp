@@ -12,34 +12,34 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.provider.v6.filters.filter import Provider6EventFilter
+from th2_data_services_lwdp.filters.filter import EventFilter
 
 
-class TypeFilter(Provider6EventFilter):
+class TypeFilter(EventFilter):
     """Will match the events which type contains one of the given substrings."""
 
     FILTER_NAME = "type"
 
 
-class NameFilter(Provider6EventFilter):
+class NameFilter(EventFilter):
     """Will match the events which name contains one of the given substrings."""
 
     FILTER_NAME = "name"
 
 
-class BodyFilter(Provider6EventFilter):
+class BodyFilter(EventFilter):
     """Will match the events which body contains one of the given substrings."""
 
     FILTER_NAME = "body"
 
 
-class AttachedMessageIdFilter(Provider6EventFilter):
+class AttachedMessageIdFilter(EventFilter):
     """Filters the events that are linked to the specified message id."""
 
     FILTER_NAME = "attachedMessageId"
 
 
-class _StatusFilter(Provider6EventFilter):
+class _StatusFilter(EventFilter):
     FILTER_NAME = "status"
 
     def url(self) -> str:

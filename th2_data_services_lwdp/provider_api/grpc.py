@@ -42,7 +42,7 @@ from th2_grpc_data_provider.data_provider_pb2 import (
 )
 from grpc import Channel, insecure_channel
 from th2_data_services.provider.interfaces.source_api import IGRPCProviderSourceAPI
-from th2_data_services.provider.v6.streams import Streams
+from th2_data_services_lwdp.streams import Streams
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ BasicRequest = namedtuple(
 )
 
 
-class GRPCProvider6API(IGRPCProviderSourceAPI):
+class GRPCAPI(IGRPCProviderSourceAPI):
     def __init__(self, url: str):
         """GRPC Provider6 API.
 
