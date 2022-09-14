@@ -13,4 +13,3 @@
 #  limitations under the License.
 
 from .grpc import GRPCProvider6DataSource
-from .http import HTTPProvider6DataSource
