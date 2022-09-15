@@ -20,11 +20,11 @@ from th2_data_services.events_tree.exceptions import FieldIsNotExist
 from th2_data_services.provider.interfaces.struct import IEventStruct
 from th2_data_services_lwdp.command_resolver import resolver_get_events_by_id
 from th2_data_services_lwdp.data_source import GRPCDataSource
-from th2_data_services_lwdp.struct import http_provider6_event_struct
+from th2_data_services_lwdp.struct import grpc_event_struct
 from th2_data_services_lwdp.stub_builder import provider6_event_stub_builder
 
 
-class ParentEventsTreeCollectionProvider6(ParentEventsTreeCollection):
+class ParentEventsTreeCollectionProvider(ParentEventsTreeCollection):
     """ParentEventsTreeCollection for data-provider v6."""
 
     def __init__(
@@ -32,7 +32,7 @@ class ParentEventsTreeCollectionProvider6(ParentEventsTreeCollection):
         data: Data,
         data_source: GRPCDataSource = None,
         preserve_body: bool = False,
-        event_struct: IEventStruct = http_provider6_event_struct,
+        event_struct: IEventStruct = grpc_event_struct,
         stub: bool = False,
     ):
         """ParentEventsTreeCollectionProvider6 constructor.

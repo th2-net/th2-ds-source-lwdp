@@ -1,4 +1,4 @@
-from th2_data_services_lwdp.events_tree import EventsTreeCollectionProvider6 as ETC
-from th2_data_services_lwdp.data_source import GRPCProvider6DataSource
+from th2_data_services_lwdp.events_tree.events_tree_collection import EventsTreeCollectionProvider as ETC
+from th2_data_services_lwdp.provider_api.grpc import GRPCAPI
+from th2_data_services_lwdp.data_source import GRPCDataSource
 
-data_source = GRPCProvider6DataSource('http://10.100.66.114:31787')
