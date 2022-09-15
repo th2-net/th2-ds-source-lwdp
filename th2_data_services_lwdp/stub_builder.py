@@ -41,7 +41,6 @@ class EventStubBuilder(IEventStub):
             self.event_fields.BATCH_ID: "Broken_Event",
             self.event_fields.END_TIMESTAMP: {"nano": 0, "epochSecond": 0},
             self.event_fields.START_TIMESTAMP: {"nano": 0, "epochSecond": 0},
-            self.event_fields.TYPE: "event",
             self.event_fields.EVENT_ID: self.REQUIRED_FIELD,
             self.event_fields.NAME: "Broken_Event",
             self.event_fields.EVENT_TYPE: "Broken_Event",

@@ -24,7 +24,6 @@ class GRPCEventStruct(IEventStruct):
     PARENT_EVENT_ID: str
     STATUS: str
     NAME: str
-    TYPE: str
     BATCH_ID: str
     IS_BATCHED: str
     EVENT_TYPE: str
@@ -39,7 +38,6 @@ grpc_event_struct = GRPCEventStruct(
     PARENT_EVENT_ID="parentEventId",
     STATUS="successful",
     NAME="eventName",
-    TYPE="type",
     BATCH_ID="batchId",
     IS_BATCHED="isBatched",
     EVENT_TYPE="eventType",
