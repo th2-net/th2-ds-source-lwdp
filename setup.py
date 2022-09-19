@@ -40,6 +40,6 @@ setup(
     license="Apache License 2.0",
     python_requires=">=3.7",
     install_requires=requirements,
-    packages=find_packages(include=["th2_data_services", "th2_data_services.*"]),
+    packages=find_packages(include=["th2_data_services_lwdp", "th2_data_services_lwdp.*"]),
     include_package_data=True,
 )
