@@ -80,5 +80,5 @@ class MessageStubBuilder(IMessageStub):
         }
 
 
-provider6_event_stub_builder = EventStubBuilder()
-provider6_message_stub_builder = MessageStubBuilder()
+event_stub_builder = EventStubBuilder()
+message_stub_builder = MessageStubBuilder()

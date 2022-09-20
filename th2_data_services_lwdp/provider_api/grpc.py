@@ -128,7 +128,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         stream: List[str] = None,
         keep_open: bool = False,
         stream_pointer: List[MessageStreamPointer] = None,
-        filters: Optional[List[Filter]] = None,
         attached_events: bool = False,
     ) -> Iterable[MessageSearchResponse]:
         """GRPC-API `searchMessages` call creates a message stream that matches the filter.
@@ -166,8 +165,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             end_timestamp=end_timestamp,
             result_count_limit=result_count_limit,
             keep_open=keep_open,
-            search_direction=search_direction,
-            filters=filters,
+            search_direction=search_direction
         )
 
         stream = self.__transform_streams(stream)
@@ -178,7 +176,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             search_direction=basic_request.search_direction,
             result_count_limit=basic_request.result_count_limit,
             keep_open=basic_request.keep_open,
-            filter=basic_request.filters,
             attached_events=attached_events,
             stream=stream,
             stream_pointer=stream_pointer,

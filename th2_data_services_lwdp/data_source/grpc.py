@@ -22,7 +22,7 @@ from th2_data_services.provider.exceptions import CommandError
 from th2_data_services.provider.interfaces import IEventStruct, IMessageStruct
 
 if TYPE_CHECKING:
-    from th2_data_services_lwdp.interfaces.command import IGRPCProvider6Command
+    from th2_data_services_lwdp.interfaces.command import IGRPCCommand
 
 from th2_data_services.provider.interfaces.data_source import IGRPCProviderDataSource
 
@@ -35,8 +35,8 @@ from th2_data_services_lwdp.struct import (
     grpc_event_struct,
 )
 from th2_data_services_lwdp.stub_builder import (
-    provider6_event_stub_builder,
-    provider6_message_stub_builder,
+    event_stub_builder,
+    message_stub_builder,
 )
 
 logger = logging.getLogger(__name__)
@@ -54,8 +54,8 @@ class GRPCDataSource(IGRPCProviderDataSource):
         url: str,
         event_struct: IEventStruct = grpc_event_struct,
         message_struct: IMessageStruct = grpc_message_struct,
-        event_stub_builder: IEventStub = provider6_event_stub_builder,
-        message_stub_builder: IMessageStub = provider6_message_stub_builder,
+        event_stub_builder: IEventStub = event_stub_builder,
+        message_stub_builder: IMessageStub = message_stub_builder,
     ):
         """GRPCProvider6DataSource constructor.
 
@@ -73,12 +73,12 @@ class GRPCDataSource(IGRPCProviderDataSource):
             event_stub_builder=event_stub_builder,
             message_stub_builder=message_stub_builder,
         )
-
+        
         self.__provider_api = GRPCAPI(url)
 
         logger.info(url)
 
-    def command(self, cmd: IGRPCProvider6Command) -> Any:
+    def command(self, cmd: IGRPCCommand) -> Any:
         """Execute the transmitted GRPC command.
 
         Args:
