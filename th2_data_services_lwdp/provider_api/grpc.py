@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 BasicRequest = namedtuple(
     "BasicRequest",
-    ["start_timestamp", "end_timestamp", "result_count_limit", "keep_open", "search_direction", "filters"],
+    ["start_timestamp", "end_timestamp"],
 )
 
 
@@ -78,15 +78,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         self,
         start_timestamp: int = None,
         end_timestamp: int = None,
-        parent_event: str = None,
-        search_direction: str = "NEXT",
-        resume_from_id: str = None,
-        result_count_limit: int = None,
-        keep_open: bool = False,
-        limit_for_parent: int = None,
-        metadata_only: bool = True,
-        attached_messages: bool = False,
-        filters: Optional[List[Filter]] = None,
+        parent_event: str = None
     ) -> Iterable[EventSearchResponse]:
         """GRPC-API `searchEvents` call creates an event or an event metadata stream that matches the filter.
 
@@ -111,37 +103,19 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         """
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp,
-            result_count_limit=result_count_limit,
-            search_direction=search_direction,
+            end_timestamp=end_timestamp
         )
 
         basic_request = self.__build_basic_request_object(
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp,
-            search_direction=search_direction,
-            result_count_limit=result_count_limit,
-            keep_open=keep_open,
-            filters=filters,
+            end_timestamp=end_timestamp
         )
         parent_event = EventID(id=parent_event) if parent_event else None
-        resume_from_id = EventID(id=resume_from_id) if resume_from_id else None
-        limit_for_parent = Int64Value(value=limit_for_parent) if limit_for_parent else None
-        metadata_only = BoolValue(value=metadata_only)
-        attached_messages = BoolValue(value=attached_messages)
 
         event_search_request = EventSearchRequest(
             start_timestamp=basic_request.start_timestamp,
             end_timestamp=basic_request.end_timestamp,
-            parent_event=parent_event,
-            search_direction=basic_request.search_direction,
-            resume_from_id=resume_from_id,
-            result_count_limit=basic_request.result_count_limit,
-            keep_open=basic_request.keep_open,
-            limit_for_parent=limit_for_parent,
-            metadata_only=metadata_only,
-            attached_messages=attached_messages,
-            filter=basic_request.filters,
+            parent_event=parent_event
         )
         return self.__stub.searchEvents(event_search_request)
 
@@ -215,15 +189,13 @@ class GRPCAPI(IGRPCProviderSourceAPI):
     @staticmethod
     def __search_basic_checks(
         start_timestamp: Optional[int],
-        end_timestamp: Optional[int],
-        search_direction: Optional[str],
-        result_count_limit: Optional[int],
+        end_timestamp: Optional[int]
     ):
         if start_timestamp is None:
             raise ValueError("One of the 'startTimestamp' or 'resumeFromId(s)' must not be None.")
 
-        if end_timestamp is None and result_count_limit is None:
-            raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
+        if end_timestamp is None:
+            raise ValueError("'end_timestamp' must not be None.")
 
         if (
             start_timestamp is not None
@@ -232,13 +204,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             and len(str(end_timestamp)) != 19
         ):
             raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
-
-        if search_direction is not None:
-            search_direction = search_direction.upper()
-            if search_direction not in ("NEXT", "PREVIOUS"):
-                raise ValueError("Argument 'search_direction' must be 'NEXT' or 'PREVIOUS'.")
-        else:
-            raise ValueError("Argument 'search_direction' must be 'NEXT' or 'PREVIOUS'.")
 
     def __transform_streams(self, streams: List[str]) -> List[MessageStream]:
         """Transforms streams to MessagesStream of 'protobuf' entity.
@@ -289,11 +254,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
     def __build_basic_request_object(
         self,
         start_timestamp: int = None,
-        end_timestamp: int = None,
-        result_count_limit: int = None,
-        keep_open: bool = False,
-        search_direction: str = "NEXT",
-        filters: Optional[List[Filter]] = None,
+        end_timestamp: int = None
     ) -> BasicRequest:
         """Builds a BasicRequest wrapper-object.
 
@@ -308,22 +269,13 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             BasicRequest wrapper-object.
         """
-        if filters is None:
-            filters = []
 
         start_timestamp = self.__build_timestamp_object(start_timestamp) if start_timestamp else None
         end_timestamp = self.__build_timestamp_object(end_timestamp) if end_timestamp else None
-        search_direction = TimeRelation.Value(search_direction)  # getting a value from enum
-        result_count_limit = Int32Value(value=result_count_limit) if result_count_limit else None
-        keep_open = BoolValue(value=keep_open)
 
         basic_request = BasicRequest(
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp,
-            search_direction=search_direction,
-            result_count_limit=result_count_limit,
-            keep_open=keep_open,
-            filters=filters,
+            end_timestamp=end_timestamp
         )
         return basic_request
 
