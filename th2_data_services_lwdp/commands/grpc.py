@@ -203,15 +203,7 @@ class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
         stream_response = api.search_events(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
-            parent_event=self._parent_event,
-            search_direction=self._search_direction,
-            resume_from_id=self._resume_from_id,
-            result_count_limit=self._result_count_limit,
-            keep_open=self._keep_open,
-            limit_for_parent=self._limit_for_parent,
-            metadata_only=self._metadata_only,
-            attached_messages=self._attached_messages,
-            filters=self._filters,
+            parent_event=self._parent_event
         )
         for response in stream_response:
             if response.WhichOneof("data") == "event":
@@ -285,14 +277,7 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
         stream = GetEventsGRPCObjects(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
-            parent_event=self._parent_event,
-            search_direction=self._search_direction,
-            resume_from_id=self._resume_from_id,
-            result_count_limit=self._result_count_limit,
-            keep_open=self._keep_open,
-            limit_for_parent=self._limit_for_parent,
-            attached_messages=self._attached_messages,
-            filters=self._filters,
+            parent_event=self._parent_event
         ).handle(data_source)
         for event in stream:
             event = self._grpc_decoder.handle(event)
