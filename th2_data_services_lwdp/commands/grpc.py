@@ -404,10 +404,7 @@ class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
         end_timestamp: datetime = None,
         search_direction: str = "NEXT",
         result_count_limit: int = None,
-        keep_open: bool = False,
-        message_id: List[str] = None,
-        attached_events: bool = False,
-        stream_pointers: List[MessageStreamPointer] = None
+        stream_pointers: List[MessageStreamPointer] = None,
     ):
         """GetMessagesGRPCObject constructor.
 
@@ -432,9 +429,6 @@ class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
         self._stream = stream
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
-        self._keep_open = keep_open
-        self._message_id = message_id
-        self._attached_events = attached_events
         self._stream_pointers = stream_pointers
 
     def handle(self, data_source: GRPCDataSource) -> List[MessageGroupResponse]:
@@ -449,9 +443,7 @@ class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
             stream=self._stream,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
-            keep_open=self._keep_open,
             stream_pointer=self._stream_pointers,
-            attached_events=self._attached_events,
         )
         for response in stream_response:
             if response.WhichOneof("data") == "message":
@@ -473,14 +465,9 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
         start_timestamp: datetime,
         stream: List[Union[str, Streams]],
         end_timestamp: datetime = None,
-        resume_from_id: str = None,
         search_direction: str = "NEXT",
-        result_count_limit: int = None,
-        keep_open: bool = False,
-        message_id: List[str] = None,
-        attached_events: bool = False,
         stream_pointers: List[MessageStreamPointer] = None,
-        cache: bool = False,
+        result_count_limit: int = None
     ):
         """GetMessages constructor.
 
@@ -505,21 +492,16 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._stream = stream
-        self._resume_from_id = resume_from_id
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
-        self._keep_open = keep_open
-        self._message_id = message_id
-        self._attached_events = attached_events
         self._stream_pointers = stream_pointers
-        self._cache = cache
 
         self._decoder = GRPCObjectToDictAdapter()
         self._wrapper_deleter = DeleteMessageWrappersAdapter()
 
     def handle(self, data_source: GRPCDataSource) -> Data:
         source = partial(self.__handle_stream, data_source)
-        return Data(source, cache=self._cache)
+        return Data(source)
 
     def __handle_stream(self, data_source: GRPCDataSource) -> Iterable[dict]:
         stream = GetMessagesGRPCObject(
@@ -528,10 +510,7 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
             stream=self._stream,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
-            keep_open=self._keep_open,
-            message_id=self._message_id,
-            attached_events=self._attached_events,
-            stream_pointers=self._stream_pointers
+            stream_pointers=self._stream_pointers,
         ).handle(data_source)
         for message in stream:
             message = self._decoder.handle(message)
