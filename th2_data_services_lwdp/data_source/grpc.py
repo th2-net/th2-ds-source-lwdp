@@ -43,9 +43,9 @@ logger = logging.getLogger(__name__)
 
 
 class GRPCDataSource(IGRPCProviderDataSource):
-    """DataSource class which provide work with rpt-data-provider.
+    """DataSource class which provide work with lw-data-provider.
 
-    Rpt-data-provider version: 6.x.y
+    Lightweight-data-provider version: 1.1.0
     Protocol: GRPC
     """
 
@@ -57,12 +57,12 @@ class GRPCDataSource(IGRPCProviderDataSource):
         event_stub_builder: IEventStub = event_stub_builder,
         message_stub_builder: IMessageStub = message_stub_builder,
     ):
-        """GRPCProvider6DataSource constructor.
+        """GRPCDataSource constructor.
 
         Args:
-            url: Url of rpt-data-provider.
-            event_struct: Event structure that is supplied by rpt-data-provider.
-            message_struct: Message structure that is supplied by rpt-data-provider.
+            url: Url of lw-data-provider.
+            event_struct: Event structure that is supplied by lw-data-provider.
+            message_struct: Message structure that is supplied by lw-data-provider.
             event_stub_builder: Stub builder for broken events.
             message_stub_builder: Stub builder for broken messages.
         """

@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 
 
 class GetEventByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the event by id as GRPC object.
 
@@ -66,7 +66,7 @@ class GetEventByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
 
 
 class GetEventById(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
 
@@ -108,7 +108,7 @@ class GetEventById(IGRPCCommand, ProviderAdaptableCommand):
 
 
 class GetEventsById(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
 
@@ -142,7 +142,7 @@ class GetEventsById(IGRPCCommand, ProviderAdaptableCommand):
 
 
 class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches events stream as GRPC object by options.
 
@@ -155,41 +155,19 @@ class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
         start_timestamp: datetime,
         end_timestamp: datetime = None,
         parent_event: str = None,
-        search_direction: str = "NEXT",
-        resume_from_id: str = None,
-        result_count_limit: int = None,
-        keep_open: bool = False,
-        limit_for_parent: int = None,
-        attached_messages: bool = False
     ):
         """GetEventsGRPCObjects constructor.
 
         Args:
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
-            resume_from_id: Event id from which search starts.
             parent_event: Match events to the specified parent.
-            search_direction: Search direction.
-            result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-                the one closest to the specified timestamp.
-            limit_for_parent: How many children events for each parent do we want to request.
-            attached_messages: Gets messages ids which linked to events.
-            filters: Filters using in search for messages.
 
         """
         super().__init__()
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._parent_event = parent_event
-        self._search_direction = search_direction
-        self._resume_from_id = resume_from_id
-        self._result_count_limit = result_count_limit
-        self._keep_open = keep_open
-        self._limit_for_parent = limit_for_parent
-        self._metadata_only = False
-        self._attached_messages = attached_messages
 
     def handle(self, data_source: GRPCDataSource) -> Iterable[EventResponse]:  # noqa: D102
         api: GRPCAPI = data_source.source_api
@@ -209,7 +187,7 @@ class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
 
 
 class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
 
@@ -222,44 +200,19 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
         start_timestamp: datetime,
         end_timestamp: datetime = None,
         parent_event: str = None,
-        search_direction: str = "NEXT",
-        resume_from_id: str = None,
-        result_count_limit: int = None,
-        keep_open: bool = False,
-        limit_for_parent: int = None,
-        attached_messages: bool = False,
-        cache: bool = False,
     ):
         """GetEvents constructor.
 
         Args:
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
-            resume_from_id: Event id from which search starts.
             parent_event: Match events to the specified parent.
-            search_direction: Search direction.
-            result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-                the one closest to the specified timestamp.
-            limit_for_parent: How many children events for each parent do we want to request.
-            attached_messages: Gets messages ids which linked to events.
-            filters: Filters using in search for messages.
-            cache: If True, all requested data from rpt-data-provider will be saved to cache.
 
         """
         super().__init__()
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._parent_event = parent_event
-        self._search_direction = search_direction
-        self._resume_from_id = resume_from_id
-        self._result_count_limit = result_count_limit
-        self._keep_open = keep_open
-        self._limit_for_parent = limit_for_parent
-        self._metadata_only = False
-        self._attached_messages = attached_messages
-        self._cache = cache
 
         self._grpc_decoder = GRPCObjectToDictAdapter()
         self._wrapper_deleter = DeleteEventWrappersAdapter()
@@ -282,7 +235,7 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
 
 
 class GetMessageByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):  # noqa: D102
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the message by id as GRPC Object.
 
@@ -308,7 +261,7 @@ class GetMessageByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):  # noqa:
 
 
 class GetMessageById(IGRPCCommand, ProviderAdaptableCommand):  # noqa: D102
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the message by id.
 
@@ -352,7 +305,7 @@ class GetMessageById(IGRPCCommand, ProviderAdaptableCommand):  # noqa: D102
 
 
 class GetMessagesById(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the messages by id.
 
@@ -389,7 +342,7 @@ class GetMessagesById(IGRPCCommand, ProviderAdaptableCommand):
 
 
 class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches messages stream as GRPC object by options.
 
@@ -414,14 +367,9 @@ class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
             stream: Alias of messages.
             search_direction: Search direction.
             result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-            message_id: List of message ids to restore the search
-            attached_events: If true, it will additionally load attachedEventsIds.
             stream_pointers: List of stream pointers to restore the search from.
                 start_timestamp will be ignored if this parameter is specified. This parameter is only received
                 from the provider.
-            filters: Filters using in search for messages.
         """
         super().__init__()
         self._start_timestamp = start_timestamp
@@ -452,7 +400,7 @@ class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
 
 
 class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
 
@@ -475,18 +423,11 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
             stream: Alias of messages.
-            resume_from_id: Message id from which search starts.
             search_direction: Search direction.
             result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-            filters: Filters using in search for messages.
-            message_id: List of message ids to restore the search
-            attached_events: If true, it will additionally load attachedEventsIds.
             stream_pointers: List of stream pointers to restore the search from.
                 start_timestamp will be ignored if this parameter is specified. This parameter is only received
                 from the provider.
-            cache: If True, all requested data from rpt-data-provider will be saved to cache.
         """
         super().__init__()
         self._start_timestamp = start_timestamp

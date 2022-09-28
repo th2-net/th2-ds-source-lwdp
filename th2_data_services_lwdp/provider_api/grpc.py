@@ -55,7 +55,7 @@ BasicRequest = namedtuple(
 
 class GRPCAPI(IGRPCProviderSourceAPI):
     def __init__(self, url: str):
-        """GRPC Provider6 API.
+        """GRPC API.
 
         Args:
             url: GRPC data source url.
@@ -89,15 +89,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
                 Expected in nanoseconds.
             parent_event: Match events to the specified parent.
-            search_direction: Sets the lookup direction. Can be 'NEXT' or 'PREVIOUS'.
-            resume_from_id: The last event id from which we start searching for events.
-            result_count_limit: Sets the maximum amount of events to return.
-            keep_open: Option if the search has reached the current moment,
-                it is necessary to wait further for the appearance of new data.
-            limit_for_parent: How many children events for each parent do we want to request.
-            metadata_only: Receive only metadata (true) or entire event (false) (without attachedMessageIds).
-            attached_messages: Option if you want to load attachedMessageIds additionally.
-            filters: Which filters to apply in a search.
 
         Returns:
             Iterable object which return events as parts of streaming response.
@@ -139,13 +130,9 @@ class GRPCAPI(IGRPCProviderSourceAPI):
                 Expected in nanoseconds.
             search_direction: Sets the lookup direction. Can be 'NEXT' or 'PREVIOUS'.
             result_count_limit: Sets the maximum amount of messages to return.
-            keep_open: Option if the search has reached the current moment,
-                it is necessary to wait further for the appearance of new data.
             stream_pointer: List of stream pointers to restore the search from.
                 start_timestamp will be ignored if this parameter is specified. This parameter is only received
                 from the provider.
-            filters: Which filters to apply in a search.
-            attached_events: If true, it will additionally load attachedEventsIds.
 
         Returns:
             Iterable object which return messages as parts of streaming response or message stream pointers.
