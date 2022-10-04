@@ -200,6 +200,7 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
         start_timestamp: datetime,
         end_timestamp: datetime = None,
         parent_event: str = None,
+        cache: bool = False,
     ):
         """GetEvents constructor.
 
@@ -213,6 +214,7 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._parent_event = parent_event
+        self._cache = cache
 
         self._grpc_decoder = GRPCObjectToDictAdapter()
         self._wrapper_deleter = DeleteEventWrappersAdapter()
@@ -415,7 +417,8 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
         end_timestamp: datetime = None,
         search_direction: str = "NEXT",
         stream_pointers: List[MessageStreamPointer] = None,
-        result_count_limit: int = None
+        result_count_limit: int = None,
+        cache: bool = False,
     ):
         """GetMessages constructor.
 
@@ -436,13 +439,14 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
         self._stream_pointers = stream_pointers
+        self._cache = cache
 
         self._decoder = GRPCObjectToDictAdapter()
         self._wrapper_deleter = DeleteMessageWrappersAdapter()
 
     def handle(self, data_source: GRPCDataSource) -> Data:
         source = partial(self.__handle_stream, data_source)
-        return Data(source)
+        return Data(source, cache=self._cache)
 
     def __handle_stream(self, data_source: GRPCDataSource) -> Iterable[dict]:
         stream = GetMessagesGRPCObject(

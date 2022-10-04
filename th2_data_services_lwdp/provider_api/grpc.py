@@ -12,7 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from email import message
 import logging
 from collections import namedtuple
 from typing import Iterable, List, Optional, Union
@@ -113,9 +112,9 @@ class GRPCAPI(IGRPCProviderSourceAPI):
 
     def search_messages(
         self,
-        stream: List[str],
-        start_timestamp: int = None,
-        end_timestamp: int = None,
+        start_timestamp: int,
+        end_timestamp: int,
+        stream: List[str] = None,
         search_direction: str = "NEXT",
         result_count_limit: int = None,
         stream_pointer: List[MessageStreamPointer] = None,

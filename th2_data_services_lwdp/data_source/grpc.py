@@ -45,7 +45,7 @@ logger = logging.getLogger(__name__)
 class GRPCDataSource(IGRPCProviderDataSource):
     """DataSource class which provide work with lw-data-provider.
 
-    Lightweight-data-provider version: 1.1.0
+    Lightweight-data-provider version: 1.1.x
     Protocol: GRPC
     """
 
