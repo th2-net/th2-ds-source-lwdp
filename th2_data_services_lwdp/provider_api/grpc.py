@@ -92,10 +92,11 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Iterable object which return events as parts of streaming response.
         """
-        self.__search_basic_checks(
+        self.__search_basic_checks_event(
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp
+            end_timestamp=end_timestamp,
         )
+
 
         basic_request = self.__build_basic_request_object(
             start_timestamp=start_timestamp,
@@ -138,7 +139,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         """
         if stream is None:
             raise TypeError("Argument 'stream' is required.")
-        self.__search_basic_checks(
+        self.__search_basic_checks_message(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
             result_count_limit=result_count_limit,
@@ -165,14 +166,14 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         return self.__stub.searchMessages(message_search_request)
 
     @staticmethod
-    def __search_basic_checks(
+    def __search_basic_checks_message(
         start_timestamp: Optional[int],
         end_timestamp: Optional[int],
         search_direction: Optional[str],
         result_count_limit: Optional[int],
     ):
         if start_timestamp is None:
-            raise ValueError("One of the 'startTimestamp' or 'resumeFromId(s)' must not be None.")
+            raise ValueError("'startTimestamp' must not be None.")
 
         if end_timestamp is None and result_count_limit is None:
             raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
@@ -191,6 +192,24 @@ class GRPCAPI(IGRPCProviderSourceAPI):
                 raise ValueError("Argument 'search_direction' must be 'NEXT' or 'PREVIOUS'.")
         else:
             raise ValueError("Argument 'search_direction' must be 'NEXT' or 'PREVIOUS'.")
+
+    def __search_basic_checks_event(
+        start_timestamp: Optional[int],
+        end_timestamp: Optional[int],
+    ):
+        if start_timestamp is None:
+            raise ValueError("'startTimestamp' must not be None.")
+
+        if end_timestamp is None:
+            raise ValueError("'end_timestamp' must not be None.")
+
+        if (
+            start_timestamp is not None
+            and len(str(start_timestamp)) != 19
+            or end_timestamp is not None
+            and len(str(end_timestamp)) != 19
+        ):
+            raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
 
 
     def __transform_streams(self, streams: List[str]) -> List[MessageStream]:
