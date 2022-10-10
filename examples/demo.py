@@ -1,53 +1,3 @@
-# 1. Introduction
-
-This repository is a library for implementing LwDP data source.
-
-The library used to analyze stream data using _aggregate operations_ mainly from
-the ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw-data-provider). Data Services allows you to manipulate
-the stream data processing workflow using _pipelining_.
-
-The library allows you:
-
-- Natively connect to ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw-data-provider) via
-  `GRPCDataSource` class and extract TH2 Events or Messages via _commands_
-- Build Event Trees (`EventsTreeCollection` class)
-
-# 2. Getting started
-
-## 2.1. Installation
-
-- From PyPI (pip)   
-  This package can be found on [PyPI](https://pypi.org/project/th2-data-services-lwdp/ "th2-data-services-lwdp").
-    ```
-    pip install th2-data-services-lwdp
-    ```
-
-- From Source
-    ```
-    git clone https://github.com/th2-net/th2-ds-source-lwdp
-    pip install th2-data-services-lwdp
-    ```
-
-## 2.2. Releases
-
-Currently there is only ds-lwdp v1 under developement.
-
-Newer releases will have separate branches indicated by SourceVersion of branch name.
-
-# 2.3 Versioning
-
-Versioning of the library looks like this:
-
-SourceVersion.Major.Minor.Patch
-
-## 2.4. Example
-
-Here is a small example using a few of the module's structures.
-
-[The following example as a file](examples/get_started_example.py).
-
-<!-- start get_started_example.py -->
-```python
 # necessary imports for demo
 from th2_data_services_lwdp.commands import grpc as commands
 from th2_data_services_lwdp.data_source import GRPCDataSource
@@ -89,8 +39,3 @@ events: Data = data_source.command(commands.GetEvents(start_timestamp=START_TIME
 s = [Streams(['newretest9'])]
 
 messages: Data = data_source.command(commands.GetMessages(start_timestamp=START_TIME,stream=s,end_timestamp=END_TIME))
-
-
-```
-
--The rest, for example mapping and filtering data or using event trees, is the same for now as in ["th2-data-services"](https://github.com/th2-net/th2-data-services).
