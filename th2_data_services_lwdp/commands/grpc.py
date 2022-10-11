@@ -208,6 +208,7 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
 
         """
         super().__init__()
@@ -416,8 +417,8 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
         stream: List[Union[str, Streams]],
         end_timestamp: datetime = None,
         search_direction: str = "NEXT",
-        stream_pointers: List[MessageStreamPointer] = None,
         result_count_limit: int = None,
+        stream_pointers: List[MessageStreamPointer] = None,
         cache: bool = False,
     ):
         """GetMessages constructor.
@@ -431,6 +432,7 @@ class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
             stream_pointers: List of stream pointers to restore the search from.
                 start_timestamp will be ignored if this parameter is specified. This parameter is only received
                 from the provider.
+            cache: If True, all requested data from rpt-data-provider will be saved to cache.
         """
         super().__init__()
         self._start_timestamp = start_timestamp

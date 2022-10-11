@@ -92,8 +92,13 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Iterable object which return events as parts of streaming response.
         """
-        self.__search_basic_checks_event(
+
+        self.__search_basic_checks(
             start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp,
+        )
+
+        self.__search_basic_checks_event(
             end_timestamp=end_timestamp,
         )
 
@@ -139,8 +144,13 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         """
         if stream is None:
             raise TypeError("Argument 'stream' is required.")
-        self.__search_basic_checks_message(
+
+        self.__search_basic_checks(
             start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp,
+        )
+
+        self.__search_basic_checks_message(
             end_timestamp=end_timestamp,
             result_count_limit=result_count_limit,
             search_direction=search_direction,
@@ -166,17 +176,12 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         return self.__stub.searchMessages(message_search_request)
 
     @staticmethod
-    def __search_basic_checks_message(
+    def __search_basic_checks(
         start_timestamp: Optional[int],
         end_timestamp: Optional[int],
-        search_direction: Optional[str],
-        result_count_limit: Optional[int],
     ):
         if start_timestamp is None:
             raise ValueError("'startTimestamp' must not be None.")
-
-        if end_timestamp is None and result_count_limit is None:
-            raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
 
         if (
             start_timestamp is not None
@@ -185,6 +190,16 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             and len(str(end_timestamp)) != 19
         ):
             raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
+
+    @staticmethod
+    def __search_basic_checks_message(
+        end_timestamp: Optional[int],
+        search_direction: Optional[str],
+        result_count_limit: Optional[int],
+    ):
+
+        if end_timestamp is None and result_count_limit is None:
+            raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
 
         if search_direction is not None:
             search_direction = search_direction.upper()
@@ -193,24 +208,13 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         else:
             raise ValueError("Argument 'search_direction' must be 'NEXT' or 'PREVIOUS'.")
 
+    @staticmethod
     def __search_basic_checks_event(
-        start_timestamp: Optional[int],
         end_timestamp: Optional[int],
     ):
-        if start_timestamp is None:
-            raise ValueError("'startTimestamp' must not be None.")
 
         if end_timestamp is None:
             raise ValueError("'end_timestamp' must not be None.")
-
-        if (
-            start_timestamp is not None
-            and len(str(start_timestamp)) != 19
-            or end_timestamp is not None
-            and len(str(end_timestamp)) != 19
-        ):
-            raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
-
 
     def __transform_streams(self, streams: List[str]) -> List[MessageStream]:
         """Transforms streams to MessagesStream of 'protobuf' entity.
