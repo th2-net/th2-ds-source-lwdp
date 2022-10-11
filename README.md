@@ -44,9 +44,8 @@ SourceVersion.Major.Minor.Patch
 
 Here is a small example using a few of the module's structures.
 
-[The following example as a file](examples/get_started_example.py).
+[The following example as a file](examples/demo.py).
 
-<!-- start get_started_example.py -->
 ```python
 # necessary imports for demo
 from th2_data_services_lwdp.commands import grpc as commands
