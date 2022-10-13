@@ -2,15 +2,7 @@
 
 This repository is a library for implementing LwDP data source.
 
-The library used to analyze stream data using _aggregate operations_ mainly from
-the ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw-data-provider). Data Services allows you to manipulate
-the stream data processing workflow using _pipelining_.
-
-The library allows you:
-
-- Natively connect to ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw-data-provider) via
-  `GRPCDataSource` class and extract TH2 Events or Messages via _commands_
-- Build Event Trees (`EventsTreeCollection` class)
+The library uses ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw-data-provider) as provider.
 
 # 2. Getting started
 
@@ -30,7 +22,7 @@ The library allows you:
 
 ## 2.2. Releases
 
-Currently there is only ds-lwdp v1 under developement.
+Currently there is only [ds-lwdp v1]("https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0") under developement.
 
 Newer releases will have separate branches indicated by SourceVersion of branch name.
 
@@ -38,7 +30,10 @@ Newer releases will have separate branches indicated by SourceVersion of branch 
 
 Versioning of the library looks like this:
 
-SourceVersion.Major.Minor.Patch
+DataSourceMajorVersion.LibVerison
+
+DataSourceMajorVersion - the major version of LwDP the release uses
+LibVersion - the version of data source implementation in Major.Minor.Patch versioning semantic style
 
 ## 2.4. Example
 
