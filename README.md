@@ -39,7 +39,7 @@ LibVersion - the version of data source implementation in Major.Minor.Patch vers
 
 Here is a small example using a few of the module's structures.
 
-[The following example as a file](examples/demo.py).
+[The following example as a file](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0/examples/demo.py).
 
 ```python
 # necessary imports for demo
