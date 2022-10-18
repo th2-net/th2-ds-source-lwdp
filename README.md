@@ -22,7 +22,7 @@ The library uses ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw
 
 ## 2.2. Releases
 
-Currently there is only [ds-lwdp v1]("https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0") under developement.
+Currently there is only [ds-lwdp v1](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0) under developement.
 
 Newer releases will have separate branches indicated by SourceVersion of branch name.
 
