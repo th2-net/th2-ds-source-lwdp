@@ -51,7 +51,9 @@ class _StatusFilter(EventFilter):
         Returns:
             str: Generated filter.
         """
-        return f"&filters={self.name}" + "".join([f"&{self.name}-values={val}" for val in self.values])
+        return f"&filters={self.name}" + "".join(
+            [f"&{self.name}-values={val}" for val in self.values]
+        )
 
 
 class PassedStatusFilter(_StatusFilter):

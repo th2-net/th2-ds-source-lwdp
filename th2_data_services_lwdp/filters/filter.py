@@ -15,7 +15,10 @@
 from th2_data_services.provider.interfaces.filter import IProviderFilter
 from typing import Sequence, Any, Union
 
-from th2_grpc_data_provider.data_provider_pb2 import Filter as grpc_Filter, FilterName as grpc_FilterName
+from th2_grpc_data_provider.data_provider_pb2 import (
+    Filter as grpc_Filter,
+    FilterName as grpc_FilterName,
+)
 import google.protobuf.wrappers_pb2
 
 

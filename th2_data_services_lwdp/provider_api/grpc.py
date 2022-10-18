@@ -48,7 +48,14 @@ logger = logging.getLogger(__name__)
 
 BasicRequest = namedtuple(
     "BasicRequest",
-    ["start_timestamp", "end_timestamp", "result_count_limit", "keep_open", "search_direction", "filters"],
+    [
+        "start_timestamp",
+        "end_timestamp",
+        "result_count_limit",
+        "keep_open",
+        "search_direction",
+        "filters",
+    ],
 )
 
 
@@ -231,7 +238,9 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             or end_timestamp is not None
             and len(str(end_timestamp)) != 19
         ):
-            raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
+            raise ValueError(
+                "Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds."
+            )
 
         if search_direction is not None:
             search_direction = search_direction.upper()
@@ -311,7 +320,9 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         if filters is None:
             filters = []
 
-        start_timestamp = self.__build_timestamp_object(start_timestamp) if start_timestamp else None
+        start_timestamp = (
+            self.__build_timestamp_object(start_timestamp) if start_timestamp else None
+        )
         end_timestamp = self.__build_timestamp_object(end_timestamp) if end_timestamp else None
         search_direction = TimeRelation.Value(search_direction)  # getting a value from enum
         result_count_limit = Int32Value(value=result_count_limit) if result_count_limit else None
@@ -337,8 +348,8 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Timestamp object.
         """
-        nanos = timestamp % 10 ** 9
-        seconds = timestamp // 10 ** 9
+        nanos = timestamp % 10**9
+        seconds = timestamp // 10**9
         timestamp = Timestamp(seconds=seconds, nanos=nanos)
         return timestamp
 

@@ -17,7 +17,11 @@ from functools import partial
 from typing import List, Iterable, Generator, Union
 
 from grpc._channel import _InactiveRpcError
-from th2_grpc_data_provider.data_provider_pb2 import EventResponse, MessageGroupResponse, MessageStreamPointer
+from th2_grpc_data_provider.data_provider_pb2 import (
+    EventResponse,
+    MessageGroupResponse,
+    MessageStreamPointer,
+)
 
 
 from th2_data_services import Data
@@ -99,7 +103,9 @@ class GetEventById(IGRPCCommand, ProviderAdaptableCommand):
             event = self._wrapper_deleter.handle(event)
         except _InactiveRpcError:
             if self._stub_status:
-                event = data_source.event_stub_builder.build({data_source.event_struct.EVENT_ID: self._id})
+                event = data_source.event_stub_builder.build(
+                    {data_source.event_struct.EVENT_ID: self._id}
+                )
             else:
                 logger.error(f"Unable to find the event. Id: {self._id}")
                 raise EventNotFound(self._id)
@@ -135,7 +141,9 @@ class GetEventsById(IGRPCCommand, ProviderAdaptableCommand):
     def handle(self, data_source: GRPCDataSource) -> List[dict]:  # noqa: D102
         response = []
         for event_id in self.ids:
-            event = GetEventById(event_id, use_stub=self._stub_status).handle(data_source=data_source)
+            event = GetEventById(event_id, use_stub=self._stub_status).handle(
+                data_source=data_source
+            )
             event = self._handle_adapters(event)
             response.append(event)
 
@@ -197,8 +205,10 @@ class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
     def handle(self, data_source: GRPCDataSource) -> Iterable[EventResponse]:  # noqa: D102
         api: GRPCAPI = data_source.source_api
 
-        start_timestamp = int(self._start_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10 ** 9)
-        end_timestamp = int(self._end_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10 ** 9)
+        start_timestamp = int(
+            self._start_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10**9
+        )
+        end_timestamp = int(self._end_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10**9)
 
         stream_response = api.search_events(
             start_timestamp=start_timestamp,
@@ -363,7 +373,9 @@ class GetMessageById(IGRPCCommand, ProviderAdaptableCommand):  # noqa: D102
             message = self._wrapper_deleter.handle(message)
         except _InactiveRpcError:
             if self._stub_status:
-                message = data_source.message_stub_builder.build({data_source.message_struct.MESSAGE_ID: self._id})
+                message = data_source.message_stub_builder.build(
+                    {data_source.message_struct.MESSAGE_ID: self._id}
+                )
             else:
                 logger.error(f"Unable to find the message. Id: {self._id}")
                 raise MessageNotFound(self._id)
@@ -462,8 +474,10 @@ class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
     def handle(self, data_source: GRPCDataSource) -> List[MessageGroupResponse]:
         api = data_source.source_api
 
-        start_timestamp = int(self._start_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10 ** 9)
-        end_timestamp = int(self._end_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10 ** 9)
+        start_timestamp = int(
+            self._start_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10**9
+        )
+        end_timestamp = int(self._end_timestamp.replace(tzinfo=timezone.utc).timestamp() * 10**9)
 
         stream_response = api.search_messages(
             start_timestamp=start_timestamp,
