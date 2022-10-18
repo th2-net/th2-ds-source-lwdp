@@ -42,4 +42,4 @@ For example v1.0.1.0 data source implementation is for LwDP v1.x.y and the modul
 
 [Example of using data source v1 implementation](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0/examples/demo.py).
 
--For anything other than data source implementation check out ["th2-data-services"](https://github.com/th2-net/th2-data-services).
+For anything other than data source implementation check out ["th2-data-services"](https://github.com/th2-net/th2-data-services).
