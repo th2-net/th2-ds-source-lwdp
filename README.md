@@ -32,9 +32,9 @@ Versioning of the library looks like this:
 
 DataSourceMajorVersion.LibVerison
 
-DataSourceMajorVersion - the major version of LwDP the release uses
+`DataSourceMajorVersion` - the major version of LwDP the release uses
 
-LibVersion - the version of data source implementation in Major.Minor.Patch versioning semantic style
+`LibVersion` - the version of data source implementation in Major.Minor.Patch versioning semantic style
 
 ## 2.4. Examples
 
