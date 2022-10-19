@@ -119,7 +119,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
     def search_messages(
         self,
         start_timestamp: int,
-        end_timestamp: int,
+        end_timestamp: int = None,
         stream: List[str] = None,
         search_direction: str = "NEXT",
         result_count_limit: int = None,
