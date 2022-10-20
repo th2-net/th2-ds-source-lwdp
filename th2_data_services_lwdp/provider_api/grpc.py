@@ -119,8 +119,8 @@ class GRPCAPI(IGRPCProviderSourceAPI):
     def search_messages(
         self,
         start_timestamp: int,
+        stream: List[str],
         end_timestamp: int = None,
-        stream: List[str] = None,
         search_direction: str = "NEXT",
         result_count_limit: int = None,
         stream_pointer: List[MessageStreamPointer] = None,
@@ -142,8 +142,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Iterable object which return messages as parts of streaming response or message stream pointers.
         """
-        if stream is None:
-            raise TypeError("Argument 'stream' is required.")
 
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
