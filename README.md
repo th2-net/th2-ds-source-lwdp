@@ -1,8 +1,8 @@
 # 1. Introduction
 
-This repository is a library for implementing LwDP data source.
+This library is the implementation of `data-services data source` for [Lightweight Data Provider](https://github.com/th2-net/th2-lw-data-provider) (LwDP).
 
-The library uses ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw-data-provider) as provider.
+See more about `data-services data source` [here](https://not_implemented_yet_relates_to_TH2-4185).
 
 # 2. Getting started
 
@@ -14,32 +14,20 @@ The library uses ["Lightweight Data Provider"](https://github.com/th2-net/th2-lw
     pip install th2-data-services-lwdp
     ```
 
-- From Source
-    ```
-    git clone https://github.com/th2-net/th2-ds-source-lwdp
-    pip install th2-data-services-lwdp
-    ```
-
 ## 2.2. Releases
 
-Currently there is only [ds-lwdp v1](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0) under developement.
+Each release has separate branch indicated by `DataSourceMajorVersion` of branch name.
 
-Newer releases will have separate branches indicated by SourceVersion of branch name.
+Available versions:
+- [ds-lwdp1](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0) - dev version. 
 
-# 2.3 Versioning
 
-Versioning of the library looks like this:
+## 2.3. Release versioning
 
-DataSourceMajorVersion.LibVerison
+Implementations versions have the following structure: `DataSourceMajorVersion`.`ImplVerison`
 
 `DataSourceMajorVersion` - the major version of LwDP the release uses
 
-`LibVersion` - the version of data source implementation in Major.Minor.Patch versioning semantic style
+`ImplVerison` - the version of data source implementation in `Major`.`Minor`.`Patch` versioning semantic style
 
-For example v1.0.1.0 data source implementation is for LwDP v1.x.y and the module version is 0.1.0
-
-## 2.4. Examples
-
-[Example of using data source v1 implementation](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0/examples/demo.py).
-
-For anything other than data source implementation check out ["th2-data-services"](https://github.com/th2-net/th2-data-services).
+For example `v1.0.1.0` is the version for LwDP `v1.x.y`. The implementation version `0.1.0`.
