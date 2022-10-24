@@ -68,7 +68,10 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         return self.__stub.getMessageStreams(Empty())
 
     def search_events(
-        self, start_timestamp: int = None, end_timestamp: int = None, parent_event: str = None
+        self,
+        start_timestamp: int = None,
+        end_timestamp: int = None,
+        parent_event: str = None
     ) -> Iterable[EventSearchResponse]:
         """GRPC-API `searchEvents` call creates an event or an event metadata stream that matches the filter.
 
@@ -92,14 +95,15 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         )
 
         basic_request = self.__build_basic_request_object(
-            start_timestamp=start_timestamp, end_timestamp=end_timestamp
+            start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp
         )
         parent_event = EventID(id=parent_event) if parent_event else None
 
         event_search_request = EventSearchRequest(
             start_timestamp=basic_request.start_timestamp,
             end_timestamp=basic_request.end_timestamp,
-            parent_event=parent_event,
+            parent_event=parent_event
         )
         return self.__stub.searchEvents(event_search_request)
 
@@ -129,6 +133,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Iterable object which return messages as parts of streaming response or message stream pointers.
         """
+
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
@@ -253,7 +258,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         start_timestamp: int = None,
         end_timestamp: int = None,
         result_count_limit: int = None,
-        search_direction: str = "NEXT",
+        search_direction: str = "NEXT"
     ) -> BasicRequest:
         """Builds a BasicRequest wrapper-object.
 
@@ -268,9 +273,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             BasicRequest wrapper-object.
         """
-        start_timestamp = (
-            self.__build_timestamp_object(start_timestamp) if start_timestamp else None
-        )
+        start_timestamp = self.__build_timestamp_object(start_timestamp) if start_timestamp else None
         end_timestamp = self.__build_timestamp_object(end_timestamp) if end_timestamp else None
         search_direction = TimeRelation.Value(search_direction)  # getting a value from enum
         result_count_limit = Int32Value(value=result_count_limit) if result_count_limit else None
@@ -279,7 +282,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
             search_direction=search_direction,
-            result_count_limit=result_count_limit,
+            result_count_limit=result_count_limit
         )
         return basic_request
 
