@@ -48,13 +48,13 @@ logger = logging.getLogger(__name__)
 
 BasicRequest = namedtuple(
     "BasicRequest",
-    ["start_timestamp", "end_timestamp", "result_count_limit", "keep_open", "search_direction", "filters"],
+    ["start_timestamp", "end_timestamp", "result_count_limit", "search_direction"],
 )
 
 
 class GRPCAPI(IGRPCProviderSourceAPI):
     def __init__(self, url: str):
-        """GRPC Provider6 API.
+        """GRPC API.
 
         Args:
             url: GRPC data source url.
@@ -78,15 +78,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         self,
         start_timestamp: int = None,
         end_timestamp: int = None,
-        parent_event: str = None,
-        search_direction: str = "NEXT",
-        resume_from_id: str = None,
-        result_count_limit: int = None,
-        keep_open: bool = False,
-        limit_for_parent: int = None,
-        metadata_only: bool = True,
-        attached_messages: bool = False,
-        filters: Optional[List[Filter]] = None,
+        parent_event: str = None
     ) -> Iterable[EventSearchResponse]:
         """GRPC-API `searchEvents` call creates an event or an event metadata stream that matches the filter.
 
@@ -96,66 +88,42 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
                 Expected in nanoseconds.
             parent_event: Match events to the specified parent.
-            search_direction: Sets the lookup direction. Can be 'NEXT' or 'PREVIOUS'.
-            resume_from_id: The last event id from which we start searching for events.
-            result_count_limit: Sets the maximum amount of events to return.
-            keep_open: Option if the search has reached the current moment,
-                it is necessary to wait further for the appearance of new data.
-            limit_for_parent: How many children events for each parent do we want to request.
-            metadata_only: Receive only metadata (true) or entire event (false) (without attachedMessageIds).
-            attached_messages: Option if you want to load attachedMessageIds additionally.
-            filters: Which filters to apply in a search.
 
         Returns:
             Iterable object which return events as parts of streaming response.
         """
+
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
-            result_count_limit=result_count_limit,
-            search_direction=search_direction,
         )
+
+        self.__search_basic_checks_event(
+            end_timestamp=end_timestamp,
+        )
+
 
         basic_request = self.__build_basic_request_object(
             start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp,
-            search_direction=search_direction,
-            result_count_limit=result_count_limit,
-            keep_open=keep_open,
-            filters=filters,
+            end_timestamp=end_timestamp
         )
         parent_event = EventID(id=parent_event) if parent_event else None
-        resume_from_id = EventID(id=resume_from_id) if resume_from_id else None
-        limit_for_parent = Int64Value(value=limit_for_parent) if limit_for_parent else None
-        metadata_only = BoolValue(value=metadata_only)
-        attached_messages = BoolValue(value=attached_messages)
 
         event_search_request = EventSearchRequest(
             start_timestamp=basic_request.start_timestamp,
             end_timestamp=basic_request.end_timestamp,
-            parent_event=parent_event,
-            search_direction=basic_request.search_direction,
-            resume_from_id=resume_from_id,
-            result_count_limit=basic_request.result_count_limit,
-            keep_open=basic_request.keep_open,
-            limit_for_parent=limit_for_parent,
-            metadata_only=metadata_only,
-            attached_messages=attached_messages,
-            filter=basic_request.filters,
+            parent_event=parent_event
         )
         return self.__stub.searchEvents(event_search_request)
 
     def search_messages(
         self,
         start_timestamp: int,
+        stream: List[str],
         end_timestamp: int = None,
         search_direction: str = "NEXT",
         result_count_limit: int = None,
-        stream: List[str] = None,
-        keep_open: bool = False,
         stream_pointer: List[MessageStreamPointer] = None,
-        filters: Optional[List[Filter]] = None,
-        attached_events: bool = False,
     ) -> Iterable[MessageSearchResponse]:
         """GRPC-API `searchMessages` call creates a message stream that matches the filter.
 
@@ -167,21 +135,20 @@ class GRPCAPI(IGRPCProviderSourceAPI):
                 Expected in nanoseconds.
             search_direction: Sets the lookup direction. Can be 'NEXT' or 'PREVIOUS'.
             result_count_limit: Sets the maximum amount of messages to return.
-            keep_open: Option if the search has reached the current moment,
-                it is necessary to wait further for the appearance of new data.
             stream_pointer: List of stream pointers to restore the search from.
                 start_timestamp will be ignored if this parameter is specified. This parameter is only received
                 from the provider.
-            filters: Which filters to apply in a search.
-            attached_events: If true, it will additionally load attachedEventsIds.
 
         Returns:
             Iterable object which return messages as parts of streaming response or message stream pointers.
         """
-        if stream is None:
-            raise TypeError("Argument 'stream' is required.")
+
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp,
+        )
+
+        self.__search_basic_checks_message(
             end_timestamp=end_timestamp,
             result_count_limit=result_count_limit,
             search_direction=search_direction,
@@ -191,23 +158,17 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
             result_count_limit=result_count_limit,
-            keep_open=keep_open,
             search_direction=search_direction,
-            filters=filters,
         )
 
         stream = self.__transform_streams(stream)
-        attached_events = BoolValue(value=attached_events)
         message_search_request = MessageSearchRequest(
             start_timestamp=basic_request.start_timestamp,
             end_timestamp=basic_request.end_timestamp,
             search_direction=basic_request.search_direction,
             result_count_limit=basic_request.result_count_limit,
-            keep_open=basic_request.keep_open,
-            filter=basic_request.filters,
-            attached_events=attached_events,
-            stream=stream,
             stream_pointer=stream_pointer,
+            stream=stream,
         )
 
         return self.__stub.searchMessages(message_search_request)
@@ -216,14 +177,9 @@ class GRPCAPI(IGRPCProviderSourceAPI):
     def __search_basic_checks(
         start_timestamp: Optional[int],
         end_timestamp: Optional[int],
-        search_direction: Optional[str],
-        result_count_limit: Optional[int],
     ):
         if start_timestamp is None:
-            raise ValueError("One of the 'startTimestamp' or 'resumeFromId(s)' must not be None.")
-
-        if end_timestamp is None and result_count_limit is None:
-            raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
+            raise ValueError("'startTimestamp' must not be None.")
 
         if (
             start_timestamp is not None
@@ -233,12 +189,30 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         ):
             raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
 
+    @staticmethod
+    def __search_basic_checks_message(
+        end_timestamp: Optional[int],
+        search_direction: Optional[str],
+        result_count_limit: Optional[int],
+    ):
+
+        if end_timestamp is None and result_count_limit is None:
+            raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
+
         if search_direction is not None:
             search_direction = search_direction.upper()
             if search_direction not in ("NEXT", "PREVIOUS"):
                 raise ValueError("Argument 'search_direction' must be 'NEXT' or 'PREVIOUS'.")
         else:
             raise ValueError("Argument 'search_direction' must be 'NEXT' or 'PREVIOUS'.")
+
+    @staticmethod
+    def __search_basic_checks_event(
+        end_timestamp: Optional[int],
+    ):
+
+        if end_timestamp is None:
+            raise ValueError("'end_timestamp' must not be None.")
 
     def __transform_streams(self, streams: List[str]) -> List[MessageStream]:
         """Transforms streams to MessagesStream of 'protobuf' entity.
@@ -291,12 +265,9 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         start_timestamp: int = None,
         end_timestamp: int = None,
         result_count_limit: int = None,
-        keep_open: bool = False,
-        search_direction: str = "NEXT",
-        filters: Optional[List[Filter]] = None,
+        search_direction: str = "NEXT"
     ) -> BasicRequest:
         """Builds a BasicRequest wrapper-object.
-
         Args:
             start_timestamp: Start Timestamp for request.
             end_timestamp: End Timestamp for request.
@@ -304,26 +275,21 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             keep_open: Option for stream-request.
             search_direction: Searching direction.
             filters: Which filters to apply in a request.
-
         Returns:
             BasicRequest wrapper-object.
         """
-        if filters is None:
-            filters = []
 
         start_timestamp = self.__build_timestamp_object(start_timestamp) if start_timestamp else None
         end_timestamp = self.__build_timestamp_object(end_timestamp) if end_timestamp else None
         search_direction = TimeRelation.Value(search_direction)  # getting a value from enum
         result_count_limit = Int32Value(value=result_count_limit) if result_count_limit else None
-        keep_open = BoolValue(value=keep_open)
+        
 
         basic_request = BasicRequest(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
             search_direction=search_direction,
-            result_count_limit=result_count_limit,
-            keep_open=keep_open,
-            filters=filters,
+            result_count_limit=result_count_limit
         )
         return basic_request
 
