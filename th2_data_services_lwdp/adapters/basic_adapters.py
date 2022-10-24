@@ -44,10 +44,7 @@ class GRPCObjectToDictAdapter(IAdapter):
                 "nano": record.end_timestamp.nanos,
             }
         elif isinstance(record, MessageGroupResponse):
-            new_record["timestamp"] = {
-                "epochSecond": record.timestamp.seconds,
-                "nano": record.timestamp.nanos,
-            }
+            new_record["timestamp"] = {"epochSecond": record.timestamp.seconds, "nano": record.timestamp.nanos}
 
         try:
             new_record["body"] = json.loads(record.body)

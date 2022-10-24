@@ -41,7 +41,7 @@ def resolver_get_event_by_id(
 
 def resolver_get_events_by_id(
     data_source: IProviderDataSource,
-) -> Type[GetEventsByIdFromGRPC]:
+) ->  Type[GetEventsByIdFromGRPC]:
     """Resolves what 'GetEventsById' command you need to use based Data Source.
 
     Args:

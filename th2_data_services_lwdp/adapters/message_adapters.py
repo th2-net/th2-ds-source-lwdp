@@ -90,8 +90,7 @@ class CodecPipelinesAdapter(IMessageAdapter):
                 return message
             else:
                 raise ValueError(
-                    "The messages doesn't have a messageType field. Message:\n"
-                    f"{pprint.pformat(message)}"
+                    "The messages doesn't have a messageType field. Message:\n" f"{pprint.pformat(message)}"
                 )
 
         if "/" not in msg_type:
