@@ -188,7 +188,7 @@ class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
         stream_response = api.search_events(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
-            parent_event=self._parent_event,
+            parent_event=self._parent_event
         )
         for response in stream_response:
             if response.WhichOneof("data") == "event":
@@ -238,7 +238,7 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
         stream = GetEventsGRPCObjects(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
-            parent_event=self._parent_event,
+            parent_event=self._parent_event
         ).handle(data_source)
         for event in stream:
             event = self._grpc_decoder.handle(event)
