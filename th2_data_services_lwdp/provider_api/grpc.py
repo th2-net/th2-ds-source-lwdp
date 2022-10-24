@@ -18,7 +18,7 @@ from typing import Iterable, List, Optional, Union
 
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.timestamp_pb2 import Timestamp
-from google.protobuf.wrappers_pb2 import BoolValue, Int32Value, Int64Value
+from google.protobuf.wrappers_pb2 import Int32Value
 from th2_grpc_common.common_pb2 import MessageID, EventID, ConnectionID, Direction
 from th2_grpc_data_provider.data_provider_pb2_grpc import DataProviderStub
 from th2_grpc_data_provider.data_provider_pb2 import (
@@ -26,14 +26,7 @@ from th2_grpc_data_provider.data_provider_pb2 import (
     MessageGroupResponse,
     MessageStreamsResponse,
     MessageSearchResponse,
-    Filter,
     EventSearchResponse,
-    FilterNamesResponse,
-    FilterInfoResponse,
-    FilterName,
-    MatchResponse,
-    EventMatchRequest,
-    MessageMatchRequest,
     EventSearchRequest,
     MessageSearchRequest,
     TimeRelation,
@@ -75,10 +68,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         return self.__stub.getMessageStreams(Empty())
 
     def search_events(
-        self,
-        start_timestamp: int = None,
-        end_timestamp: int = None,
-        parent_event: str = None
+        self, start_timestamp: int = None, end_timestamp: int = None, parent_event: str = None
     ) -> Iterable[EventSearchResponse]:
         """GRPC-API `searchEvents` call creates an event or an event metadata stream that matches the filter.
 
@@ -92,7 +82,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Iterable object which return events as parts of streaming response.
         """
-
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
@@ -102,17 +91,15 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             end_timestamp=end_timestamp,
         )
 
-
         basic_request = self.__build_basic_request_object(
-            start_timestamp=start_timestamp,
-            end_timestamp=end_timestamp
+            start_timestamp=start_timestamp, end_timestamp=end_timestamp
         )
         parent_event = EventID(id=parent_event) if parent_event else None
 
         event_search_request = EventSearchRequest(
             start_timestamp=basic_request.start_timestamp,
             end_timestamp=basic_request.end_timestamp,
-            parent_event=parent_event
+            parent_event=parent_event,
         )
         return self.__stub.searchEvents(event_search_request)
 
@@ -142,7 +129,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Iterable object which return messages as parts of streaming response or message stream pointers.
         """
-
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
@@ -187,7 +173,9 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             or end_timestamp is not None
             and len(str(end_timestamp)) != 19
         ):
-            raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
+            raise ValueError(
+                "Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds."
+            )
 
     @staticmethod
     def __search_basic_checks_message(
@@ -265,9 +253,10 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         start_timestamp: int = None,
         end_timestamp: int = None,
         result_count_limit: int = None,
-        search_direction: str = "NEXT"
+        search_direction: str = "NEXT",
     ) -> BasicRequest:
         """Builds a BasicRequest wrapper-object.
+
         Args:
             start_timestamp: Start Timestamp for request.
             end_timestamp: End Timestamp for request.
@@ -275,21 +264,22 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             keep_open: Option for stream-request.
             search_direction: Searching direction.
             filters: Which filters to apply in a request.
+
         Returns:
             BasicRequest wrapper-object.
         """
-
-        start_timestamp = self.__build_timestamp_object(start_timestamp) if start_timestamp else None
+        start_timestamp = (
+            self.__build_timestamp_object(start_timestamp) if start_timestamp else None
+        )
         end_timestamp = self.__build_timestamp_object(end_timestamp) if end_timestamp else None
         search_direction = TimeRelation.Value(search_direction)  # getting a value from enum
         result_count_limit = Int32Value(value=result_count_limit) if result_count_limit else None
-        
 
         basic_request = BasicRequest(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
             search_direction=search_direction,
-            result_count_limit=result_count_limit
+            result_count_limit=result_count_limit,
         )
         return basic_request
 
@@ -303,8 +293,8 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Timestamp object.
         """
-        nanos = timestamp % 10 ** 9
-        seconds = timestamp // 10 ** 9
+        nanos = timestamp % 10**9
+        seconds = timestamp // 10**9
         timestamp = Timestamp(seconds=seconds, nanos=nanos)
         return timestamp
 
