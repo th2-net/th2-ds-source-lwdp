@@ -85,6 +85,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         Returns:
             Iterable object which return events as parts of streaming response.
         """
+
         self.__search_basic_checks(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
@@ -93,6 +94,7 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         self.__search_basic_checks_event(
             end_timestamp=end_timestamp,
         )
+
 
         basic_request = self.__build_basic_request_object(
             start_timestamp=start_timestamp,
@@ -192,6 +194,16 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         if end_timestamp is None and result_count_limit is None:
             raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
 
+    @staticmethod
+    def __search_basic_checks_message(
+        end_timestamp: Optional[int],
+        search_direction: Optional[str],
+        result_count_limit: Optional[int],
+    ):
+
+        if end_timestamp is None and result_count_limit is None:
+            raise ValueError("One of the 'end_timestamp' or 'result_count_limit' must not be None.")
+
         if search_direction is not None:
             search_direction = search_direction.upper()
             if search_direction not in ("NEXT", "PREVIOUS"):
@@ -261,7 +273,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
         search_direction: str = "NEXT"
     ) -> BasicRequest:
         """Builds a BasicRequest wrapper-object.
-
         Args:
             start_timestamp: Start Timestamp for request.
             end_timestamp: End Timestamp for request.
@@ -269,7 +280,6 @@ class GRPCAPI(IGRPCProviderSourceAPI):
             keep_open: Option for stream-request.
             search_direction: Searching direction.
             filters: Which filters to apply in a request.
-
         Returns:
             BasicRequest wrapper-object.
         """

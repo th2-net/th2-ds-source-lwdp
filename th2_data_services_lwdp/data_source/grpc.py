@@ -73,7 +73,7 @@ class GRPCDataSource(IGRPCProviderDataSource):
             event_stub_builder=event_stub_builder,
             message_stub_builder=message_stub_builder,
         )
-
+        
         self.__provider_api = GRPCAPI(url)
 
         logger.info(url)
