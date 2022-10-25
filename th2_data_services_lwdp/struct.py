@@ -16,6 +16,7 @@ from dataclasses import dataclass
 
 from th2_data_services.provider.interfaces.struct import IEventStruct, IMessageStruct
 
+
 @dataclass
 class GRPCEventStruct(IEventStruct):
     """Interface for Event of data-provider v6."""

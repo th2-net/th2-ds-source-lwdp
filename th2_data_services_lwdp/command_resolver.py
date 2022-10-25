@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from typing import Union, Type
+from typing import Type
 
 from th2_data_services.provider.interfaces import IProviderDataSource
 from th2_data_services_lwdp.commands.grpc import GetEventsById as GetEventsByIdFromGRPC
@@ -41,7 +41,7 @@ def resolver_get_event_by_id(
 
 def resolver_get_events_by_id(
     data_source: IProviderDataSource,
-) ->  Type[GetEventsByIdFromGRPC]:
+) -> Type[GetEventsByIdFromGRPC]:
     """Resolves what 'GetEventsById' command you need to use based Data Source.
 
     Args:

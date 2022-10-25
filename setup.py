@@ -26,7 +26,9 @@ with open("README.md", "r") as file:
     long_description = file.read()
 
 with open("requirements.txt", "r") as file:
-    requirements = [line.strip() for line in file.readlines() if not line.startswith("#") and line != "\n"]
+    requirements = [
+        line.strip() for line in file.readlines() if not line.startswith("#") and line != "\n"
+    ]
 
 setup(
     name=package_name,

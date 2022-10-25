@@ -35,7 +35,9 @@ class Streams:
             str: Generated streams.
         """
         if self._direction is None:
-            return "&".join([f"stream={stream}:FIRST&stream={stream}:SECOND" for stream in self._streams])
+            return "&".join(
+                [f"stream={stream}:FIRST&stream={stream}:SECOND" for stream in self._streams]
+            )
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._streams])
 
     def grpc(self) -> List[MessageStream]:
@@ -52,4 +54,7 @@ class Streams:
                     MessageStream(name=stream, direction=Direction.Value("SECOND")),
                 ]
             return result
-        return [MessageStream(name=stream, direction=Direction.Value(self._direction)) for stream in self._streams]
+        return [
+            MessageStream(name=stream, direction=Direction.Value(self._direction))
+            for stream in self._streams
+        ]
