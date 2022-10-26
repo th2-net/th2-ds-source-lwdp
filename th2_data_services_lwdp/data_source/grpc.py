@@ -18,13 +18,13 @@ from grpc._channel import _InactiveRpcError
 
 from typing import TYPE_CHECKING
 
-from th2_data_services_lwdp.provider.exceptions import CommandError
+from th2_data_services.exceptions import CommandError
 from th2_data_services.interfaces import IEventStruct, IMessageStruct
 
 if TYPE_CHECKING:
     from th2_data_services_lwdp.interfaces.command import IGRPCCommand
 
-from th2_data_services_lwdp.provider.data_source import IGRPCProviderDataSource
+from th2_data_services_lwdp.interfaces.data_source import IGRPCDataSource
 
 import logging
 
@@ -42,10 +42,9 @@ from th2_data_services_lwdp.stub_builder import (
 logger = logging.getLogger(__name__)
 
 
-class GRPCDataSource(IGRPCProviderDataSource):
+class GRPCDataSource(IGRPCDataSource):
     """DataSource class which provide work with lw-data-provider.
 
-    Lightweight-data-provider version: 1.1.x
     Protocol: GRPC
     """
 

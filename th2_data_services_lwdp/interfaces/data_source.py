@@ -14,22 +14,24 @@
 
 from abc import abstractmethod
 from typing import TYPE_CHECKING
-if TYPE_CHECKING:   
-    from th2_data_services_lwdp.provider.command import IProviderCommand, IGRPCProviderCommand
+
+if TYPE_CHECKING:
+    from th2_data_services_lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
 
 from th2_data_services.interfaces import IDataSource
-from th2_data_services_lwdp.provider.source_api import IGRPCProviderSourceAPI, IProviderSourceAPI
+from th2_data_services_lwdp.interfaces.source_api import IGRPCSourceAPI, ILwDPSourceAPI
 from th2_data_services_lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services_lwdp.stub_builder import IEventStub, IMessageStub
 
-class IProviderDataSource(IDataSource):
+
+class ILwDPDataSource(IDataSource):
     def __init__(
-        self,
-        url: str,
-        event_struct: IEventStruct,
-        message_struct: IMessageStruct,
-        event_stub_builder: IEventStub,
-        message_stub_builder: IMessageStub,
+            self,
+            url: str,
+            event_struct: IEventStruct,
+            message_struct: IMessageStruct,
+            event_stub_builder: IEventStub,
+            message_stub_builder: IMessageStub,
     ):
         """Interface of DataSource that provides work with lwdp-data-provider.
         Args:
@@ -73,23 +75,23 @@ class IProviderDataSource(IDataSource):
         return self._message_stub_builder
 
     @abstractmethod
-    def command(self, cmd: 'IProviderCommand'):
+    def command(self, cmd: 'ILwDPCommand'):
         """Execute the transmitted command."""
 
     @property
     @abstractmethod
-    def source_api(self) -> IProviderSourceAPI:
+    def source_api(self) -> ILwDPSourceAPI:
         """Returns Provider API."""
 
 
-class IGRPCProviderDataSource(IProviderDataSource):
+class IGRPCDataSource(ILwDPDataSource):
     """Interface of DataSource that provides work with lwdp-data-provider via GRPC."""
 
     @abstractmethod
-    def command(self, cmd: 'IGRPCProviderCommand'):
+    def command(self, cmd: 'IGRPCCommand'):
         """Execute the transmitted GRPC command."""
 
     @property
     @abstractmethod
-    def source_api(self) -> IGRPCProviderSourceAPI:
+    def source_api(self) -> IGRPCSourceAPI:
         """Returns GRPC Provider API."""

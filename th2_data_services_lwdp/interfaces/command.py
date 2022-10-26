@@ -13,12 +13,19 @@
 #  limitations under the License.
 
 from abc import abstractmethod
+from th2_data_services_lwdp.interfaces.data_source import ILwDPDataSource, IGRPCDataSource
+from th2_data_services.interfaces import ICommand
 
-from th2_data_services_lwdp.provider.command import IGRPCProviderCommand
-from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
+
+class ILwDPCommand(ICommand):
+    """Interface of command for lwdp-data-provider."""
+
+    @abstractmethod
+    def handle(self, data_source: ILwDPDataSource):
+        pass
 
 
-class IGRPCCommand(IGRPCProviderCommand):
+class IGRPCCommand(ILwDPCommand):
     """Interface of command for lwdp-data-provider.
 
     Lwdp-data-provider version: 1.1.x
@@ -26,5 +33,5 @@ class IGRPCCommand(IGRPCProviderCommand):
     """
 
     @abstractmethod
-    def handle(self, data_source: GRPCDataSource):
+    def handle(self, data_source: IGRPCDataSource):
         pass
