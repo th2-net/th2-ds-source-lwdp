@@ -12,7 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
 from abc import abstractmethod
 from typing import Callable
 from th2_data_services_lwdp.provider.data_source import IProviderDataSource, IGRPCProviderDataSource
@@ -20,14 +19,14 @@ from th2_data_services.interfaces import ICommand
 
 
 class IProviderCommand(ICommand):
-    """Interface of command for rpt-data-provider."""
+    """Interface of command for lwdp-data-provider."""
 
     @abstractmethod
     def handle(self, data_source: IProviderDataSource):
         pass
 
 class IGRPCProviderCommand(ICommand):
-    """Interface of command for rpt-data-provider which works via GRPC."""
+    """Interface of command for lwdp-data-provider which works via GRPC."""
 
     @abstractmethod
     def handle(self, data_source: IGRPCProviderDataSource):

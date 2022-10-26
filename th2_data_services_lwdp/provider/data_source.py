@@ -31,7 +31,7 @@ class IProviderDataSource(IDataSource):
         event_stub_builder: IEventStub,
         message_stub_builder: IMessageStub,
     ):
-        """Interface of DataSource that provides work with rpt-data-provider.
+        """Interface of DataSource that provides work with lwdp-data-provider.
         Args:
             url: Url address to data provider.
             event_struct: Event struct class.
@@ -49,7 +49,7 @@ class IProviderDataSource(IDataSource):
 
     @property
     def url(self) -> str:
-        """str: URL of rpt-data-provider."""
+        """str: URL of lwdp-data-provider."""
         return self._url
 
     @property
@@ -83,7 +83,7 @@ class IProviderDataSource(IDataSource):
 
 
 class IGRPCProviderDataSource(IProviderDataSource):
-    """Interface of DataSource that provides work with rpt-data-provider via GRPC."""
+    """Interface of DataSource that provides work with lwdp-data-provider via GRPC."""
 
     @abstractmethod
     def command(self, cmd: 'IGRPCProviderCommand'):

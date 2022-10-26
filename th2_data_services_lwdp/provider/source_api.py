@@ -16,7 +16,7 @@
 from th2_data_services.interfaces import ISourceAPI
 
 class IProviderSourceAPI(ISourceAPI):
-    """Interface for Source API of rpt-data-provider."""
+    """Interface for Source API of lwdp-data-provider."""
 
 class IGRPCProviderSourceAPI(IProviderSourceAPI):
-    """Interface for Source API of rpt-data-provider which works via GRPC."""
+    """Interface for Source API of lwdp-data-provider which works via GRPC."""
