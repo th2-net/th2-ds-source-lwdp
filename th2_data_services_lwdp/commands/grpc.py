@@ -25,8 +25,8 @@ from th2_grpc_data_provider.data_provider_pb2 import (
 
 
 from th2_data_services import Data
-from th2_data_services_lwdp.dependencies.command import ProviderAdaptableCommand
-from th2_data_services_lwdp.dependencies.exceptions import EventNotFound, MessageNotFound
+from th2_data_services_lwdp.provider.command import ProviderAdaptableCommand
+from th2_data_services_lwdp.provider.exceptions import EventNotFound, MessageNotFound
 from th2_data_services_lwdp.adapters.basic_adapters import GRPCObjectToDictAdapter
 from th2_data_services_lwdp.adapters.event_adapters import DeleteEventWrappersAdapter
 from th2_data_services_lwdp.adapters.message_adapters import DeleteMessageWrappersAdapter

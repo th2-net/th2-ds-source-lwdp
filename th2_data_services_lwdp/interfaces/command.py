@@ -14,14 +14,14 @@
 
 from abc import abstractmethod
 
-from th2_data_services_lwdp.dependencies.command import IGRPCProviderCommand
+from th2_data_services_lwdp.provider.command import IGRPCProviderCommand
 from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
 
 
 class IGRPCCommand(IGRPCProviderCommand):
-    """Interface of command for rpt-data-provider.
+    """Interface of command for lwdp-data-provider.
 
-    Rpt-data-provider version: 5.x.y
+    Lwdp-data-provider version: 1.1.x
     Protocol: GRPC
     """
 
