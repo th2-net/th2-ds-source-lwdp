@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TYPE_CHECKING
 if TYPE_CHECKING:   
     from th2_data_services_lwdp.dependencies.command import IProviderCommand, IGRPCProviderCommand

@@ -1,4 +1,3 @@
-from abc import ABC
 from th2_data_services.interfaces import ISourceAPI
 
 class IProviderSourceAPI(ISourceAPI):

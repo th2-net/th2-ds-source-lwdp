@@ -1,4 +1,4 @@
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Callable
 from th2_data_services_lwdp.dependencies.data_source import IProviderDataSource, IGRPCProviderDataSource
 from th2_data_services.interfaces import ICommand
