@@ -33,7 +33,7 @@ from th2_data_services_lwdp.adapters.message_adapters import DeleteMessageWrappe
 from th2_data_services_lwdp.interfaces.command import IGRPCCommand
 
 from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
-from th2_data_services_lwdp.provider_api import GRPCAPI
+from th2_data_services_lwdp.source_api import GRPCAPI
 
 import logging
 
