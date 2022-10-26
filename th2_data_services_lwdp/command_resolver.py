@@ -14,7 +14,7 @@
 
 from typing import Type
 
-from th2_data_services_lwdp.provider import IProviderDataSource
+from th2_data_services_lwdp.interfaces.data_source import ILwDPDataSource
 from th2_data_services_lwdp.commands.grpc import GetEventsById as GetEventsByIdFromGRPC
 
 from th2_data_services_lwdp.commands.grpc import GetEventById as GetEventByIdFromGRPC
@@ -23,7 +23,7 @@ from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
 
 
 def resolver_get_event_by_id(
-    data_source: IProviderDataSource,
+    data_source: ILwDPDataSource,
 ) -> Type[GetEventByIdFromGRPC]:
     """Resolves what 'GetEventById' command you need to use based Data Source.
 
@@ -40,7 +40,7 @@ def resolver_get_event_by_id(
 
 
 def resolver_get_events_by_id(
-    data_source: IProviderDataSource,
+    data_source: ILwDPDataSource,
 ) -> Type[GetEventsByIdFromGRPC]:
     """Resolves what 'GetEventsById' command you need to use based Data Source.
 
