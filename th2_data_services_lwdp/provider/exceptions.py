@@ -12,7 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
 class EventNotFound(Exception):
     def __init__(self, id_):
         """Exception for the case when the the event was not found in data source.
