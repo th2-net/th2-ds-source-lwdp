@@ -14,7 +14,7 @@
 
 from typing import Type
 
-from th2_data_services.provider.interfaces import IProviderDataSource
+from th2_data_services_lwdp.dependencies import IProviderDataSource
 from th2_data_services_lwdp.commands.grpc import GetEventsById as GetEventsByIdFromGRPC
 
 from th2_data_services_lwdp.commands.grpc import GetEventById as GetEventByIdFromGRPC

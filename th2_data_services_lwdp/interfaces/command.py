@@ -14,7 +14,7 @@
 
 from abc import abstractmethod
 
-from th2_data_services.provider.interfaces.command import IGRPCProviderCommand
+from th2_data_services_lwdp.dependencies.command import IGRPCProviderCommand
 from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
 
 

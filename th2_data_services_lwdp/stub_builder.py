@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.provider.interfaces.stub_builder import IEventStub, IMessageStub
+from th2_data_services.interfaces import IEventStub, IMessageStub
 from th2_data_services_lwdp.struct import (
     grpc_event_struct,
     grpc_message_struct,
@@ -22,7 +22,6 @@ from th2_data_services_lwdp.struct import (
 class EventStubBuilder(IEventStub):
     def __init__(self, event_struct=grpc_event_struct):
         """Event stub builder for Provider v6.
-
         Args:
             event_struct: Event struct class.
         """
@@ -32,7 +31,6 @@ class EventStubBuilder(IEventStub):
     @property
     def template(self) -> dict:
         """Event stub template.
-
         Returns:
             (dict) Event stub template.
         """
@@ -53,7 +51,6 @@ class EventStubBuilder(IEventStub):
 class MessageStubBuilder(IMessageStub):
     def __init__(self, message_struct=grpc_message_struct):
         """Event stub builder for Provider 6.
-
         Args:
             message_struct: Message struct class.
         """
@@ -63,7 +60,6 @@ class MessageStubBuilder(IMessageStub):
     @property
     def template(self) -> dict:
         """Message stub template.
-
         Returns:
             (dict) Message stub template.
         """

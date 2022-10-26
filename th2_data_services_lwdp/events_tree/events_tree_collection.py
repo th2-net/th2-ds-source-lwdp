@@ -17,7 +17,7 @@ from typing import Callable, Optional
 from th2_data_services import Data
 from th2_data_services.interfaces.events_tree import EventsTreeCollection
 from th2_data_services.events_tree.exceptions import FieldIsNotExist
-from th2_data_services.provider.interfaces.struct import IEventStruct
+from th2_data_services_lwdp.struct import IEventStruct
 from th2_data_services_lwdp.data_source import GRPCDataSource
 from th2_data_services_lwdp.struct import grpc_event_struct
 from th2_data_services_lwdp.stub_builder import event_stub_builder

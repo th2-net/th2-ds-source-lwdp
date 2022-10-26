@@ -18,17 +18,17 @@ from grpc._channel import _InactiveRpcError
 
 from typing import TYPE_CHECKING
 
-from th2_data_services.provider.exceptions import CommandError
-from th2_data_services.provider.interfaces import IEventStruct, IMessageStruct
+from th2_data_services_lwdp.dependencies.exceptions import CommandError
+from th2_data_services_lwdp.struct import IEventStruct, IMessageStruct
 
 if TYPE_CHECKING:
     from th2_data_services_lwdp.interfaces.command import IGRPCCommand
 
-from th2_data_services.provider.interfaces.data_source import IGRPCProviderDataSource
+from th2_data_services_lwdp.dependencies.data_source import IGRPCProviderDataSource
 
 import logging
 
-from th2_data_services.provider.interfaces.stub_builder import IEventStub, IMessageStub
+from th2_data_services_lwdp.stub_builder import IEventStub, IMessageStub
 from th2_data_services_lwdp.provider_api import GRPCAPI
 from th2_data_services_lwdp.struct import (
     grpc_message_struct,
