@@ -12,26 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from abc import abstractmethod
-from th2_data_services_lwdp.interfaces.data_source import ILwDPDataSource, IGRPCDataSource
-from th2_data_services.interfaces import ICommand
+
+from th2_data_services.interfaces import ISourceAPI
 
 
-class ILwDPCommand(ICommand):
-    """Interface of command for lwdp-data-provider."""
-
-    @abstractmethod
-    def handle(self, data_source: ILwDPDataSource):
-        pass
+class ILwDPSourceAPI(ISourceAPI):
+    """Interface for Source API of lwdp-data-provider."""
 
 
-class IGRPCCommand(ILwDPCommand):
-    """Interface of command for lwdp-data-provider.
-
-    Lwdp-data-provider version: 1.1.x
-    Protocol: GRPC
-    """
-
-    @abstractmethod
-    def handle(self, data_source: IGRPCDataSource):
-        pass
+class IGRPCSourceAPI(ILwDPSourceAPI):
+    """Interface for Source API of lwdp-data-provider which works via GRPC."""

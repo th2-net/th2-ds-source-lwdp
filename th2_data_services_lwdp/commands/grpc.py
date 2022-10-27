@@ -25,15 +25,15 @@ from th2_grpc_data_provider.data_provider_pb2 import (
 
 
 from th2_data_services import Data
-from th2_data_services.provider.command import ProviderAdaptableCommand
-from th2_data_services.provider.exceptions import EventNotFound, MessageNotFound
+from th2_data_services.interfaces.command import IAdaptableCommand
+from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services_lwdp.adapters.basic_adapters import GRPCObjectToDictAdapter
 from th2_data_services_lwdp.adapters.event_adapters import DeleteEventWrappersAdapter
 from th2_data_services_lwdp.adapters.message_adapters import DeleteMessageWrappersAdapter
 from th2_data_services_lwdp.interfaces.command import IGRPCCommand
 
 from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
-from th2_data_services_lwdp.provider_api import GRPCAPI
+from th2_data_services_lwdp.source_api import GRPCAPI
 
 import logging
 
@@ -42,7 +42,7 @@ from th2_data_services_lwdp.streams import Streams
 logger = logging.getLogger(__name__)
 
 
-class GetEventByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
+class GetEventByIdGRPCObject(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the event by id as GRPC object.
@@ -69,7 +69,7 @@ class GetEventByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
         return event
 
 
-class GetEventById(IGRPCCommand, ProviderAdaptableCommand):
+class GetEventById(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
@@ -113,7 +113,7 @@ class GetEventById(IGRPCCommand, ProviderAdaptableCommand):
         return event
 
 
-class GetEventsById(IGRPCCommand, ProviderAdaptableCommand):
+class GetEventsById(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
@@ -149,7 +149,7 @@ class GetEventsById(IGRPCCommand, ProviderAdaptableCommand):
         return response
 
 
-class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
+class GetEventsGRPCObjects(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches events stream as GRPC object by options.
@@ -196,7 +196,7 @@ class GetEventsGRPCObjects(IGRPCCommand, ProviderAdaptableCommand):
                 yield response.event
 
 
-class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
+class GetEvents(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
@@ -247,7 +247,7 @@ class GetEvents(IGRPCCommand, ProviderAdaptableCommand):
             yield event
 
 
-class GetMessageByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):  # noqa: D102
+class GetMessageByIdGRPCObject(IGRPCCommand, IAdaptableCommand):  # noqa: D102
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the message by id as GRPC Object.
@@ -273,7 +273,7 @@ class GetMessageByIdGRPCObject(IGRPCCommand, ProviderAdaptableCommand):  # noqa:
         return response
 
 
-class GetMessageById(IGRPCCommand, ProviderAdaptableCommand):  # noqa: D102
+class GetMessageById(IGRPCCommand, IAdaptableCommand):  # noqa: D102
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the message by id.
@@ -319,7 +319,7 @@ class GetMessageById(IGRPCCommand, ProviderAdaptableCommand):  # noqa: D102
         return message
 
 
-class GetMessagesById(IGRPCCommand, ProviderAdaptableCommand):
+class GetMessagesById(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the messages by id.
@@ -356,7 +356,7 @@ class GetMessagesById(IGRPCCommand, ProviderAdaptableCommand):
         return response
 
 
-class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
+class GetMessagesGRPCObject(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream as GRPC object by options.
@@ -416,7 +416,7 @@ class GetMessagesGRPCObject(IGRPCCommand, ProviderAdaptableCommand):
                 yield response.message
 
 
-class GetMessages(IGRPCCommand, ProviderAdaptableCommand):
+class GetMessages(IGRPCCommand, IAdaptableCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
