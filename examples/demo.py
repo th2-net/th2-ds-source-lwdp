@@ -38,8 +38,8 @@ events: Data = data_source.command(
 #       start_timestamp will be ignored if this parameter is specified.
 # -- cache - if true, the requested data will be saved locally (default=False).
 
-exampleStream = [Streams(["newretest9"])]
+example_stream = [Streams(["newretest9"])]
 
 messages: Data = data_source.command(
-    commands.GetMessages(start_timestamp=START_TIME, stream=exampleStream, end_timestamp=END_TIME)
+    commands.GetMessages(start_timestamp=START_TIME, stream=example_stream, end_timestamp=END_TIME)
 )
