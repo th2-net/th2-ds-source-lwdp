@@ -27,7 +27,9 @@ from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
     BooksResponse,
     EventResponse,
     MessageGroupResponse,
+    MessageGroupsSearchRequest,
     MessageStreamsResponse,
+    MessageStreamsRequest,
     MessageSearchResponse,
     EventSearchResponse,
     EventSearchRequest,
@@ -66,9 +68,41 @@ class GRPCAPI(IGRPCSourceAPI):
         channel: Channel = insecure_channel(url)
         self.__stub: DataProviderStub = DataProviderStub(channel)
 
-    def get_message_streams(self) -> MessageStreamsResponse:
+    def get_message_streams(self, book_id:str = None) -> MessageStreamsResponse:
         """GRPC-API `GetMessageStreams` call returns a list of message stream names."""
-        return self.__stub.GetMessageStreams(Empty())
+        book_id = BookId(name=book_id)
+        message_streams_request = MessageStreamsRequest(book_id=book_id)
+        return self.__stub.GetMessageStreams(message_streams_request)
+
+    def search_message_groups(
+        self, 
+        start_timestamp: int = None, 
+        end_timestamp: int = None, 
+        book_id:str = None, 
+        message_groups: List[str]=None, 
+        sort:bool = None, 
+        raw_only:bool=None,
+        keep_open:bool=None
+        ) -> MessageSearchResponse:
+        """GRPC-API `SearchMessageGroups` call returns a list of message stream names."""
+        self.__search_basic_checks(start_timestamp=start_timestamp,end_timestamp=end_timestamp)
+        basic_request = self.__build_basic_request_object(
+            start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp,
+        )
+        book_id = BookId(name=book_id)
+        message_groups = [MessageGroupsSearchRequest.Group(name=x) for x in message_groups]
+        sort = BoolValue(sort)
+        message_group_search_request = MessageGroupsSearchRequest(
+            start_timestamp=basic_request.start_timestamp,
+            end_timestamp=basic_request.end_timestamp,
+            book_id=book_id,
+            message_group=message_groups,
+            sort=sort,
+            raw_only=raw_only,
+            keep_open=keep_open,
+        )
+        return self.__stub.SearchMessageGroups(message_group_search_request)
 
     def get_books(self) -> BooksResponse:
         """GRPC-API `GetBooks` call returns a lsit of book names"""
