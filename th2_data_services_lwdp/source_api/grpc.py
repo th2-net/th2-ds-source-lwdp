@@ -18,13 +18,18 @@ from typing import Iterable, List, Optional, Union
 
 from google.protobuf.empty_pb2 import Empty
 from google.protobuf.timestamp_pb2 import Timestamp
-from google.protobuf.wrappers_pb2 import Int32Value
+from google.protobuf.wrappers_pb2 import Int32Value, Int64Value, BoolValue
 from th2_grpc_common.common_pb2 import MessageID, EventID, ConnectionID, Direction
-from th2_grpc_data_provider.data_provider_pb2_grpc import DataProviderStub
-from th2_grpc_data_provider.data_provider_pb2 import (
+from th2_grpc_lw_data_provider.lw_data_provider_pb2_grpc import DataProviderStub
+from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
+    EventScope,
+    BookId,
+    BooksResponse,
     EventResponse,
     MessageGroupResponse,
+    MessageGroupsSearchRequest,
     MessageStreamsResponse,
+    MessageStreamsRequest,
     MessageSearchResponse,
     EventSearchResponse,
     EventSearchRequest,
@@ -63,12 +68,56 @@ class GRPCAPI(IGRPCSourceAPI):
         channel: Channel = insecure_channel(url)
         self.__stub: DataProviderStub = DataProviderStub(channel)
 
-    def get_message_streams(self) -> MessageStreamsResponse:
-        """GRPC-API `getMessageStreams` call returns a list of message stream names."""
-        return self.__stub.getMessageStreams(Empty())
+    def get_message_streams(self, book_id:str = None) -> MessageStreamsResponse:
+        """GRPC-API `GetMessageStreams` call returns a list of message stream names."""
+        book_id = BookId(name=book_id)
+        message_streams_request = MessageStreamsRequest(book_id=book_id)
+        return self.__stub.GetMessageStreams(message_streams_request)
+
+    def search_message_groups(
+        self, 
+        start_timestamp: int = None, 
+        end_timestamp: int = None, 
+        book_id:str = None, 
+        message_groups: List[str]=None, 
+        sort:bool = None, 
+        raw_only:bool=None,
+        keep_open:bool=None
+        ) -> MessageSearchResponse:
+        """GRPC-API `SearchMessageGroups` call returns a list of message stream names."""
+        self.__search_basic_checks(start_timestamp=start_timestamp,end_timestamp=end_timestamp)
+        basic_request = self.__build_basic_request_object(
+            start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp,
+        )
+        book_id = BookId(name=book_id)
+        message_groups = [MessageGroupsSearchRequest.Group(name=x) for x in message_groups]
+        sort = BoolValue(sort)
+        message_group_search_request = MessageGroupsSearchRequest(
+            start_timestamp=basic_request.start_timestamp,
+            end_timestamp=basic_request.end_timestamp,
+            book_id=book_id,
+            message_group=message_groups,
+            sort=sort,
+            raw_only=raw_only,
+            keep_open=keep_open,
+        )
+        return self.__stub.SearchMessageGroups(message_group_search_request)
+
+    def get_books(self) -> BooksResponse:
+        """GRPC-API `GetBooks` call returns a lsit of book names"""
+        return self.__stub.GetBooks(Empty())
 
     def search_events(
-        self, start_timestamp: int = None, end_timestamp: int = None, parent_event: str = None
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        parent_event: str=None,
+        search_direction: str="NEXT",
+        result_count_limit: int=None,
+        keep_open: bool=None,
+        book_id:str=None,
+        scope:str=None,
     ) -> Iterable[EventSearchResponse]:
         """GRPC-API `searchEvents` call creates an event or an event metadata stream that matches the filter.
 
@@ -92,16 +141,27 @@ class GRPCAPI(IGRPCSourceAPI):
         )
 
         basic_request = self.__build_basic_request_object(
-            start_timestamp=start_timestamp, end_timestamp=end_timestamp
+            start_timestamp=start_timestamp,
+            end_timestamp=end_timestamp,
+            search_direction=search_direction,
+            result_count_limit=result_count_limit,
         )
         parent_event = EventID(id=parent_event) if parent_event else None
+        keep_open = BoolValue(value=keep_open)
+        book_id = BookId(name=book_id)
+        scope = EventScope(name=scope)
 
         event_search_request = EventSearchRequest(
             start_timestamp=basic_request.start_timestamp,
             end_timestamp=basic_request.end_timestamp,
             parent_event=parent_event,
+            search_direction=basic_request.search_direction,
+            result_count_limit=basic_request.result_count_limit,
+            keep_open=keep_open,
+            book_id=book_id,
+            scope=scope,
         )
-        return self.__stub.searchEvents(event_search_request)
+        return self.__stub.SearchEvents(event_search_request)
 
     def search_messages(
         self,
@@ -111,6 +171,8 @@ class GRPCAPI(IGRPCSourceAPI):
         search_direction: str = "NEXT",
         result_count_limit: int = None,
         stream_pointer: List[MessageStreamPointer] = None,
+        response_formats: List[str] = None,
+        book_id: str = None,
     ) -> Iterable[MessageSearchResponse]:
         """GRPC-API `searchMessages` call creates a message stream that matches the filter.
 
@@ -148,6 +210,7 @@ class GRPCAPI(IGRPCSourceAPI):
         )
 
         stream = self.__transform_streams(stream)
+        book_id = BookId(book_id)
         message_search_request = MessageSearchRequest(
             start_timestamp=basic_request.start_timestamp,
             end_timestamp=basic_request.end_timestamp,
@@ -155,9 +218,11 @@ class GRPCAPI(IGRPCSourceAPI):
             result_count_limit=basic_request.result_count_limit,
             stream_pointer=stream_pointer,
             stream=stream,
+            response_formats=response_formats,
+            book_id=book_id
         )
 
-        return self.__stub.searchMessages(message_search_request)
+        return self.__stub.SearchMessages(message_search_request)
 
     @staticmethod
     def __search_basic_checks(
@@ -340,11 +405,11 @@ class GRPCAPI(IGRPCSourceAPI):
         return message_id
 
     def get_event(self, event_id: str) -> EventResponse:
-        """GRPC-API `getEvent` call returns a single event with the specified id."""
+        """GRPC-API `GetEvent` call returns a single event with the specified id."""
         event_id = EventID(id=event_id)
-        return self.__stub.getEvent(event_id)
+        return self.__stub.GetEvent(event_id)
 
     def get_message(self, message_id: str) -> MessageGroupResponse:
-        """GRPC-API `getMessage` call returns a single message with the specified id."""
+        """GRPC-API `GetMessage` call returns a single message with the specified id."""
         message_id = self.__build_message_id_object(message_id)
-        return self.__stub.getMessage(message_id)
+        return self.__stub.GetMessage(message_id)
