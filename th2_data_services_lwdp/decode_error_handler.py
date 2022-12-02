@@ -12,17 +12,14 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
-from th2_data_services.interfaces import ISourceAPI
-
-
-class ILwDPSourceAPI(ISourceAPI):
-    """Interface for Source API of lwdp-data-provider."""
+from codecs import register_error
 
 
-class IGRPCSourceAPI(ILwDPSourceAPI):
-    """Interface for Source API of lwdp-data-provider which works via GRPC."""
+def handler(err: UnicodeDecodeError):
+    """Decode error handler that tries change utf-8 character to Unicode."""
+    return chr(err.object[err.start]), err.end
 
 
-class IHTTPSourceAPI(ILwDPSourceAPI):
-    """Interface for Source API of lwdp-data-provider which works via HTTP."""
+UNICODE_REPLACE_HANDLER = "unicode_replace"
+
+register_error(UNICODE_REPLACE_HANDLER, handler)
