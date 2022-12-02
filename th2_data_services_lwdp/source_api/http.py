@@ -28,7 +28,7 @@ from th2_data_services_lwdp.decode_error_handler import UNICODE_REPLACE_HANDLER
 # LOG logger.setLevel(logging.DEBUG)
 
 
-class HTTPProvider6API(IHTTPSourceAPI):
+class HTTPAPI(IHTTPSourceAPI):
     def __init__(
         self,
         url: str,
@@ -36,7 +36,7 @@ class HTTPProvider6API(IHTTPSourceAPI):
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         char_enc: str = "utf-8",
     ):
-        """HTTP Provider6 API.
+        """HTTP API.
 
         Args:
             url: HTTP data source url.

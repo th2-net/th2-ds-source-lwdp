@@ -15,11 +15,14 @@
 from abc import abstractmethod
 from typing import TYPE_CHECKING
 
+import requests
+import urllib3
+
 if TYPE_CHECKING:
-    from th2_data_services_lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
+    from th2_data_services_lwdp.interfaces.command import IGRPCCommand, ILwDPCommand, IHTTPCommand
 
 from th2_data_services.interfaces import IDataSource
-from th2_data_services_lwdp.interfaces.source_api import IGRPCSourceAPI, ILwDPSourceAPI
+from th2_data_services_lwdp.interfaces.source_api import IGRPCSourceAPI, ILwDPSourceAPI, IHTTPSourceAPI
 from th2_data_services_lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services_lwdp.stub_builder import IEventStub, IMessageStub
 
@@ -95,3 +98,30 @@ class IGRPCDataSource(ILwDPDataSource):
     @abstractmethod
     def source_api(self) -> IGRPCSourceAPI:
         """Returns GRPC Provider API."""
+
+class IHTTPDataSource(ILwDPDataSource):
+    """Interface of DataSource that provides work with lwdp-data-provider via HTTP"""
+    
+    @abstractmethod
+    def command(self, cmd: IHTTPCommand):
+        """Execute the transmitted HTTP command."""
+
+    def check_connect(self, timeout: (int, float), certification: bool = True) -> None:
+        """Checks whether url is working.
+
+        Args:
+            timeout: How many seconds to wait for the server to send data before giving up.
+            certification: Checking SSL certification.
+
+        Raises:
+            urllib3.exceptions.HTTPError: If unable to connect to host.
+        """
+        try:
+            requests.get(self.url, timeout=timeout, verify=certification)
+        except ConnectionError as error:
+            raise urllib3.exceptions.HTTPError(f"Unable to connect to host '{self.url}'\nReason: {error}")
+
+    @property
+    @abstractmethod
+    def source_api(self) -> IHTTPSourceAPI:
+        """Returns HTTP Provider API."""
