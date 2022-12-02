@@ -1,7 +1,8 @@
 from datetime import datetime, timezone
-from th2_data_services_lwdp.data_source import GRPCDataSource
+from th2_data_services_lwdp.data_source import HTTPDataSource
+from th2_data_services_lwdp.source_api.http import HTTPAPI
 
-ds = GRPCDataSource("th2-kuber-test03:32680")
+ds = HTTPDataSource("th2-kuber-test03:30452")
 
 START_TIME = datetime(year=2022, month=11, day=16, hour=12, minute=53, second=1, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=16, hour=12, minute=53, second=8, microsecond=0)

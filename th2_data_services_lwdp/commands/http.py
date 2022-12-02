@@ -18,14 +18,13 @@ from functools import partial
 
 from th2_data_services import Data
 from th2_data_services.interfaces import IAdapter
-from th2_data_services.provider.v6.adapters.event_adapters import DeleteSystemEvents
-from th2_data_services.provider.v6.filters.filter import Provider6Filter as Filter
-from th2_data_services.provider.exceptions import EventNotFound, MessageNotFound
-from th2_data_services.provider.v6.interfaces.command import IHTTPProvider6Command
-from th2_data_services.provider.v6.data_source.http import HTTPProvider6DataSource
-from th2_data_services.provider.v6.provider_api import HTTPProvider6API
-from th2_data_services.provider.command import ProviderAdaptableCommand
-from th2_data_services.provider.v6.streams import Streams
+from th2_data_services_lwdp.adapters.event_adapters import DeleteSystemEvents
+from th2_data_services.exceptions import EventNotFound, MessageNotFound
+from th2_data_services_lwdp.interfaces.command import IHTTPCommand
+from th2_data_services_lwdp.data_source.http import HTTPDataSource
+from th2_data_services_lwdp.source_api.http import HTTPAPI
+from th2_data_services.interfaces.command import IAdaptableCommand
+from th2_data_services_lwdp.streams import Streams
 from th2_data_services.sse_client import SSEClient
 from th2_data_services.provider.adapters.adapter_sse import get_default_sse_adapter
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
@@ -36,7 +35,7 @@ from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 # LOG logger = logging.getLogger(__name__)
 
 
-class GetEventById(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetEventById(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
@@ -60,8 +59,8 @@ class GetEventById(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._id = id
         self._stub_status = use_stub
 
-    def handle(self, data_source: HTTPProvider6DataSource) -> dict:  # noqa: D102
-        api: HTTPProvider6API = data_source.source_api
+    def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
         url = api.get_url_find_event_by_id(self._id)
 
         # LOG         logger.info(url)
@@ -78,7 +77,7 @@ class GetEventById(IHTTPProvider6Command, ProviderAdaptableCommand):
             return self._handle_adapters(response.json())
 
 
-class GetEventsById(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetEventsById(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
@@ -102,7 +101,7 @@ class GetEventsById(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
-    def handle(self, data_source: HTTPProvider6DataSource):  # noqa: D102
+    def handle(self, data_source: HTTPDataSource):  # noqa: D102
         result = []
         for event_id in self._ids:
             event = GetEventById(event_id, use_stub=self._stub_status).handle(data_source)
@@ -116,7 +115,7 @@ class GetEventsById(IHTTPProvider6Command, ProviderAdaptableCommand):
         return result
 
 
-class GetEventsSSEBytes(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetEventsSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -172,8 +171,8 @@ class GetEventsSSEBytes(IHTTPProvider6Command, ProviderAdaptableCommand):
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
-    def handle(self, data_source: HTTPProvider6DataSource):  # noqa: D102
-        api: HTTPProvider6API = data_source.source_api
+    def handle(self, data_source: HTTPDataSource):  # noqa: D102
+        api: HTTPAPI = data_source.source_api
         url = api.get_url_search_sse_events(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -199,7 +198,7 @@ class GetEventsSSEBytes(IHTTPProvider6Command, ProviderAdaptableCommand):
             yield from api.execute_sse_request(url)
 
 
-class GetEventsSSEEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetEventsSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -256,7 +255,7 @@ class GetEventsSSEEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
 
-    def handle(self, data_source: HTTPProvider6DataSource):  # noqa: D102
+    def handle(self, data_source: HTTPDataSource):  # noqa: D102
         response = GetEventsSSEBytes(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -285,7 +284,7 @@ class GetEventsSSEEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
             yield from client.events()
 
 
-class GetEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetEvents(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -342,7 +341,7 @@ class GetEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._sse_handler = sse_handler or get_default_sse_adapter()
         self._event_system_adapter = DeleteSystemEvents()
 
-    def handle(self, data_source: HTTPProvider6DataSource) -> Data:  # noqa: D102
+    def handle(self, data_source: HTTPDataSource) -> Data:  # noqa: D102
         sse_events_stream_obj = GetEventsSSEEvents(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -369,12 +368,12 @@ class GetEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
             return Data(source).use_cache(self._cache)
 
 
-class GetMessageById(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetMessageById(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the message by id.
 
-    Please note, Provider6 doesn't return `attachedEventIds`. It will be == [].
+    Please note,  doesn't return `attachedEventIds`. It will be == [].
     It's expected that Provider7 will be support it.
 
     Returns:
@@ -396,8 +395,8 @@ class GetMessageById(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._id = id
         self._stub_status = use_stub
 
-    def handle(self, data_source: HTTPProvider6DataSource) -> dict:  # noqa: D102
-        api: HTTPProvider6API = data_source.source_api
+    def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
         url = api.get_url_find_message_by_id(self._id)
 
         # LOG         logger.info(url)
@@ -414,12 +413,12 @@ class GetMessageById(IHTTPProvider6Command, ProviderAdaptableCommand):
             return self._handle_adapters(response.json())
 
 
-class GetMessagesById(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetMessagesById(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the messages by ids.
 
-    Please note, Provider6 doesn't return `attachedEventIds`. It will be == [].
+    Please note,  doesn't return `attachedEventIds`. It will be == [].
     It's expected that Provider7 will be support it.
 
     Returns:
@@ -441,7 +440,7 @@ class GetMessagesById(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
-    def handle(self, data_source: HTTPProvider6DataSource) -> List[dict]:  # noqa: D102
+    def handle(self, data_source: HTTPDataSource) -> List[dict]:  # noqa: D102
         result = []
         for message_id in self._ids:
             message = GetMessageById(
@@ -458,7 +457,7 @@ class GetMessagesById(IHTTPProvider6Command, ProviderAdaptableCommand):
         return result
 
 
-class GetMessagesSSEBytes(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetMessagesSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -520,8 +519,8 @@ class GetMessagesSSEBytes(IHTTPProvider6Command, ProviderAdaptableCommand):
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
-    def handle(self, data_source: HTTPProvider6DataSource) -> Generator[dict, None, None]:  # noqa: D102
-        api: HTTPProvider6API = data_source.source_api
+    def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
         url = api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -569,7 +568,7 @@ class GetMessagesSSEBytes(IHTTPProvider6Command, ProviderAdaptableCommand):
                 yield from api.execute_sse_request(url)
 
 
-class GetMessagesSSEEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetMessagesSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -629,7 +628,7 @@ class GetMessagesSSEEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
 
-    def handle(self, data_source: HTTPProvider6DataSource) -> Generator[dict, None, None]:  # noqa: D102
+    def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         response = GetMessagesSSEBytes(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -654,7 +653,7 @@ class GetMessagesSSEEvents(IHTTPProvider6Command, ProviderAdaptableCommand):
             yield from client.events()
 
 
-class GetMessages(IHTTPProvider6Command, ProviderAdaptableCommand):
+class GetMessages(IHTTPCommand, ProviderAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -720,7 +719,7 @@ class GetMessages(IHTTPProvider6Command, ProviderAdaptableCommand):
         self._cache = cache
         self._sse_handler = sse_handler or get_default_sse_adapter()
 
-    def handle(self, data_source: HTTPProvider6DataSource) -> Data:  # noqa: D102
+    def handle(self, data_source: HTTPDataSource) -> Data:  # noqa: D102
         sse_events_stream_obj = GetMessagesSSEEvents(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,

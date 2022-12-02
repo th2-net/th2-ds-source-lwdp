@@ -14,7 +14,77 @@
 
 from dataclasses import dataclass
 
-from th2_data_services.interfaces import IEventStruct, IMessageStruct
+from th2_data_services.interfaces.struct import IEventStruct, IMessageStruct
+
+
+@dataclass
+class HTTPEventStruct(IEventStruct):
+    """Interface for Event of data-provider v6."""
+
+    EVENT_ID: str
+    PARENT_EVENT_ID: str
+    STATUS: str
+    NAME: str
+    TYPE: str
+    BATCH_ID: str
+    IS_BATCHED: str
+    EVENT_TYPE: str
+    END_TIMESTAMP: str
+    START_TIMESTAMP: str
+    ATTACHED_MESSAGES_IDS: str
+    BODY: str
+
+
+http_event_struct = HTTPEventStruct(
+    EVENT_ID="eventId",
+    PARENT_EVENT_ID="parentEventId",
+    STATUS="successful",
+    NAME="eventName",
+    TYPE="type",
+    BATCH_ID="batchId",
+    IS_BATCHED="isBatched",
+    EVENT_TYPE="eventType",
+    END_TIMESTAMP="endTimestamp",
+    START_TIMESTAMP="startTimestamp",
+    ATTACHED_MESSAGES_IDS="attachedMessageIds",
+    BODY="body",
+)
+
+
+@dataclass
+class HTTPMessageStruct(IMessageStruct):
+    """Interface for Message of data-provider v6."""
+
+    DIRECTION: str
+    SESSION_ID: str
+    MESSAGE_TYPE: str
+    CONNECTION_ID: str
+    SESSION_ALIAS: str
+    SUBSEQUENCE: str
+    SEQUENCE: str
+    TIMESTAMP: str
+    BODY: str
+    BODY_BASE64: str
+    TYPE: str
+    MESSAGE_ID: str
+    ATTACHED_EVENT_IDS: str
+
+
+http_message_struct = HTTPMessageStruct(
+    DIRECTION="direction",
+    SESSION_ID="sessionId",
+    MESSAGE_TYPE="messageType",
+    CONNECTION_ID="connectionId",
+    SESSION_ALIAS="sessionAlias",
+    SUBSEQUENCE="subsequence",
+    SEQUENCE="sequence",
+    TIMESTAMP="timestamp",
+    BODY="parsedMessages",
+    BODY_BASE64="rawMessageBase64",
+    TYPE="type",
+    MESSAGE_ID="id",
+    ATTACHED_EVENT_IDS="attachedEventIds",
+)
 
 
 @dataclass
@@ -25,6 +95,7 @@ class GRPCEventStruct(IEventStruct):
     PARENT_EVENT_ID: str
     STATUS: str
     NAME: str
+    TYPE: str
     BATCH_ID: str
     IS_BATCHED: str
     EVENT_TYPE: str
@@ -39,6 +110,7 @@ grpc_event_struct = GRPCEventStruct(
     PARENT_EVENT_ID="parentEventId",
     STATUS="successful",
     NAME="eventName",
+    TYPE="type",
     BATCH_ID="batchId",
     IS_BATCHED="isBatched",
     EVENT_TYPE="eventType",
