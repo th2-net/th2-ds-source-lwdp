@@ -115,7 +115,6 @@ class GRPCAPI(IGRPCSourceAPI):
         parent_event: str=None,
         search_direction: str="NEXT",
         result_count_limit: int=None,
-        keep_open: bool=None,
         book_id:str=None,
         scope:str=None,
     ) -> Iterable[EventSearchResponse]:
@@ -147,7 +146,6 @@ class GRPCAPI(IGRPCSourceAPI):
             result_count_limit=result_count_limit,
         )
         parent_event = EventID(id=parent_event) if parent_event else None
-        keep_open = BoolValue(value=keep_open)
         book_id = BookId(name=book_id)
         scope = EventScope(name=scope)
 
@@ -157,7 +155,6 @@ class GRPCAPI(IGRPCSourceAPI):
             parent_event=parent_event,
             search_direction=basic_request.search_direction,
             result_count_limit=basic_request.result_count_limit,
-            keep_open=keep_open,
             book_id=book_id,
             scope=scope,
         )
