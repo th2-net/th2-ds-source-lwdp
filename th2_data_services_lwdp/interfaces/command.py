@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 from abc import abstractmethod
-from th2_data_services_lwdp.interfaces.data_source import ILwDPDataSource, IGRPCDataSource
+from th2_data_services_lwdp.interfaces.data_source import ILwDPDataSource, IGRPCDataSource, IHTTPDataSource
 from th2_data_services.interfaces import ICommand
 
 
@@ -24,6 +24,12 @@ class ILwDPCommand(ICommand):
     def handle(self, data_source: ILwDPDataSource):
         pass
 
+class IHTTPCommand(ILwDPCommand):
+    """Interface of command for rpt-data-provider which works via HTTP."""
+
+    @abstractmethod
+    def handle(self, data_source: IHTTPDataSource):
+        pass
 
 class IGRPCCommand(ILwDPCommand):
     """Interface of command for lwdp-data-provider.

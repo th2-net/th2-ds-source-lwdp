@@ -22,3 +22,7 @@ class ILwDPSourceAPI(ISourceAPI):
 
 class IGRPCSourceAPI(ILwDPSourceAPI):
     """Interface for Source API of lwdp-data-provider which works via GRPC."""
+
+
+class IHTTPSourceAPI(ILwDPSourceAPI):
+    """Interface for Source API of lwdp-data-provider which works via HTTP."""
