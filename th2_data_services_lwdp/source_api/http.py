@@ -62,6 +62,10 @@ class HTTPAPI(IHTTPSourceAPI):
     def __encode_url(self, url: str) -> str:
         return quote(url.encode(), "/:&?=")
 
+    def get_url_get_books(self) -> str:
+        """REST-API `books` call returns a list of books in cradleAPI."""
+        return self.__encode_url(f"{self._url}/books")
+
     def get_url_find_event_by_id(self, event_id: str) -> str:
         """REST-API `event` call returns a single event with the specified id."""
         return self.__encode_url(f"{self._url}/event/{event_id}")
@@ -91,7 +95,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "parentEvent": parent_event,
             "searchDirection": search_direction,
             "resultCountLimit": result_count_limit,
-            "book_id": book_id,
+            "bookId": book_id,
             "scope": scope,
         }
 

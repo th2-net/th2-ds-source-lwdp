@@ -30,6 +30,7 @@ from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services_lwdp.adapters.basic_adapters import GRPCObjectToDictAdapter
 from th2_data_services_lwdp.adapters.event_adapters import DeleteEventWrappersAdapter
 from th2_data_services_lwdp.adapters.message_adapters import DeleteMessageWrappersAdapter
+from th2_data_services_lwdp.filters.filter import LwDPEventFilter
 from th2_data_services_lwdp.interfaces.command import IGRPCCommand
 
 from th2_data_services_lwdp.data_source.grpc import GRPCDataSource
@@ -160,9 +161,14 @@ class GetEventsGRPCObjects(IGRPCCommand, IAdaptableCommand):
 
     def __init__(
         self,
-        start_timestamp: datetime,
-        end_timestamp: datetime = None,
-        parent_event: str = None,
+        start_timestamp: int,
+        end_timestamp: int,
+        parent_event: str=None,
+        search_direction: str="NEXT",
+        result_count_limit: int=None,
+        filters: List[LwDPEventFilter]=None,
+        book_id:str=None,
+        scope:str=None,
     ):
         """GetEventsGRPCObjects constructor.
 
@@ -176,6 +182,11 @@ class GetEventsGRPCObjects(IGRPCCommand, IAdaptableCommand):
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._parent_event = parent_event
+        self._search_direction = search_direction
+        self._result_count_limit = result_count_limit
+        self._filters = filters
+        self._book_id = book_id
+        self._scope = scope
 
     def handle(self, data_source: GRPCDataSource) -> Iterable[EventResponse]:  # noqa: D102
         api: GRPCAPI = data_source.source_api
@@ -189,6 +200,11 @@ class GetEventsGRPCObjects(IGRPCCommand, IAdaptableCommand):
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
             parent_event=self._parent_event,
+            search_direction=self._search_direction,
+            result_count_limit=self._result_count_limit,
+            filter=self._filters,
+            book_id=self._book_id,
+            scope=self._scope,
         )
         for response in stream_response:
             if response.WhichOneof("data") == "event":
@@ -207,10 +223,15 @@ class GetEvents(IGRPCCommand, IAdaptableCommand):
 
     def __init__(
         self,
-        start_timestamp: datetime,
-        end_timestamp: datetime = None,
-        parent_event: str = None,
-        cache: bool = False,
+        start_timestamp: int,
+        end_timestamp: int,
+        parent_event: str=None,
+        search_direction: str="NEXT",
+        result_count_limit: int=None,
+        filters: List[LwDPEventFilter]=None,
+        book_id:str=None,
+        scope:str=None,
+        cache:bool=False,
     ):
         """GetEvents constructor.
 
@@ -225,6 +246,11 @@ class GetEvents(IGRPCCommand, IAdaptableCommand):
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._parent_event = parent_event
+        self._search_direction = search_direction
+        self._result_count_limit = result_count_limit
+        self._filters = filters
+        self._book_id = book_id
+        self._scope = scope
         self._cache = cache
 
         self._grpc_decoder = GRPCObjectToDictAdapter()
@@ -239,6 +265,11 @@ class GetEvents(IGRPCCommand, IAdaptableCommand):
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             parent_event=self._parent_event,
+            search_direction=self._search_direction,
+            result_count_limit=self._result_count_limit,
+            filter=self._filters,
+            book_id=self._book_id,
+            scope=self._scope,
         ).handle(data_source)
         for event in stream:
             event = self._grpc_decoder.handle(event)

@@ -49,6 +49,9 @@ class StreamingSSEAdapter(IAdapter):
         self.json_processor = json_processor
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
+    def handle_stream(self, stream):
+        return super().handle_stream(stream)
+
     def handle(self, record: Union[Generator[SSEEvent, None, None], Callable]) -> Generator[dict, None, None]:
         if callable(record):
             stream = record()
