@@ -27,7 +27,7 @@ from th2_data_services.interfaces.command import IAdaptableCommand
 from th2_data_services_lwdp.streams import Streams
 from th2_data_services.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
-from th2_data_services_lwdp.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 
 

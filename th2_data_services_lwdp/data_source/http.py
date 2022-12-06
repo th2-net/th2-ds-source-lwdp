@@ -15,7 +15,7 @@ from __future__ import annotations
 
 #LOG import logging
 
-from th2_data_services_lwdp.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from typing import TYPE_CHECKING, Union
 
 from th2_data_services.exceptions import CommandError

@@ -22,7 +22,7 @@ from urllib3 import PoolManager, exceptions
 from urllib.parse import quote
 
 from th2_data_services_lwdp.interfaces.source_api import IHTTPSourceAPI
-from th2_data_services_lwdp.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 
 # LOG logger = logging.getLogger("th2_data_services")
 # LOG logger.setLevel(logging.DEBUG)
