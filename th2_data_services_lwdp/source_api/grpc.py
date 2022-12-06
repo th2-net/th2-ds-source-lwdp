@@ -86,7 +86,7 @@ class GRPCAPI(IGRPCSourceAPI):
         raw_only:bool=None,
         keep_open:bool=None
         ) -> MessageSearchResponse:
-        """GRPC-API `SearchMessageGroups` call returns a list of message stream names.
+        """GRPC-API `SearchMessageGroups` call returns a list of message groups in specified time range.
         
         Args:
             start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
