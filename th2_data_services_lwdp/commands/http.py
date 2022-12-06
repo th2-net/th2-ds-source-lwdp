@@ -28,7 +28,7 @@ from th2_data_services_lwdp.streams import Streams
 from th2_data_services.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
 from th2_data_services_lwdp.decode_error_handler import UNICODE_REPLACE_HANDLER
-from th2_data_services_lwdp.filter import Filter
+from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 
 
 # LOG import logging
@@ -132,7 +132,7 @@ class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        filters: Union[Filter, List[Filter]] = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
         book_id: str = None,
         scope: str = None,
     ):
@@ -162,7 +162,7 @@ class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
         self._filters = filters
         self._book_id = book_id
         self._scope = scope
-        if isinstance(filters, Filter):
+        if isinstance(filters, LwDPEventFilter):
             self._filters = filters.url()
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
@@ -207,7 +207,7 @@ class GetEventsSSEEvents(IHTTPCommand, IAdaptableCommand):
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        filters: Union[Filter, List[Filter]] = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
         book_id: str = None,
         scope: str = None,
         char_enc: str = "utf-8",
@@ -287,7 +287,7 @@ class GetEvents(IHTTPCommand, IAdaptableCommand):
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        filters: Union[Filter, List[Filter]] = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
         book_id: str = None,
         scope: str = None,
         cache: bool = False,
