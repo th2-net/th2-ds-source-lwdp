@@ -24,6 +24,9 @@ from th2_data_services.interfaces import IEventStruct, IMessageStruct, IEventStu
 if TYPE_CHECKING:
     from th2_data_services.interfaces.command import IAdaptableCommand
 
+if TYPE_CHECKING:
+    from th2_data_services_lwdp.interfaces.command import IHTTPCommand
+
 from th2_data_services.interfaces.data_source import IDataSource
 from th2_data_services_lwdp.struct import (
     http_event_struct,
@@ -36,7 +39,7 @@ from th2_data_services_lwdp.stub_builder import (
     message_stub_builder,
 )
 from th2_data_services_lwdp.source_api.http import HTTPAPI
-from th2_data_services_lwdp.interfaces.data_source import IHTTPDataSource, IHTTPCommand
+from th2_data_services_lwdp.interfaces.data_source import IHTTPDataSource
 
 #LOG logger = logging.getLogger(__name__)
 

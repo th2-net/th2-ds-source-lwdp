@@ -103,7 +103,7 @@ class IHTTPDataSource(ILwDPDataSource):
     """Interface of DataSource that provides work with lwdp-data-provider via HTTP"""
     
     @abstractmethod
-    def command(self, cmd: IHTTPCommand):
+    def command(self, cmd):
         """Execute the transmitted HTTP command."""
 
     def check_connect(self, timeout: (int, float), certification: bool = True) -> None:

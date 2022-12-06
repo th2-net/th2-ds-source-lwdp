@@ -109,15 +109,15 @@ class HTTPAPI(IHTTPSourceAPI):
 
     def get_url_search_sse_messages(
         self,
-        start_timestamp: int,
-        stream: List[str],
-        end_timestamp: Optional[int] = None,
+        start_timestamp: int = None,
+        message_id: List[str] = None,
+        stream: List[str] = None,
         search_direction: Optional[str] = "next",
         result_count_limit: Union[int, float] = None,
+        end_timestamp: Optional[int] = None,
         response_formats: str = None,
         keep_open: bool = False,
         book_id: str = None,
-        filters: Optional[str] = None,
     ) -> str:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
 
@@ -125,12 +125,13 @@ class HTTPAPI(IHTTPSourceAPI):
         """
         kwargs = {
             "startTimestamp": start_timestamp,
-            "endTimestamp": end_timestamp,
+            "messageId": message_id,
             "stream": stream,
             "searchDirection": search_direction,
             "resultCountLimit": result_count_limit,
-            "keepOpen": keep_open,
+            "endTimestamp": end_timestamp,
             "responseFormats": response_formats,
+            "keepOpen": keep_open,
             "bookId": book_id,
         }
 
@@ -145,8 +146,6 @@ class HTTPAPI(IHTTPSourceAPI):
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
-        if filters is not None:
-            url += filters
         return self.__encode_url(url)
 
     def execute_sse_request(self, url: str) -> Generator[bytes, None, None]:

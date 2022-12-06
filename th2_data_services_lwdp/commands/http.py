@@ -26,8 +26,9 @@ from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services.interfaces.command import IAdaptableCommand
 from th2_data_services_lwdp.streams import Streams
 from th2_data_services.sse_client import SSEClient
-from th2_data_services.provider.adapters.adapter_sse import get_default_sse_adapter
-from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
+from th2_data_services_lwdp.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2_data_services_lwdp.filter import Filter
 
 
 # LOG import logging
@@ -35,7 +36,7 @@ from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 # LOG logger = logging.getLogger(__name__)
 
 
-class GetEventById(IHTTPCommand, ProviderAdaptableCommand):
+class GetEventById(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
@@ -77,7 +78,7 @@ class GetEventById(IHTTPCommand, ProviderAdaptableCommand):
             return self._handle_adapters(response.json())
 
 
-class GetEventsById(IHTTPCommand, ProviderAdaptableCommand):
+class GetEventsById(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
@@ -115,7 +116,7 @@ class GetEventsById(IHTTPCommand, ProviderAdaptableCommand):
         return result
 
 
-class GetEventsSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
+class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -130,12 +131,10 @@ class GetEventsSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
         end_timestamp: datetime = None,
         parent_event: str = None,
         search_direction: str = "next",
-        resume_from_id: str = None,
         result_count_limit: int = None,
-        keep_open: bool = False,
-        limit_for_parent: int = None,
-        attached_messages: bool = False,
-        filters: (Filter, List[Filter]) = None,
+        filters: Union[Filter, List[Filter]] = None,
+        book_id: str = None,
+        scope: str = None,
     ):
         """GetEventsSSEBytes constructor.
 
@@ -159,13 +158,10 @@ class GetEventsSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
         self._end_timestamp = end_timestamp.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         self._parent_event = parent_event
         self._search_direction = search_direction
-        self._resume_from_id = resume_from_id
         self._result_count_limit = result_count_limit
-        self._keep_open = keep_open
-        self._limit_for_parent = limit_for_parent
-        self._metadata_only = False
-        self._attached_messages = attached_messages
         self._filters = filters
+        self._book_id = book_id
+        self._scope = scope
         if isinstance(filters, Filter):
             self._filters = filters.url()
         elif isinstance(filters, (tuple, list)):
@@ -178,13 +174,10 @@ class GetEventsSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
             end_timestamp=self._end_timestamp,
             parent_event=self._parent_event,
             search_direction=self._search_direction,
-            resume_from_id=self._resume_from_id,
             result_count_limit=self._result_count_limit,
-            keep_open=self._keep_open,
-            limit_for_parent=self._limit_for_parent,
-            metadata_only=self._metadata_only,
-            attached_messages=self._attached_messages,
             filters=self._filters,
+            book_id=self._book_id,
+            scope=self._scope,
         )
 
         # LOG         logger.info(url)
@@ -198,7 +191,7 @@ class GetEventsSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
             yield from api.execute_sse_request(url)
 
 
-class GetEventsSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
+class GetEventsSSEEvents(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -213,12 +206,10 @@ class GetEventsSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
         end_timestamp: datetime = None,
         parent_event: str = None,
         search_direction: str = "next",
-        resume_from_id: str = None,
         result_count_limit: int = None,
-        keep_open: bool = False,
-        limit_for_parent: int = None,
-        attached_messages: bool = False,
-        filters: (Filter, List[Filter]) = None,
+        filters: Union[Filter, List[Filter]] = None,
+        book_id: str = None,
+        scope: str = None,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
@@ -246,12 +237,10 @@ class GetEventsSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
         self._end_timestamp = end_timestamp
         self._parent_event = parent_event
         self._search_direction = search_direction
-        self._resume_from_id = resume_from_id
         self._result_count_limit = result_count_limit
-        self._keep_open = keep_open
-        self._limit_for_parent = limit_for_parent
-        self._attached_messages = attached_messages
         self._filters = filters
+        self._book_id = book_id
+        self._scope = scope
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
 
@@ -261,12 +250,10 @@ class GetEventsSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
             end_timestamp=self._end_timestamp,
             parent_event=self._parent_event,
             search_direction=self._search_direction,
-            resume_from_id=self._resume_from_id,
             result_count_limit=self._result_count_limit,
-            keep_open=self._keep_open,
-            limit_for_parent=self._limit_for_parent,
-            attached_messages=self._attached_messages,
             filters=self._filters,
+            book_id=self._book_id,
+            scope=self._scope,
         ).handle(data_source)
 
         client = SSEClient(
@@ -284,7 +271,7 @@ class GetEventsSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
             yield from client.events()
 
 
-class GetEvents(IHTTPCommand, ProviderAdaptableCommand):
+class GetEvents(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -299,12 +286,10 @@ class GetEvents(IHTTPCommand, ProviderAdaptableCommand):
         end_timestamp: datetime = None,
         parent_event: str = None,
         search_direction: str = "next",
-        resume_from_id: str = None,
         result_count_limit: int = None,
-        keep_open: bool = False,
-        limit_for_parent: int = None,
-        attached_messages: bool = False,
-        filters: (Filter, List[Filter]) = None,
+        filters: Union[Filter, List[Filter]] = None,
+        book_id: str = None,
+        scope: str = None,
         cache: bool = False,
         sse_handler: Optional[IAdapter] = None,
     ):
@@ -331,12 +316,10 @@ class GetEvents(IHTTPCommand, ProviderAdaptableCommand):
         self._end_timestamp = end_timestamp
         self._parent_event = parent_event
         self._search_direction = search_direction
-        self._resume_from_id = resume_from_id
         self._result_count_limit = result_count_limit
-        self._keep_open = keep_open
-        self._limit_for_parent = limit_for_parent
-        self._attached_messages = attached_messages
         self._filters = filters
+        self._book_id = book_id
+        self._scope = scope
         self._cache = cache
         self._sse_handler = sse_handler or get_default_sse_adapter()
         self._event_system_adapter = DeleteSystemEvents()
@@ -347,12 +330,10 @@ class GetEvents(IHTTPCommand, ProviderAdaptableCommand):
             end_timestamp=self._end_timestamp,
             parent_event=self._parent_event,
             search_direction=self._search_direction,
-            resume_from_id=self._resume_from_id,
             result_count_limit=self._result_count_limit,
-            keep_open=self._keep_open,
-            limit_for_parent=self._limit_for_parent,
-            attached_messages=self._attached_messages,
             filters=self._filters,
+            book_id=self._book_id,
+            scope=self._scope
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
@@ -368,7 +349,7 @@ class GetEvents(IHTTPCommand, ProviderAdaptableCommand):
             return Data(source).use_cache(self._cache)
 
 
-class GetMessageById(IHTTPCommand, ProviderAdaptableCommand):
+class GetMessageById(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the message by id.
@@ -413,7 +394,7 @@ class GetMessageById(IHTTPCommand, ProviderAdaptableCommand):
             return self._handle_adapters(response.json())
 
 
-class GetMessagesById(IHTTPCommand, ProviderAdaptableCommand):
+class GetMessagesById(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the messages by ids.
@@ -457,7 +438,7 @@ class GetMessagesById(IHTTPCommand, ProviderAdaptableCommand):
         return result
 
 
-class GetMessagesSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
+class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -468,17 +449,15 @@ class GetMessagesSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
 
     def __init__(
         self,
-        start_timestamp: datetime,
-        stream: List[Union[str, Streams]],
-        end_timestamp: datetime = None,
-        resume_from_id: str = None,
+        start_timestamp: datetime=None,
+        message_id: List[str] = None,
+        stream: List[Union[str, Streams]]=None,
         search_direction: str = "next",
         result_count_limit: int = None,
+        end_timestamp: datetime = None,
+        response_formats: List[str] = None,
         keep_open: bool = False,
-        message_id: List[str] = None,
-        attached_events: bool = False,
-        lookup_limit_days: int = None,
-        filters: (Filter, List[Filter]) = None,
+        book_id: str = None,
     ):
         """GetMessagesSSEBytes constructor.
 
@@ -506,33 +485,26 @@ class GetMessagesSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
             else end_timestamp.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
         )
         self._stream = stream
-        self._resume_from_id = resume_from_id
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
+        self._response_formats = response_formats
         self._keep_open = keep_open
         self._message_id = message_id
-        self._attached_events = attached_events
-        self._lookup_limit_days = lookup_limit_days
-        self._filters = filters
-        if isinstance(filters, Filter):
-            self._filters = filters.url()
-        elif isinstance(filters, (tuple, list)):
-            self._filters = "".join([filter_.url() for filter_ in filters])
+        self._book_id = book_id
 
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
         url = api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
-            end_timestamp=self._end_timestamp,
-            stream=[""],
-            resume_from_id=self._resume_from_id,
+            message_id=self._message_id,
+            stream=self._stream,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
+            end_timestamp=self._end_timestamp,
+            response_formats=self._response_formats,
             keep_open=self._keep_open,
-            attached_events=self._attached_events,
-            lookup_limit_days=self._lookup_limit_days,
-            filters=self._filters,
-        ).replace("&stream=", "")
+            book_id=self._book_id,
+        ).replace("&stream=", "") #???
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
@@ -568,7 +540,7 @@ class GetMessagesSSEBytes(IHTTPCommand, ProviderAdaptableCommand):
                 yield from api.execute_sse_request(url)
 
 
-class GetMessagesSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
+class GetMessagesSSEEvents(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -579,17 +551,15 @@ class GetMessagesSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
 
     def __init__(
         self,
-        start_timestamp: datetime,
-        stream: List[Union[str, Streams]],
-        end_timestamp: datetime = None,
-        resume_from_id: str = None,
+        start_timestamp: datetime=None,
+        message_id: List[str] = None,
+        stream: List[Union[str, Streams]]=None,
         search_direction: str = "next",
         result_count_limit: int = None,
+        end_timestamp: datetime = None,
+        response_formats: List[str] = None,
         keep_open: bool = False,
-        message_id: List[str] = None,
-        attached_events: bool = False,
-        lookup_limit_days: int = None,
-        filters: (Filter, List[Filter]) = None,
+        book_id: str = None,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
@@ -617,14 +587,12 @@ class GetMessagesSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._stream = stream
-        self._resume_from_id = resume_from_id
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
+        self._response_formats = response_formats
         self._keep_open = keep_open
         self._message_id = message_id
-        self._attached_events = attached_events
-        self._lookup_limit_days = lookup_limit_days
-        self._filters = filters
+        self._book_id = book_id
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
 
@@ -633,13 +601,12 @@ class GetMessagesSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             stream=self._stream,
-            resume_from_id=self._resume_from_id,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
+            response_formats=self._response_formats,
             keep_open=self._keep_open,
-            attached_events=self._attached_events,
-            lookup_limit_days=self._lookup_limit_days,
-            filters=self._filters,
+            message_id=self._message_id,
+            book_id=self._book_id,
         ).handle(data_source)
 
         client = SSEClient(response, char_enc=self._char_enc, decode_errors_handler=self._decode_error_handler)
@@ -653,7 +620,7 @@ class GetMessagesSSEEvents(IHTTPCommand, ProviderAdaptableCommand):
             yield from client.events()
 
 
-class GetMessages(IHTTPCommand, ProviderAdaptableCommand):
+class GetMessages(IHTTPCommand, IAdaptableCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -664,17 +631,15 @@ class GetMessages(IHTTPCommand, ProviderAdaptableCommand):
 
     def __init__(
         self,
-        start_timestamp: datetime,
-        stream: List[Union[str, Streams]],
-        end_timestamp: datetime = None,
-        resume_from_id: str = None,
+        start_timestamp: datetime=None,
+        message_id: List[str] = None,
+        stream: List[Union[str, Streams]]=None,
         search_direction: str = "next",
         result_count_limit: int = None,
+        end_timestamp: datetime = None,
+        response_formats: List[str] = None,
         keep_open: bool = False,
-        message_id: List[str] = None,
-        attached_events: bool = False,
-        lookup_limit_days: int = None,
-        filters: (Filter, List[Filter]) = None,
+        book_id: str = None,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
@@ -706,14 +671,12 @@ class GetMessages(IHTTPCommand, ProviderAdaptableCommand):
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
         self._stream = stream
-        self._resume_from_id = resume_from_id
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
+        self._response_formats = response_formats
         self._keep_open = keep_open
         self._message_id = message_id
-        self._attached_events = attached_events
-        self._lookup_limit_days = lookup_limit_days
-        self._filters = filters
+        self._book_id = book_id
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
@@ -724,13 +687,12 @@ class GetMessages(IHTTPCommand, ProviderAdaptableCommand):
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             stream=self._stream,
-            resume_from_id=self._resume_from_id,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
+            response_formats=self._response_formats,
             keep_open=self._keep_open,
-            attached_events=self._attached_events,
-            lookup_limit_days=self._lookup_limit_days,
-            filters=self._filters,
+            message_id=self._message_id,
+            book_id=self._book_id,
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
