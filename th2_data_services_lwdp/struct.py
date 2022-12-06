@@ -17,9 +17,10 @@ from dataclasses import dataclass
 from th2_data_services.interfaces.struct import IEventStruct, IMessageStruct
 
 
+
 @dataclass
 class HTTPEventStruct(IEventStruct):
-    """Interface for Event of data-provider v6."""
+    """Interface for Event of data-provider v5."""
 
     EVENT_ID: str
     PARENT_EVENT_ID: str
@@ -53,7 +54,7 @@ http_event_struct = HTTPEventStruct(
 
 @dataclass
 class HTTPMessageStruct(IMessageStruct):
-    """Interface for Message of data-provider v6."""
+    """Interface for Message of data-provider v5."""
 
     DIRECTION: str
     SESSION_ID: str
@@ -79,10 +80,10 @@ http_message_struct = HTTPMessageStruct(
     SUBSEQUENCE="subsequence",
     SEQUENCE="sequence",
     TIMESTAMP="timestamp",
-    BODY="parsedMessages",
-    BODY_BASE64="rawMessageBase64",
+    BODY="body",
+    BODY_BASE64="bodyBase64",
     TYPE="type",
-    MESSAGE_ID="id",
+    MESSAGE_ID="messageId",
     ATTACHED_EVENT_IDS="attachedEventIds",
 )
 
