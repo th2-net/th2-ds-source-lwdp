@@ -69,9 +69,6 @@ class DeleteEventWrappersAdapter(IEventAdapter):
 class DeleteSystemEvents(IEventAdapter):
     """Adapter that deletes unnecessary system events."""
 
-    def handle_stream(self, stream):
-        return super().handle_stream(stream)
-
     def handle(self, event: dict) -> Optional[dict]:
         """Deletes unnecessary system events.
 
