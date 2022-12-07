@@ -23,7 +23,6 @@ from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
-from th2_data_services.interfaces.command import IAdaptableCommand
 from th2_data_services_lwdp.streams import Streams
 from th2_data_services.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
@@ -36,7 +35,7 @@ from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 # LOG logger = logging.getLogger(__name__)
 
 
-class GetEventById(IHTTPCommand, IAdaptableCommand):
+class GetEventById(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
@@ -69,16 +68,17 @@ class GetEventById(IHTTPCommand, IAdaptableCommand):
         response = api.execute_request(url)
 
         if response.status_code == 404 and self._stub_status:
-            stub = data_source.event_stub_builder.build({data_source.event_struct.EVENT_ID: self._id})
-            return self._handle_adapters(stub)
+            stub = data_source.event_stub_builder.build(
+                {data_source.event_struct.EVENT_ID: self._id})
+            return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
             raise EventNotFound(self._id)
         else:
-            return self._handle_adapters(response.json())
+            return response.json()
 
 
-class GetEventsById(IHTTPCommand, IAdaptableCommand):
+class GetEventsById(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
@@ -102,21 +102,16 @@ class GetEventsById(IHTTPCommand, IAdaptableCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
-    def handle(self, data_source: HTTPDataSource):  # noqa: D102
+    def handle(self, data_source: HTTPDataSource) -> List[dict]:  # noqa: D102
         result = []
         for event_id in self._ids:
             event = GetEventById(event_id, use_stub=self._stub_status).handle(data_source)
-            if event is None:
-                continue
-            event = self._handle_adapters(event)
-            if event is None:
-                continue
             result.append(event)
 
         return result
 
 
-class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
+class GetEventsSSEBytes(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -126,15 +121,15 @@ class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
     """
 
     def __init__(
-        self,
-        start_timestamp: datetime,
-        end_timestamp: datetime = None,
-        parent_event: str = None,
-        search_direction: str = "next",
-        result_count_limit: int = None,
-        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-        book_id: str = None,
-        scope: str = None,
+            self,
+            start_timestamp: datetime,
+            end_timestamp: datetime = None,
+            parent_event: str = None,
+            search_direction: str = "next",
+            result_count_limit: int = None,
+            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+            book_id: str = None,
+            scope: str = None,
     ):
         """GetEventsSSEBytes constructor.
 
@@ -154,8 +149,8 @@ class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
 
         """
         super().__init__()
-        self._start_timestamp = start_timestamp.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
-        self._end_timestamp = end_timestamp.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
+        self._end_timestamp = int(1000 * end_timestamp.replace(tzinfo=timezone.utc).timestamp())
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -168,7 +163,9 @@ class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
     def handle(self, data_source: HTTPDataSource):  # noqa: D102
+        """Returns SSE Event stream in bytes."""
         api: HTTPAPI = data_source.source_api
+        # TODO - why do we have IDE warning here?
         url = api.get_url_search_sse_events(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -181,17 +178,11 @@ class GetEventsSSEBytes(IHTTPCommand, IAdaptableCommand):
         )
 
         # LOG         logger.info(url)
-
-        if self._workflow:
-            for response in api.execute_sse_request(url):
-                response = self._handle_adapters(response)
-                if response is not None:
-                    yield response
-        else:
-            yield from api.execute_sse_request(url)
+        print(url)
+        yield from api.execute_sse_request(url)
 
 
-class GetEventsSSEEvents(IHTTPCommand, IAdaptableCommand):
+class GetEventsSSEEvents(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -201,17 +192,17 @@ class GetEventsSSEEvents(IHTTPCommand, IAdaptableCommand):
     """
 
     def __init__(
-        self,
-        start_timestamp: datetime,
-        end_timestamp: datetime = None,
-        parent_event: str = None,
-        search_direction: str = "next",
-        result_count_limit: int = None,
-        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-        book_id: str = None,
-        scope: str = None,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+            self,
+            start_timestamp: datetime,
+            end_timestamp: datetime = None,
+            parent_event: str = None,
+            search_direction: str = "next",
+            result_count_limit: int = None,
+            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+            book_id: str = None,
+            scope: str = None,
+            char_enc: str = "utf-8",
+            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """GetEventsSSEEvents constructor.
 
@@ -262,16 +253,10 @@ class GetEventsSSEEvents(IHTTPCommand, IAdaptableCommand):
             decode_errors_handler=self._decode_error_handler,
         )
 
-        if self._workflow:
-            for record in client.events():
-                record = self._handle_adapters(record)
-                if record is not None:
-                    yield record
-        else:
-            yield from client.events()
+        yield from client.events()
 
 
-class GetEvents(IHTTPCommand, IAdaptableCommand):
+class GetEvents(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches events stream by options.
@@ -281,17 +266,17 @@ class GetEvents(IHTTPCommand, IAdaptableCommand):
     """
 
     def __init__(
-        self,
-        start_timestamp: datetime,
-        end_timestamp: datetime = None,
-        parent_event: str = None,
-        search_direction: str = "next",
-        result_count_limit: int = None,
-        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-        book_id: str = None,
-        scope: str = None,
-        cache: bool = False,
-        sse_handler: Optional[IAdapter] = None,
+            self,
+            start_timestamp: datetime,
+            end_timestamp: datetime = None,
+            parent_event: str = None,
+            search_direction: str = "next",
+            result_count_limit: int = None,
+            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+            book_id: str = None,
+            scope: str = None,
+            cache: bool = False,
+            sse_handler: Optional[IAdapter] = None,
     ):
         """GetEvents constructor.
 
@@ -322,7 +307,7 @@ class GetEvents(IHTTPCommand, IAdaptableCommand):
         self._scope = scope
         self._cache = cache
         self._sse_handler = sse_handler or get_default_sse_adapter()
-        self._event_system_adapter = DeleteSystemEvents()
+        self._event_system_adapter = DeleteSystemEvents()  # TODO - is it not used anywhere??
 
     def handle(self, data_source: HTTPDataSource) -> Data:  # noqa: D102
         sse_events_stream_obj = GetEventsSSEEvents(
@@ -337,19 +322,12 @@ class GetEvents(IHTTPCommand, IAdaptableCommand):
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
-        source = partial(self._sse_handler.handle, sse_events_stream)
+        source = partial(self._sse_handler.handle_stream, sse_events_stream)
 
-        if self._workflow:
-
-            def src():
-                return (self._handle_adapters(record) for record in source() if record is not None)
-
-            return Data(src).use_cache(self._cache)
-        else:
-            return Data(source).use_cache(self._cache)
+        return Data(source).use_cache(self._cache)
 
 
-class GetMessageById(IHTTPCommand, IAdaptableCommand):
+class GetMessageById(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the message by id.
@@ -381,20 +359,20 @@ class GetMessageById(IHTTPCommand, IAdaptableCommand):
         url = api.get_url_find_message_by_id(self._id)
 
         # LOG         logger.info(url)
-
         response = api.execute_request(url)
 
         if response.status_code == 404 and self._stub_status:
-            stub = data_source.message_stub_builder.build({data_source.message_struct.MESSAGE_ID: self._id})
-            return self._handle_adapters(stub)
+            stub = data_source.message_stub_builder.build(
+                {data_source.message_struct.MESSAGE_ID: self._id})
+            return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
             raise MessageNotFound(self._id)
         else:
-            return self._handle_adapters(response.json())
+            return response.json()
 
 
-class GetMessagesById(IHTTPCommand, IAdaptableCommand):
+class GetMessagesById(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It retrieves the messages by ids.
@@ -428,17 +406,12 @@ class GetMessagesById(IHTTPCommand, IAdaptableCommand):
                 message_id,
                 use_stub=self._stub_status,
             ).handle(data_source)
-            if message is None:
-                continue
-            message = self._handle_adapters(message)
-            if message is None:
-                continue
             result.append(message)
 
         return result
 
 
-class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
+class GetMessagesSSEBytes(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -448,16 +421,16 @@ class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
     """
 
     def __init__(
-        self,
-        start_timestamp: datetime=None,
-        message_id: List[str] = None,
-        stream: List[Union[str, Streams]]=None,
-        search_direction: str = "next",
-        result_count_limit: int = None,
-        end_timestamp: datetime = None,
-        response_formats: List[str] = None,
-        keep_open: bool = False,
-        book_id: str = None,
+            self,
+            start_timestamp: datetime = None,
+            message_id: List[str] = None,
+            stream: List[Union[str, Streams]] = None,
+            search_direction: str = "next",
+            result_count_limit: int = None,
+            end_timestamp: datetime = None,
+            response_formats: List[str] = None,
+            keep_open: bool = False,
+            book_id: str = None,
     ):
         """GetMessagesSSEBytes constructor.
 
@@ -478,11 +451,11 @@ class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
             filters: Filters using in search for messages.
         """
         super().__init__()
-        self._start_timestamp = start_timestamp.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+        self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
         self._end_timestamp = (
             end_timestamp
             if end_timestamp is None
-            else end_timestamp.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            else int(1000 * end_timestamp.replace(tzinfo=timezone.utc).timestamp())
         )
         self._stream = stream
         self._search_direction = search_direction
@@ -495,6 +468,7 @@ class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
         url = api.get_url_search_sse_messages(
+            # TODO - why do we have IDE warning here?
             start_timestamp=self._start_timestamp,
             message_id=self._message_id,
             stream=self._stream,
@@ -504,7 +478,7 @@ class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             book_id=self._book_id,
-        ).replace("&stream=", "") #???
+        ).replace("&stream=", "")  # TODO - what is it???
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
@@ -514,7 +488,8 @@ class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
             else:
                 splitted_stream = stream.split(":")
                 if len(splitted_stream) > 1:
-                    name, search_direction = ":".join(splitted_stream[0:-1]), splitted_stream[-1].upper()
+                    name, search_direction = ":".join(splitted_stream[0:-1]), splitted_stream[
+                        -1].upper()
                     if search_direction in ("FIRST", "SECOND"):
                         stream = f"&stream={name}:{search_direction}"
                     else:
@@ -531,16 +506,10 @@ class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
 
         for url in resulting_urls:
             # LOG             logger.info(url)
-            if self._workflow:
-                for response in api.execute_sse_request(url):
-                    response = self._handle_adapters(response)
-                    if response is not None:
-                        yield response
-            else:
-                yield from api.execute_sse_request(url)
+            yield from api.execute_sse_request(url)
 
 
-class GetMessagesSSEEvents(IHTTPCommand, IAdaptableCommand):
+class GetMessagesSSEEvents(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -550,18 +519,18 @@ class GetMessagesSSEEvents(IHTTPCommand, IAdaptableCommand):
     """
 
     def __init__(
-        self,
-        start_timestamp: datetime=None,
-        message_id: List[str] = None,
-        stream: List[Union[str, Streams]]=None,
-        search_direction: str = "next",
-        result_count_limit: int = None,
-        end_timestamp: datetime = None,
-        response_formats: List[str] = None,
-        keep_open: bool = False,
-        book_id: str = None,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+            self,
+            start_timestamp: datetime = None,
+            message_id: List[str] = None,
+            stream: List[Union[str, Streams]] = None,
+            search_direction: str = "next",
+            result_count_limit: int = None,
+            end_timestamp: datetime = None,
+            response_formats: List[str] = None,
+            keep_open: bool = False,
+            book_id: str = None,
+            char_enc: str = "utf-8",
+            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """GetMessagesSSEEvents constructor.
 
@@ -609,18 +578,14 @@ class GetMessagesSSEEvents(IHTTPCommand, IAdaptableCommand):
             book_id=self._book_id,
         ).handle(data_source)
 
-        client = SSEClient(response, char_enc=self._char_enc, decode_errors_handler=self._decode_error_handler)
+        client = SSEClient(response,
+                           char_enc=self._char_enc,
+                           decode_errors_handler=self._decode_error_handler)
 
-        if self._workflow:
-            for record in client.events():
-                record = self._handle_adapters(record)
-                if record is not None:
-                    yield record
-        else:
-            yield from client.events()
+        yield from client.events()
 
 
-class GetMessages(IHTTPCommand, IAdaptableCommand):
+class GetMessages(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -630,20 +595,20 @@ class GetMessages(IHTTPCommand, IAdaptableCommand):
     """
 
     def __init__(
-        self,
-        start_timestamp: datetime=None,
-        message_id: List[str] = None,
-        stream: List[Union[str, Streams]]=None,
-        search_direction: str = "next",
-        result_count_limit: int = None,
-        end_timestamp: datetime = None,
-        response_formats: List[str] = None,
-        keep_open: bool = False,
-        book_id: str = None,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-        cache: bool = False,
-        sse_handler: Optional[IAdapter] = None,
+            self,
+            start_timestamp: datetime = None,
+            message_id: List[str] = None,
+            stream: List[Union[str, Streams]] = None,
+            search_direction: str = "next",
+            result_count_limit: int = None,
+            end_timestamp: datetime = None,
+            response_formats: List[str] = None,
+            keep_open: bool = False,
+            book_id: str = None,
+            char_enc: str = "utf-8",
+            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+            cache: bool = False,
+            sse_handler: Optional[IAdapter] = None,
     ):
         """GetMessages constructor.
 
@@ -698,11 +663,4 @@ class GetMessages(IHTTPCommand, IAdaptableCommand):
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
         source = partial(self._sse_handler.handle, sse_events_stream)
 
-        if self._workflow:
-
-            def src():
-                return (self._handle_adapters(record) for record in source() if record is not None)
-
-            return Data(src).use_cache(self._cache)
-        else:
-            return Data(source).use_cache(self._cache)
+        return Data(source).use_cache(self._cache)

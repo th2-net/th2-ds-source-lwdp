@@ -229,7 +229,7 @@ class HTTPAPI(IHTTPSourceAPI):
         if response.status != HTTPStatus.OK:
             for s in HTTPStatus:
                 if s == response.status:
-                    raise exceptions.HTTPError(f"{s.value} {s.phrase} ({s.description})")
+                    raise exceptions.HTTPError(f"{s.value} {s.phrase} ({s.description}). {response.data}")
             raise exceptions.HTTPError(f"Http returned bad status: {response.status}")
 
         yield from response.stream(self._chunk_length)
