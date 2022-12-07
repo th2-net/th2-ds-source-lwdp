@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from typing import Optional
+from typing import Optional, Iterable
 
 from th2_data_services.interfaces.adapter import IEventAdapter
 from th2_data_services_lwdp.struct import GRPCEventStruct, grpc_event_struct
@@ -77,3 +77,8 @@ class DeleteSystemEvents(IEventAdapter):
         if event.get("hasEnded") or event.get("hasStarted") or event.get("lastId"):
             return None
         return event
+
+    def handle_stream(self, stream: Iterable):
+        for event in stream:
+            if not (event.get("hasEnded") or event.get("hasStarted") or event.get("lastId")):
+                yield event
