@@ -149,10 +149,8 @@ class GetEventsSSEBytes(IHTTPCommand):
 
         """
         super().__init__()
-        self._start_timestamp = start_timestamp.replace(tzinfo=timezone.utc).strftime(
-            "%Y-%m-%dT%H:%M:%S.%fZ")
-        self._end_timestamp = end_timestamp.replace(tzinfo=timezone.utc).strftime(
-            "%Y-%m-%dT%H:%M:%S.%fZ")
+        self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
+        self._end_timestamp = int(1000 * end_timestamp.replace(tzinfo=timezone.utc).timestamp())
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -180,6 +178,7 @@ class GetEventsSSEBytes(IHTTPCommand):
         )
 
         # LOG         logger.info(url)
+        print(url)
         yield from api.execute_sse_request(url)
 
 
@@ -452,12 +451,11 @@ class GetMessagesSSEBytes(IHTTPCommand):
             filters: Filters using in search for messages.
         """
         super().__init__()
-        self._start_timestamp = start_timestamp.replace(tzinfo=timezone.utc).strftime(
-            "%Y-%m-%dT%H:%M:%S.%fZ")
+        self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
         self._end_timestamp = (
             end_timestamp
             if end_timestamp is None
-            else end_timestamp.replace(tzinfo=timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.%fZ")
+            else int(1000 * end_timestamp.replace(tzinfo=timezone.utc).timestamp())
         )
         self._stream = stream
         self._search_direction = search_direction
