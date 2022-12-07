@@ -471,7 +471,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             # TODO - why do we have IDE warning here?
             start_timestamp=self._start_timestamp,
             message_id=self._message_id,
-            stream=self._stream,
+            stream=[],
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
@@ -483,20 +483,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
         for stream in self._stream:
-            if isinstance(stream, Streams):
-                stream = f"&{stream.url()}"
-            else:
-                splitted_stream = stream.split(":")
-                if len(splitted_stream) > 1:
-                    name, search_direction = ":".join(splitted_stream[0:-1]), splitted_stream[
-                        -1].upper()
-                    if search_direction in ("FIRST", "SECOND"):
-                        stream = f"&stream={name}:{search_direction}"
-                    else:
-                        stream = f"&stream={stream}:FIRST&stream={stream}:SECOND"
-                else:
-                    stream = f"&stream={stream}:FIRST&stream={stream}:SECOND"
-
+            stream = f"&stream={stream}"
             if fixed_part_len + len(current_url) + len(stream) >= 2048:
                 resulting_urls.append(url + current_url)
                 current_url = ""
@@ -506,6 +493,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
 
         for url in resulting_urls:
             # LOG             logger.info(url)
+            print(url)
             yield from api.execute_sse_request(url)
 
 
