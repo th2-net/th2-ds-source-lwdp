@@ -15,3 +15,4 @@
 from .basic_adapters import GRPCObjectToDictAdapter
 from .event_adapters import DeleteEventWrappersAdapter
 from .message_adapters import DeleteMessageWrappersAdapter
+from .adapter_sse import SSEAdapter

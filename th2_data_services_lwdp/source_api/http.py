@@ -62,6 +62,22 @@ class HTTPAPI(IHTTPSourceAPI):
     def __encode_url(self, url: str) -> str:
         return quote(url.encode(), "/:&?=")
 
+    def get_url_get_books(self) -> str:
+        """REST-API `books` call returns a list of books in cradleAPI."""
+        return self.__encode_url(f"{self._url}/books")
+
+    def get_url_get_scopes(self, book_id: str) -> str:
+        """REST-API `book/{bookID}/event/scopes` call returns a list of scopes in book named bookID."""
+        return self.__encode_url(f"{self._url}/book/{book_id}/event/scopes")
+
+    def get_url_get_message_aliases(self, book_id: str) -> str:
+        """REST-API `book/{bookID}/message/aliases` call returns a list of message aliases in book named bookID."""
+        return self.__encode_url(f"{self._url}/book/{book_id}/message/aliases")
+        
+    def get_url_get_message_groups(self, book_id: str) -> str:
+        """REST-API `book/{bookID}/message/groups` call returns a list of message groups in book named bookID."""
+        return self.__encode_url(f"{self._url}/book/{book_id}/message/groups")
+
     def get_url_find_event_by_id(self, event_id: str) -> str:
         """REST-API `event` call returns a single event with the specified id."""
         return self.__encode_url(f"{self._url}/event/{event_id}")
@@ -73,12 +89,12 @@ class HTTPAPI(IHTTPSourceAPI):
     def get_url_search_sse_events(
         self,
         start_timestamp: int,
+        book_id: str,
+        scope: str,
         end_timestamp: Optional[int] = None,
         parent_event: Optional[str] = None,
         search_direction: Optional[str] = "next",
         result_count_limit: Union[int, float] = None,
-        book_id: str = None,
-        scope: str = None,
         filters: Optional[str] = None,
     ) -> str:
         """REST-API `search/sse/events` call create a sse channel of event metadata that matches the filter.
@@ -109,7 +125,8 @@ class HTTPAPI(IHTTPSourceAPI):
 
     def get_url_search_sse_messages(
         self,
-        start_timestamp: int = None,
+        start_timestamp: int,
+        book_id: str,
         message_id: List[str] = None,
         stream: List[str] = None,
         search_direction: Optional[str] = "next",
@@ -117,7 +134,6 @@ class HTTPAPI(IHTTPSourceAPI):
         end_timestamp: Optional[int] = None,
         response_formats: str = None,
         keep_open: bool = False,
-        book_id: str = None,
     ) -> str:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
 
@@ -142,6 +158,55 @@ class HTTPAPI(IHTTPSourceAPI):
                 continue
             if k == "stream":
                 for s in stream:
+                    query += f"&{k}={s}"
+            else:
+                query += f"&{k}={v}"
+        url = f"{url}{query[1:]}"
+        return self.__encode_url(url)
+
+    def search_message_groups(
+        self, 
+        start_timestamp: int, 
+        end_timestamp: int, 
+        book_id:str, 
+        message_groups: List[str]=None, 
+        sort:bool = None, 
+        raw_only:bool=None,
+        keep_open:bool=None
+        ) -> str:
+        """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested groups
+            message_groups: Set of books to request
+            sort: Enables message sorting in the request
+            raw_only: If true, only raw message will be returned in the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range
+
+        Returns:
+            Iterable object which return messages as parts of streaming response or message stream pointers.
+        """
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "bookId": book_id,
+            "group": message_groups,
+            "sort": sort,
+            "onlyRaw": raw_only,
+            "keepOpen": keep_open,
+        }
+
+        query = ""
+        url = f"{self._url}/search/sse/messages/group?"
+        for k, v in kwargs.items():
+            if v is None:
+                continue
+            if k == "group":
+                for s in message_groups:
                     query += f"&{k}={s}"
             else:
                 query += f"&{k}={v}"
