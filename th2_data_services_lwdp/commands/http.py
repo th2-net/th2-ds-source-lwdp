@@ -424,7 +424,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             self,
             start_timestamp: datetime = None,
             message_id: List[str] = None,
-            stream: List[Union[str, Streams]] = None,
+            streams: List[Union[str, Streams]] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -437,7 +437,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
         Args:
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
-            stream: Alias of messages.
+            streams: Alias of messages.
             resume_from_id: Message id from which search starts.
             search_direction: Search direction.
             result_count_limit: Result count limit.
@@ -457,7 +457,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             if end_timestamp is None
             else int(1000 * end_timestamp.replace(tzinfo=timezone.utc).timestamp())
         )
-        self._stream = stream
+        self._streams = streams
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
         self._response_formats = response_formats
@@ -479,6 +479,9 @@ class GetMessagesSSEBytes(IHTTPCommand):
             keep_open=self._keep_open,
             book_id=self._book_id,
         ).replace("&stream=", "")  # TODO - what is it???
+
+        if not (isinstance(self._stream, tuple) or isinstance(self._stream, list)):
+            raise TypeError(f"streams argument has to be list or tuple type. Got {type(self._streams)}")
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
@@ -510,7 +513,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
             self,
             start_timestamp: datetime = None,
             message_id: List[str] = None,
-            stream: List[Union[str, Streams]] = None,
+            streams: List[Union[str, Streams]] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -525,14 +528,14 @@ class GetMessagesSSEEvents(IHTTPCommand):
         Args:
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
-            stream: Alias of messages.
+            streams: Alias of messages.
             resume_from_id: Message id from which search starts.
             search_direction: Search direction.
             result_count_limit: Result count limit.
             keep_open: If the search has reached the current moment.
                 It is need to wait further for the appearance of new data.
             message_id: List of message IDs to restore search. If given, it has
-                the highest priority and ignores stream (uses streams from ids), startTimestamp and resumeFromId.
+                the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             attached_events: If true, additionally load attached_event_ids
             lookup_limit_days: The number of days that will be viewed on
                 the first request to get the one closest to the specified timestamp.
@@ -543,7 +546,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
         super().__init__()
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
-        self._stream = stream
+        self._streams = streams
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
         self._response_formats = response_formats
@@ -557,7 +560,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
         response = GetMessagesSSEBytes(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
-            stream=self._stream,
+            streams=self._streams,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             response_formats=self._response_formats,
@@ -586,7 +589,7 @@ class GetMessages(IHTTPCommand):
             self,
             start_timestamp: datetime = None,
             message_id: List[str] = None,
-            stream: List[Union[str, Streams]] = None,
+            streams: List[Union[str, Streams]] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -603,14 +606,14 @@ class GetMessages(IHTTPCommand):
         Args:
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
-            stream: Alias of messages.
+            streams: Alias of messages.
             resume_from_id: Message id from which search starts.
             search_direction: Search direction.
             result_count_limit: Result count limit.
             keep_open: If the search has reached the current moment.
                 It is need to wait further for the appearance of new data.
             message_id: List of message IDs to restore search. If given, it has
-                the highest priority and ignores stream (uses streams from ids), startTimestamp and resumeFromId.
+                the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             attached_events: If true, additionally load attached_event_ids
             lookup_limit_days: The number of days that will be viewed on
                 the first request to get the one closest to the specified timestamp.
@@ -623,7 +626,7 @@ class GetMessages(IHTTPCommand):
         super().__init__()
         self._start_timestamp = start_timestamp
         self._end_timestamp = end_timestamp
-        self._stream = stream
+        self._streams = streams
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
         self._response_formats = response_formats
@@ -639,7 +642,7 @@ class GetMessages(IHTTPCommand):
         sse_events_stream_obj = GetMessagesSSEEvents(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
-            stream=self._stream,
+            streams=self._streams,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             response_formats=self._response_formats,
