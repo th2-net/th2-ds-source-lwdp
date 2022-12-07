@@ -123,13 +123,13 @@ class GetEventsSSEBytes(IHTTPCommand):
     def __init__(
             self,
             start_timestamp: datetime,
+            book_id: str,
+            scope: str,
             end_timestamp: datetime = None,
             parent_event: str = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-            book_id: str = None,
-            scope: str = None,
     ):
         """GetEventsSSEBytes constructor.
 
@@ -194,13 +194,13 @@ class GetEventsSSEEvents(IHTTPCommand):
     def __init__(
             self,
             start_timestamp: datetime,
+            book_id: str,
+            scope: str,
             end_timestamp: datetime = None,
             parent_event: str = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-            book_id: str = None,
-            scope: str = None,
             char_enc: str = "utf-8",
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
@@ -268,13 +268,13 @@ class GetEvents(IHTTPCommand):
     def __init__(
             self,
             start_timestamp: datetime,
+            book_id: str,
+            scope: str,
             end_timestamp: datetime = None,
             parent_event: str = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-            book_id: str = None,
-            scope: str = None,
             cache: bool = False,
             sse_handler: Optional[IAdapter] = None,
     ):
@@ -422,15 +422,15 @@ class GetMessagesSSEBytes(IHTTPCommand):
 
     def __init__(
             self,
-            start_timestamp: datetime = None,
+            start_timestamp: datetime,
+            book_id: str,
+            streams: List[Union[str, Streams]],
             message_id: List[str] = None,
-            streams: List[Union[str, Streams]] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
             response_formats: List[str] = None,
             keep_open: bool = False,
-            book_id: str = None,
     ):
         """GetMessagesSSEBytes constructor.
 
@@ -511,15 +511,15 @@ class GetMessagesSSEEvents(IHTTPCommand):
 
     def __init__(
             self,
-            start_timestamp: datetime = None,
+            start_timestamp: datetime,
+            book_id: str,
+            streams: List[Union[str, Streams]],
             message_id: List[str] = None,
-            streams: List[Union[str, Streams]] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
             response_formats: List[str] = None,
             keep_open: bool = False,
-            book_id: str = None,
             char_enc: str = "utf-8",
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
@@ -587,15 +587,15 @@ class GetMessages(IHTTPCommand):
 
     def __init__(
             self,
-            start_timestamp: datetime = None,
+            start_timestamp: datetime,
+            book_id: str,
+            streams: List[Union[str, Streams]],
             message_id: List[str] = None,
-            streams: List[Union[str, Streams]] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
             response_formats: List[str] = None,
             keep_open: bool = False,
-            book_id: str = None,
             char_enc: str = "utf-8",
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
             cache: bool = False,

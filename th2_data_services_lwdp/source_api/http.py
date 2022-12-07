@@ -89,12 +89,12 @@ class HTTPAPI(IHTTPSourceAPI):
     def get_url_search_sse_events(
         self,
         start_timestamp: int,
+        book_id: str,
+        scope: str,
         end_timestamp: Optional[int] = None,
         parent_event: Optional[str] = None,
         search_direction: Optional[str] = "next",
         result_count_limit: Union[int, float] = None,
-        book_id: str = None,
-        scope: str = None,
         filters: Optional[str] = None,
     ) -> str:
         """REST-API `search/sse/events` call create a sse channel of event metadata that matches the filter.
@@ -125,7 +125,8 @@ class HTTPAPI(IHTTPSourceAPI):
 
     def get_url_search_sse_messages(
         self,
-        start_timestamp: int = None,
+        start_timestamp: int,
+        book_id: str,
         message_id: List[str] = None,
         stream: List[str] = None,
         search_direction: Optional[str] = "next",
@@ -133,7 +134,6 @@ class HTTPAPI(IHTTPSourceAPI):
         end_timestamp: Optional[int] = None,
         response_formats: str = None,
         keep_open: bool = False,
-        book_id: str = None,
     ) -> str:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
 
@@ -166,9 +166,9 @@ class HTTPAPI(IHTTPSourceAPI):
 
     def search_message_groups(
         self, 
-        start_timestamp: int = None, 
-        end_timestamp: int = None, 
-        book_id:str = None, 
+        start_timestamp: int, 
+        end_timestamp: int, 
+        book_id:str, 
         message_groups: List[str]=None, 
         sort:bool = None, 
         raw_only:bool=None,
