@@ -3,3 +3,5 @@
 
 th2-data-services~=2.0.0.dev
 th2-grpc-data-provider==1.1.0
+th2_grpc_lw_data_provider==2.0.0.dev3628381523
+orjson
