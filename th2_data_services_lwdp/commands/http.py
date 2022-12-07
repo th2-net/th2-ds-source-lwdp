@@ -497,14 +497,14 @@ class GetMessagesSSEBytes(IHTTPCommand, IAdaptableCommand):
         url = api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             message_id=self._message_id,
-            stream=self._stream,
+            stream=[],
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             book_id=self._book_id,
-        ).replace("&stream=", "") #???
+        ).replace("&stream=", "")
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
