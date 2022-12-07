@@ -471,14 +471,14 @@ class GetMessagesSSEBytes(IHTTPCommand):
             # TODO - why do we have IDE warning here?
             start_timestamp=self._start_timestamp,
             message_id=self._message_id,
-            stream=[],
+            stream=[], # sending empty list because command handles adding streams on its own
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             book_id=self._book_id,
-        ).replace("&stream=", "")  # TODO - what is it???
+        ).replace("&stream=", "")
 
         if not (isinstance(self._stream, tuple) or isinstance(self._stream, list)):
             raise TypeError(f"streams argument has to be list or tuple type. Got {type(self._streams)}")
