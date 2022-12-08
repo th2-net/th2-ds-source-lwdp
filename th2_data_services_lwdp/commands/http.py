@@ -501,11 +501,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             start_timestamp: datetime,
             book_id: str,
             streams: List[Union[str, Streams]],
-<<<<<<< TH2-4529_add_get_messages_by_group_command
             message_ids: List[str] = None,
-=======
-            message_id: List[str] = None,
->>>>>>> dev_2.0.1.0
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -550,13 +546,8 @@ class GetMessagesSSEBytes(IHTTPCommand):
         url = api.get_url_search_sse_messages(
             # TODO - why do we have IDE warning here?
             start_timestamp=self._start_timestamp,
-<<<<<<< TH2-4529_add_get_messages_by_group_command
             message_ids=self._message_ids,
             stream=[],  # sending empty list because command handles adding streams on its own
-=======
-            message_id=self._message_id,
-            stream=[], # sending empty list because command handles adding streams on its own
->>>>>>> dev_2.0.1.0
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
@@ -565,15 +556,10 @@ class GetMessagesSSEBytes(IHTTPCommand):
             book_id=self._book_id,
         ).replace("&stream=", "")
 
-<<<<<<< TH2-4529_add_get_messages_by_group_command
         _check_list_or_tuple(self._streams, var_name='streams')
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
-=======
-        if not (isinstance(self._streams, tuple) or isinstance(self._streams, list)):
-            raise TypeError(f"streams argument has to be list or tuple type. Got {type(self._streams)}")
->>>>>>> dev_2.0.1.0
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
@@ -606,11 +592,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
             start_timestamp: datetime,
             book_id: str,
             streams: List[Union[str, Streams]],
-<<<<<<< TH2-4529_add_get_messages_by_group_command
             message_ids: List[str] = None,
-=======
-            message_id: List[str] = None,
->>>>>>> dev_2.0.1.0
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -629,12 +611,8 @@ class GetMessagesSSEEvents(IHTTPCommand):
             search_direction: Search direction.
             result_count_limit: Result count limit.
             keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-<<<<<<< TH2-4529_add_get_messages_by_group_command
+                It is needed to wait further for the appearance of new data.
             message_ids: List of message IDs to restore search. If given, it has
-=======
-            message_id: List of message IDs to restore search. If given, it has
->>>>>>> dev_2.0.1.0
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             attached_events: If true, additionally load attached_event_ids
             lookup_limit_days: The number of days that will be viewed on
@@ -690,11 +668,7 @@ class GetMessages(IHTTPCommand):
             start_timestamp: datetime,
             book_id: str,
             streams: List[Union[str, Streams]],
-<<<<<<< TH2-4529_add_get_messages_by_group_command
             message_ids: List[str] = None,
-=======
-            message_id: List[str] = None,
->>>>>>> dev_2.0.1.0
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
