@@ -487,6 +487,9 @@ class GetMessagesSSEBytes(IHTTPCommand):
 
         _check_list_or_tuple(self._streams, var_name='streams')
 
+        if self._start_timestamp == None and (self._message_id == None or self._message_id==[]):
+            raise TypeError("One of start_timestamp or message_id arguments must not be empty")
+
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
         for stream in self._streams:
