@@ -267,19 +267,24 @@ class GetEventsSSEBytes(IHTTPCommand):
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
+        _check_list_or_tuple(self._scopes, var_name="scopes")
+
     def handle(self, data_source: HTTPDataSource):  # noqa: D102
         """Returns SSE Event stream in bytes."""
         api: HTTPAPI = data_source.source_api
-        urls = [api.get_url_search_sse_events(
-            start_timestamp=self._start_timestamp,
-            end_timestamp=self._end_timestamp,
-            parent_event=self._parent_event,
-            search_direction=self._search_direction,
-            result_count_limit=self._result_count_limit,
-            filters=self._filters,
-            book_id=self._book_id,
-            scopes=scope,
-        ) for scope in self._scopes]
+        urls = [
+            api.get_url_search_sse_events(
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                parent_event=self._parent_event,
+                search_direction=self._search_direction,
+                result_count_limit=self._result_count_limit,
+                filters=self._filters,
+                book_id=self._book_id,
+                scopes=scope,
+            )
+            for scope in self._scopes
+        ]
 
         # LOG         logger.info(url)
         for url in urls:
@@ -552,6 +557,8 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         self._message_ids = message_ids
         self._book_id = book_id
 
+        _check_list_or_tuple(self._streams, var_name="streams")
+
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
         url = api.get_url_search_sse_messages(
@@ -565,8 +572,6 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
             keep_open=self._keep_open,
             book_id=self._book_id,
         ).replace("&stream=", "")
-
-        _check_list_or_tuple(self._streams, var_name="streams")
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
@@ -788,6 +793,8 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
         self._keep_open = keep_open
         self._book_id = book_id
 
+        _check_list_or_tuple(self._groups, var_name="groups")
+
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
         url = api.get_url_search_messages_by_groups(
@@ -799,8 +806,6 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
             sort=self._sort,
             book_id=self._book_id,
         ).replace("&group=", "")
-
-        _check_list_or_tuple(self._groups, var_name="groups")
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
