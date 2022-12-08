@@ -39,6 +39,77 @@ def _check_list_or_tuple(variable, var_name):
         raise TypeError(
             f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
+class GetEventScopes(IHTTPCommand):
+    """TODO
+    """
+
+    def __init__(self, book_id: str):
+        """TODO
+        """
+        super().__init__()
+        self._book_id = book_id
+
+    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
+        url = api.get_url_get_scopes(self._book_id)
+
+        # LOG         logger.info(url)
+
+        return api.execute_request(url).json()
+
+class GetMessageAliases(IHTTPCommand):
+    """TODO
+    """
+
+    def __init__(self, book_id: str):
+        """TODO
+        """
+        super().__init__()
+        self._book_id = book_id
+
+    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
+        url = api.get_url_get_message_aliases(self._book_id)
+
+        # LOG         logger.info(url)
+
+        return api.execute_request(url).json()
+
+class GetMessageGroups(IHTTPCommand):
+    """TODO
+    """
+
+    def __init__(self, book_id: str):
+        """TODO
+        """
+        super().__init__()
+        self._book_id = book_id
+
+    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
+        url = api.get_url_get_message_groups(self._book_id)
+
+        # LOG         logger.info(url)
+
+        return api.execute_request(url).json()
+
+class GetBooks(IHTTPCommand):
+    """TODO
+    """
+
+    def __init__(self):
+        """TODO
+        """
+        super().__init__()
+
+    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
+        url = api.get_url_get_books()
+
+        # LOG         logger.info(url)
+
+        return api.execute_request(url).json()
+
 
 class GetEventById(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.

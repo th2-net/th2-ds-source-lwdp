@@ -39,5 +39,18 @@ messages_by_groups = ds.command(
         end_timestamp=END_TIME,
         book_id="case3",
         groups=["Case030", "Case031", "Case032", "arfq02dc30", "arfq02fix30", "csvtest1"]))
-for i in messages_by_groups:
-    print(i)
+#for i in messages_by_groups:
+#    print(i)
+
+books = ds.command(commands.GetBooks())
+print(books)
+
+scopes = ds.command(commands.GetEventScopes("case3"))
+print(scopes)
+
+aliases = ds.command(commands.GetMessageAliases("case3"))
+print(aliases)
+
+groups = ds.command(commands.GetMessageGroups("case3"))
+print(groups)
+
