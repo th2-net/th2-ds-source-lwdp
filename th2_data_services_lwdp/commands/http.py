@@ -412,7 +412,7 @@ class GetMessagesById(IHTTPCommand):
 
 
 class GetMessagesSSEBytes(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
 
@@ -480,12 +480,12 @@ class GetMessagesSSEBytes(IHTTPCommand):
             book_id=self._book_id,
         ).replace("&stream=", "")
 
-        if not (isinstance(self._stream, tuple) or isinstance(self._stream, list)):
+        if not (isinstance(self._streams, tuple) or isinstance(self._streams, list)):
             raise TypeError(f"streams argument has to be list or tuple type. Got {type(self._streams)}")
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
-        for stream in self._stream:
+        for stream in self._streams:
             stream = f"&stream={stream}"
             if fixed_part_len + len(current_url) + len(stream) >= 2048:
                 resulting_urls.append(url + current_url)
@@ -648,6 +648,165 @@ class GetMessages(IHTTPCommand):
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             message_id=self._message_id,
+            book_id=self._book_id,
+        )
+
+        sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
+        source = partial(self._sse_handler.handle, sse_events_stream)
+
+        return Data(source).use_cache(self._cache)
+
+#DIVIDER
+
+
+class GetMessagesByGroupsSSEBytes(IHTTPCommand):
+    """TODO
+    """
+    def __init__(
+            self,
+            start_timestamp: datetime,
+            end_timestamp: datetime,
+            book_id: str,
+            groups: List[str] = None,
+            sort:bool = None, 
+            response_formats:List[str]=None,
+            keep_open:bool=None
+    ):
+        """TODO
+        """
+        super().__init__()
+        self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
+        self._end_timestamp = (
+            end_timestamp
+            if end_timestamp is None
+            else int(1000 * end_timestamp.replace(tzinfo=timezone.utc).timestamp())
+        )
+        self._groups = groups
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._book_id = book_id
+
+    def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
+        api: HTTPAPI = data_source.source_api
+        url = api.get_url_search_messages_by_groups(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            groups=[],
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            sort=self._sort,
+            book_id=self._book_id,
+        ).replace("&groups=", "")
+
+        if not (isinstance(self._groups, tuple) or isinstance(self._groups, list)):
+            raise TypeError(f"groups argument has to be list or tuple type. Got {type(self._groups)}")
+
+        fixed_part_len = len(url)
+        current_url, resulting_urls = "", []
+        for group in self._groups:
+            group = f"&groups={group}"
+            if fixed_part_len + len(current_url) + len(group) >= 2048:
+                resulting_urls.append(url + current_url)
+                current_url = ""
+            current_url += group
+        if current_url:
+            resulting_urls.append(url + current_url)
+
+        for url in resulting_urls:
+            # LOG             logger.info(url)
+            print(url)
+            yield from api.execute_sse_request(url)
+
+
+class GetMessagesByGroupsSSEEvents(IHTTPCommand):
+    """TODO
+    """
+
+    def __init__(
+            self,
+            start_timestamp: datetime,
+            end_timestamp: datetime,
+            book_id: str,
+            groups: List[str] = None,
+            sort:bool = None, 
+            response_formats:List[str]=None,
+            keep_open:bool=None,
+            char_enc: str = "utf-8",
+            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+    ):
+        """TODO
+        """
+        super().__init__()
+        self._start_timestamp = start_timestamp
+        self._end_timestamp = end_timestamp
+        self._groups = groups
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._book_id = book_id
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+
+    def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
+        response = GetMessagesByGroupsSSEBytes(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            groups=self._groups,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            sort=self._sort,
+            book_id=self._book_id,
+        ).handle(data_source)
+
+        client = SSEClient(response,
+                           char_enc=self._char_enc,
+                           decode_errors_handler=self._decode_error_handler)
+
+        yield from client.events()
+
+
+class GetMessagesByGroups(IHTTPCommand):
+    """TODO
+    """
+
+    def __init__(
+            self,
+            start_timestamp: datetime,
+            end_timestamp: datetime,
+            book_id: str,
+            groups: List[str] = None,
+            sort:bool = None, 
+            response_formats:List[str]=None,
+            keep_open:bool=None,
+            char_enc: str = "utf-8",
+            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+            cache: bool = False,
+            sse_handler: Optional[IAdapter] = None,
+    ):
+        """TODO
+        """
+        super().__init__()
+        self._start_timestamp = start_timestamp
+        self._end_timestamp = end_timestamp
+        self._groups = groups
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._book_id = book_id
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._cache = cache
+        self._sse_handler = sse_handler or get_default_sse_adapter()
+
+    def handle(self, data_source: HTTPDataSource) -> Data:  # noqa: D102
+        sse_events_stream_obj = GetMessagesByGroupsSSEEvents(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            groups=self._groups,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            sort=self._sort,
             book_id=self._book_id,
         )
 

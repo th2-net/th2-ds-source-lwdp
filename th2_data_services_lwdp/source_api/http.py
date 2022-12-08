@@ -132,7 +132,7 @@ class HTTPAPI(IHTTPSourceAPI):
         search_direction: Optional[str] = "next",
         result_count_limit: Union[int, float] = None,
         end_timestamp: Optional[int] = None,
-        response_formats: str = None,
+        response_formats: List[str] = None,
         keep_open: bool = False,
     ) -> str:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
@@ -150,28 +150,28 @@ class HTTPAPI(IHTTPSourceAPI):
             "keepOpen": keep_open,
             "bookId": book_id,
         }
-
+     
         query = ""
         url = f"{self._url}/search/sse/messages?"
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k == "stream":
-                for s in stream:
-                    query += f"&{k}={s}"
+            if k in ["stream","responseFormats","messageId"]:
+                for item in v:
+                    query += f"&{k}={item}"
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
         return self.__encode_url(url)
 
-    def search_message_groups(
+    def get_url_search_messages_by_groups(
         self, 
         start_timestamp: int, 
         end_timestamp: int, 
         book_id:str, 
-        message_groups: List[str]=None, 
+        groups: List[str]=None, 
         sort:bool = None, 
-        raw_only:bool=None,
+        response_formats:List[str]=None,
         keep_open:bool=None
         ) -> str:
         """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
@@ -182,7 +182,7 @@ class HTTPAPI(IHTTPSourceAPI):
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
                 Expected in nanoseconds.
             book_id: book ID for requested groups
-            message_groups: Set of books to request
+            groups: List of groups to search messages by
             sort: Enables message sorting in the request
             raw_only: If true, only raw message will be returned in the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range
@@ -194,9 +194,9 @@ class HTTPAPI(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
             "bookId": book_id,
-            "group": message_groups,
+            "groups": groups,
             "sort": sort,
-            "onlyRaw": raw_only,
+            "reseponseFormats": response_formats,
             "keepOpen": keep_open,
         }
 
@@ -205,9 +205,9 @@ class HTTPAPI(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k == "group":
-                for s in message_groups:
-                    query += f"&{k}={s}"
+            if k in ["groups","responseFormats"]:
+                for item in v:
+                    query += f"&{k}={item}"
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
