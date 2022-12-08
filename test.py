@@ -20,22 +20,22 @@ END_TIME = datetime(year=2022, month=11, day=10, hour=13, minute=53, second=8, m
 events = ds.command(commands.GetEvents(
     start_timestamp=START_TIME, end_timestamp=END_TIME, book_id='case3', scope='th2-scope'))
 
-# for i in events:
-#     print(i)
+for i in events:
+    print(i)
 
 START_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, microsecond=0)
 
-msgs = ds.command(commands.GetMessages(
+msgs = ds.command(commands.GetMessagesByStreams(
     start_timestamp=START_TIME,
     end_timestamp=END_TIME,
     book_id='case3',
     streams=['arfq02fix30']))
 
 st = time.time()
-# print(st)
-# print(msgs.len)
-# print(time.time()-st)
+print(st)
+print(msgs.len)
+print(time.time()-st)
 
 START_TIME = datetime(year=2022, month=11, day=11, hour=10, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=11, hour=20, minute=53, second=8, microsecond=0)
@@ -46,8 +46,8 @@ messages_by_groups = ds.command(
         end_timestamp=END_TIME,
         book_id="case3",
         groups=["Case030", "Case031", "Case032", "arfq02dc30", "arfq02fix30", "csvtest1"]))
-#for i in messages_by_groups:
-#    print(i)
+for i in messages_by_groups:
+   print(i)
 
 books = ds.command(commands.GetBooks())
 print(books)

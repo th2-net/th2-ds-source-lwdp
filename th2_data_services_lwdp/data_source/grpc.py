@@ -35,8 +35,8 @@ from th2_data_services_lwdp.struct import (
     grpc_event_struct,
 )
 from th2_data_services_lwdp.stub_builder import (
-    event_stub_builder,
-    message_stub_builder,
+    grpc_event_stub_builder,
+    grpc_message_stub_builder,
 )
 
 logger = logging.getLogger(__name__)
@@ -53,8 +53,8 @@ class GRPCDataSource(IGRPCDataSource):
         url: str,
         event_struct: IEventStruct = grpc_event_struct,
         message_struct: IMessageStruct = grpc_message_struct,
-        event_stub_builder: IEventStub = event_stub_builder,
-        message_stub_builder: IMessageStub = message_stub_builder,
+        event_stub_builder: IEventStub = grpc_event_stub_builder,
+        message_stub_builder: IMessageStub = grpc_message_stub_builder,
     ):
         """GRPCDataSource constructor.
 

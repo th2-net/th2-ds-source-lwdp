@@ -14,7 +14,7 @@
 from typing import Optional, Iterable
 
 from th2_data_services.interfaces.adapter import IEventAdapter
-from th2_data_services_lwdp.struct import GRPCEventStruct, grpc_event_struct
+from th2_data_services_lwdp.struct import grpc_event_struct, EventStruct
 
 
 class DeleteEventWrappersAdapter(IEventAdapter):
@@ -23,7 +23,7 @@ class DeleteEventWrappersAdapter(IEventAdapter):
     It used for events to which an AdaptorGRPCObjectToDict has been applied.
     """
 
-    def __init__(self, event_struct: GRPCEventStruct = grpc_event_struct):
+    def __init__(self, event_struct: EventStruct = grpc_event_struct):
         """AdapterDeleteEventWrappers constructor.
 
         Args:
@@ -56,6 +56,9 @@ class DeleteEventWrappersAdapter(IEventAdapter):
             event[batch_id_field] = batch_id
 
         return event
+
+    def handle_stream(self, stream: Iterable):
+        pass
 
     @staticmethod
     def __get_id_from_wrapper(event: dict, field: str):

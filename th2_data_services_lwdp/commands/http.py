@@ -39,6 +39,7 @@ def _check_list_or_tuple(variable, var_name):
         raise TypeError(
             f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
+
 class GetEventScopes(IHTTPCommand):
     """TODO
     """
@@ -56,6 +57,7 @@ class GetEventScopes(IHTTPCommand):
         # LOG         logger.info(url)
 
         return api.execute_request(url).json()
+
 
 class GetMessageAliases(IHTTPCommand):
     """TODO
@@ -75,6 +77,7 @@ class GetMessageAliases(IHTTPCommand):
 
         return api.execute_request(url).json()
 
+
 class GetMessageGroups(IHTTPCommand):
     """TODO
     """
@@ -92,6 +95,7 @@ class GetMessageGroups(IHTTPCommand):
         # LOG         logger.info(url)
 
         return api.execute_request(url).json()
+
 
 class GetBooks(IHTTPCommand):
     """TODO
@@ -345,6 +349,7 @@ class GetEvents(IHTTPCommand):
             self,
             start_timestamp: datetime,
             book_id: str,
+            # TODO - let's do scopes. Now it has scope only, but it will have scopes in the future
             scope: str,
             end_timestamp: datetime = None,
             parent_event: str = None,
@@ -487,7 +492,7 @@ class GetMessagesById(IHTTPCommand):
         return result
 
 
-class GetMessagesSSEBytes(IHTTPCommand):
+class GetMessagesByStreamsSSEBytes(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
@@ -578,7 +583,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             yield from api.execute_sse_request(url)
 
 
-class GetMessagesSSEEvents(IHTTPCommand):
+class GetMessagesByStreamsSSEEvents(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -635,7 +640,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
         self._decode_error_handler = decode_error_handler
 
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
-        response = GetMessagesSSEBytes(
+        response = GetMessagesByStreamsSSEBytes(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             streams=self._streams,
@@ -654,7 +659,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
         yield from client.events()
 
 
-class GetMessages(IHTTPCommand):
+class GetMessagesByStreams(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
 
     It searches messages stream by options.
@@ -721,7 +726,7 @@ class GetMessages(IHTTPCommand):
         self._sse_handler = sse_handler or get_default_sse_adapter()
 
     def handle(self, data_source: HTTPDataSource) -> Data:  # noqa: D102
-        sse_events_stream_obj = GetMessagesSSEEvents(
+        sse_events_stream_obj = GetMessagesByStreamsSSEEvents(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             streams=self._streams,
@@ -851,6 +856,9 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
 
 class GetMessagesByGroups(IHTTPCommand):
     """TODO
+
+    sort - sorting within a group. It is not sorted between groups
+    groups - don't support directions now.
     """
 
     def __init__(

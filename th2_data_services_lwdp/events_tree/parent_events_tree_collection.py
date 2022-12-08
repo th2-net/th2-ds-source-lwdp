@@ -21,7 +21,7 @@ from th2_data_services.interfaces import IEventStruct
 from th2_data_services_lwdp.command_resolver import resolver_get_events_by_id
 from th2_data_services_lwdp.data_source import GRPCDataSource
 from th2_data_services_lwdp.struct import grpc_event_struct
-from th2_data_services_lwdp.stub_builder import event_stub_builder
+from th2_data_services_lwdp.stub_builder import http_event_stub_builder
 
 
 class ParentEventsTreeCollectionProvider(ParentEventsTreeCollection):
@@ -102,4 +102,4 @@ class ParentEventsTreeCollectionProvider(ParentEventsTreeCollection):
         Returns:
             Stub event.
         """
-        return event_stub_builder.build({self._event_struct.EVENT_ID: id_})
+        return http_event_stub_builder.build({self._event_struct.EVENT_ID: id_})

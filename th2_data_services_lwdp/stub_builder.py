@@ -15,12 +15,12 @@
 from th2_data_services.interfaces import IEventStub, IMessageStub
 from th2_data_services_lwdp.struct import (
     grpc_event_struct,
-    grpc_message_struct,
+    grpc_message_struct, http_event_struct, http_message_struct, EventStruct, MessageStruct,
 )
 
 
 class EventStubBuilder(IEventStub):
-    def __init__(self, event_struct=grpc_event_struct):
+    def __init__(self, event_struct: EventStruct):
         """Event stub builder for Provider v6.
         Args:
             event_struct: Event struct class.
@@ -44,12 +44,12 @@ class EventStubBuilder(IEventStub):
             self.event_fields.EVENT_TYPE: "Broken_Event",
             self.event_fields.PARENT_EVENT_ID: "Broken_Event",
             self.event_fields.STATUS: None,
-            self.event_fields.IS_BATCHED: None,
+            self.event_fields.IS_BATCHED: None
         }
 
 
 class MessageStubBuilder(IMessageStub):
-    def __init__(self, message_struct=grpc_message_struct):
+    def __init__(self, message_struct: MessageStruct):
         """Event stub builder for Provider 6.
         Args:
             message_struct: Message struct class.
@@ -72,9 +72,11 @@ class MessageStubBuilder(IMessageStub):
             self.message_fields.BODY_BASE64: [],
             self.message_fields.TYPE: "message",
             self.message_fields.MESSAGE_ID: self.REQUIRED_FIELD,
-            self.message_fields.ATTACHED_EVENT_IDS: [],
+            self.message_fields.ATTACHED_EVENT_IDS: []
         }
 
 
-event_stub_builder = EventStubBuilder()
-message_stub_builder = MessageStubBuilder()
+http_event_stub_builder = EventStubBuilder(http_event_struct)
+http_message_stub_builder = MessageStubBuilder(http_message_struct)
+grpc_event_stub_builder = EventStubBuilder(grpc_event_struct)
+grpc_message_stub_builder = MessageStubBuilder(grpc_message_struct)
