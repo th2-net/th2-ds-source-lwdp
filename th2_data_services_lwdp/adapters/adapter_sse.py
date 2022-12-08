@@ -63,7 +63,8 @@ class StreamingSSEAdapter(IAdapter):
         yield from self.json_processor.fin()
 
     def handle_stream(self, stream: Iterable):
-        # TODO - perhaps we don't need this block.
+        # We need this block because we put generator function in the commands.
+        # TODO this hack will be removed when we add Data.map_stream
         if callable(stream):
             stream = stream()
 
