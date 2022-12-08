@@ -407,6 +407,7 @@ class GetEvents(IHTTPCommand):
         self._book_id = book_id
         self._scopes = scopes
         self._cache = cache
+        # TODO - provide buffer_limit parameter
         self._sse_handler = sse_handler or get_default_sse_adapter()
 
     def handle(self, data_source: HTTPDataSource) -> Data:  # noqa: D102
