@@ -18,7 +18,6 @@ from functools import partial
 
 from th2_data_services import Data
 from th2_data_services.interfaces import IAdapter
-from th2_data_services_lwdp.adapters.event_adapters import DeleteSystemEvents
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
@@ -34,10 +33,10 @@ from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 
 # LOG logger = logging.getLogger(__name__)
 
+
 def _check_list_or_tuple(variable, var_name):
     if not (isinstance(variable, tuple) or isinstance(variable, list)):
-        raise TypeError(
-            f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
+        raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
 
 class GetEventScopes(IHTTPCommand):
@@ -131,8 +130,7 @@ class GetBooks(IHTTPCommand):
     """
 
     def __init__(self):
-        """GetBooks constructor.
-        """
+        """GetBooks constructor."""
         super().__init__()
 
     def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
@@ -178,7 +176,8 @@ class GetEventById(IHTTPCommand):
 
         if response.status_code == 404 and self._stub_status:
             stub = data_source.event_stub_builder.build(
-                {data_source.event_struct.EVENT_ID: self._id})
+                {data_source.event_struct.EVENT_ID: self._id}
+            )
             return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
@@ -230,23 +229,23 @@ class GetEventsSSEBytes(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            scopes: str,
-            end_timestamp: datetime = None,
-            parent_event: str = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        scopes: List[str],
+        end_timestamp: datetime = None,
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
     ):
         """GetEventsSSEBytes constructor.
 
         Args:
             Args:
             start_timestamp: Start timestamp of search.
-            book_id: Book ID for messages
-            scopes: Scope names for events
+            book_id: Book ID for messages.
+            scopes: Scope names for events.
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
@@ -297,19 +296,20 @@ class GetEventsSSEEvents(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            scopes: str,
-            end_timestamp: datetime = None,
-            parent_event: str = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        scopes: List[str],
+        end_timestamp: datetime = None,
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """GetEventsSSEEvents constructor.
+
         Args:
             start_timestamp: Start timestamp of search.
             book_id: Book ID for messages
@@ -366,23 +366,24 @@ class GetEvents(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            scopes: str,
-            end_timestamp: datetime = None,
-            parent_event: str = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        scopes: List[str],
+        end_timestamp: datetime = None,
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
     ):
         """GetEvents constructor.
+
         Args:
             start_timestamp: Start timestamp of search.
-            book_id: Book ID for messages
-            scopes: Scope names for events
+            book_id: Book ID for messages.
+            scopes: Scope names for events.
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
@@ -412,7 +413,7 @@ class GetEvents(IHTTPCommand):
             result_count_limit=self._result_count_limit,
             filters=self._filters,
             book_id=self._book_id,
-            scopes=self._scopes 
+            scopes=self._scopes,
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
@@ -454,7 +455,8 @@ class GetMessageById(IHTTPCommand):
 
         if response.status_code == 404 and self._stub_status:
             stub = data_source.message_stub_builder.build(
-                {data_source.message_struct.MESSAGE_ID: self._id})
+                {data_source.message_struct.MESSAGE_ID: self._id}
+            )
             return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
@@ -509,16 +511,16 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            streams: List[Union[str, Streams]],
-            message_ids: List[str] = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            end_timestamp: datetime = None,
-            response_formats: List[str] = None,
-            keep_open: bool = False,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        streams: List[Union[str, Streams]],
+        message_ids: List[str] = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        end_timestamp: datetime = None,
+        response_formats: List[str] = None,
+        keep_open: bool = False,
     ):
         """GetMessagesSSEBytes constructor.
 
@@ -564,18 +566,18 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
             book_id=self._book_id,
         ).replace("&stream=", "")
 
-        _check_list_or_tuple(self._streams, var_name='streams')
+        _check_list_or_tuple(self._streams, var_name="streams")
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
-        
+
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
         for stream in self._streams:
             if isinstance(stream, Streams):
                 stream = f"&{stream.url()}"
             elif isinstance(stream, Stream):
-                stream =stream.url()
+                stream = stream.url()
             else:
                 stream = f"&stream={stream}"
             if fixed_part_len + len(current_url) + len(stream) >= 2048:
@@ -601,18 +603,18 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            streams: List[Union[str, Streams]],
-            message_ids: List[str] = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            end_timestamp: datetime = None,
-            response_formats: List[str] = None,
-            keep_open: bool = False,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        streams: List[Union[str, Streams]],
+        message_ids: List[str] = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        end_timestamp: datetime = None,
+        response_formats: List[str] = None,
+        keep_open: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """GetMessagesSSEEvents constructor.
 
@@ -657,9 +659,9 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
             book_id=self._book_id,
         ).handle(data_source)
 
-        client = SSEClient(response,
-                           char_enc=self._char_enc,
-                           decode_errors_handler=self._decode_error_handler)
+        client = SSEClient(
+            response, char_enc=self._char_enc, decode_errors_handler=self._decode_error_handler
+        )
 
         yield from client.events()
 
@@ -674,20 +676,20 @@ class GetMessagesByStreams(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            streams: List[Union[str, Streams]],
-            message_ids: List[str] = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            end_timestamp: datetime = None,
-            response_formats: List[str] = None,
-            keep_open: bool = False,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        streams: List[Union[str, Streams]],
+        message_ids: List[str] = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        end_timestamp: datetime = None,
+        response_formats: List[str] = None,
+        keep_open: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
     ):
         """GetMessages constructor.
 
@@ -752,17 +754,17 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            end_timestamp: datetime,
-            book_id: str,
-            groups: List[str],
-            sort: bool = None,
-            response_formats: List[str] = None,
-            keep_open: bool = None
+        self,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
     ):
         """GetMessagesByGroups Constructor.
-        
+
         Args:
             start_timestamp: Sets the search starting point. Expected in nanoseconds.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
@@ -770,7 +772,7 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
-            raw_only: If true, only raw message will be returned in the response.
+            response_formats: ???
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
         """
         super().__init__()
@@ -798,7 +800,7 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
             book_id=self._book_id,
         ).replace("&group=", "")
 
-        _check_list_or_tuple(self._groups, var_name='groups')
+        _check_list_or_tuple(self._groups, var_name="groups")
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
@@ -827,19 +829,19 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            end_timestamp: datetime,
-            book_id: str,
-            groups: List[str],
-            sort: bool = None,
-            response_formats: List[str] = None,
-            keep_open: bool = None,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        self,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """GetMessagesByGroupsSSEEvents Constructor.
-        
+
         Args:
             start_timestamp: Sets the search starting point. Expected in nanoseconds.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
@@ -847,7 +849,7 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
-            raw_only: If true, only raw message will be returned in the response.
+            response_formats: ???
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -871,12 +873,12 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             sort=self._sort,
-            book_id=self._book_id
+            book_id=self._book_id,
         ).handle(data_source)
 
-        client = SSEClient(response,
-                           char_enc=self._char_enc,
-                           decode_errors_handler=self._decode_error_handler)
+        client = SSEClient(
+            response, char_enc=self._char_enc, decode_errors_handler=self._decode_error_handler
+        )
 
         yield from client.events()
 
@@ -888,24 +890,24 @@ class GetMessagesByGroups(IHTTPCommand):
 
     Returns:
         Iterable[dict]: Stream of Th2 messages.
-    """   
+    """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            end_timestamp: datetime,
-            book_id: str,
-            groups: List[str],
-            sort: bool = None,
-            response_formats: List[str] = None,
-            keep_open: bool = None,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
+        self,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
     ):
         """GetMessagesByGroups Constructor.
-        
+
         Args:
             start_timestamp: Sets the search starting point. Expected in nanoseconds.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
@@ -913,7 +915,7 @@ class GetMessagesByGroups(IHTTPCommand):
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
-            raw_only: If true, only raw message will be returned in the response.
+            response_formats: ???
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -943,7 +945,7 @@ class GetMessagesByGroups(IHTTPCommand):
             sort=self._sort,
             book_id=self._book_id,
             char_enc=self._char_enc,
-            decode_error_handler=self._decode_error_handler
+            decode_error_handler=self._decode_error_handler,
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)

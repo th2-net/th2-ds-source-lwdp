@@ -3,13 +3,14 @@ from typing import List
 from th2_grpc_common.common_pb2 import Direction
 from th2_grpc_data_provider.data_provider_pb2 import MessageStream
 
+
 class Stream:
     """General interface for stream for lwdp ds.
 
     The class gives the opportunity to make stream with direction.
     """
 
-    def __init__(self, alias: str, direction: str=None):
+    def __init__(self, alias: str, direction: str = None):
         """Streams constructor.
 
         Args:
@@ -25,9 +26,7 @@ class Stream:
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return f"{class_name}(" \
-               f"alias={self._alias}, " \
-               f"direction={self._direction})"
+        return f"{class_name}(" f"alias={self._alias}, " f"direction={self._direction})"
 
     def url(self) -> str:
         """Generates the stream part of the HTTP protocol API.
@@ -39,7 +38,7 @@ class Stream:
             return f"&stream={self._alias}:1&stream={self._alias}:2"
         return f"&stream={self._alias}:{self._direction}"
 
-    #TODO
+    # TODO
     def grpc(self) -> MessageStream:
         """Generates the grpc object of the GRPC protocol API.
 
@@ -48,14 +47,15 @@ class Stream:
         """
         if self._direction is None:
             return [
-                    MessageStream(name=self._alias, direction=Direction.FIRST),
-                    MessageStream(name=self._alias, direction=Direction.SECOND),
-                ]
+                MessageStream(name=self._alias, direction=Direction.FIRST),
+                MessageStream(name=self._alias, direction=Direction.SECOND),
+            ]
             return result
         return [
             MessageStream(name=stream, direction=Direction.Value(self._direction))
             for stream in self._aliases
         ]
+
 
 class Streams:
     """General interface for composite streams of lwdp ds.
@@ -79,9 +79,7 @@ class Streams:
 
     def __repr__(self):
         class_name = self.__class__.__name__
-        return f"{class_name}(" \
-               f"aliases={self._aliases}, " \
-               f"direction={self._direction})"
+        return f"{class_name}(" f"aliases={self._aliases}, " f"direction={self._direction})"
 
     def url(self) -> str:
         """Generates the stream part of the HTTP protocol API.
@@ -90,9 +88,7 @@ class Streams:
             str: Generated streams.
         """
         if self._direction is None:
-            return "&".join(
-                [f"stream={alias}:1&stream={alias}:2" for alias in self._aliases]
-            )
+            return "&".join([f"stream={alias}:1&stream={alias}:2" for alias in self._aliases])
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._aliases])
 
     def grpc(self) -> List[MessageStream]:

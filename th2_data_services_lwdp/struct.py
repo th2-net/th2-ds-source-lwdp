@@ -25,7 +25,6 @@ class EventStruct(IEventStruct):
     PARENT_EVENT_ID: str
     STATUS: str
     NAME: str
-    TYPE: str  # TODO - wierd field.
     BATCH_ID: str
     IS_BATCHED: str
     EVENT_TYPE: str
@@ -49,7 +48,6 @@ class MessageStruct(IMessageStruct):
     TIMESTAMP: str
     BODY: str
     BODY_BASE64: str
-    TYPE: str  # TODO - wierd field.
     MESSAGE_ID: str
     ATTACHED_EVENT_IDS: str
 
@@ -59,7 +57,6 @@ http_event_struct = EventStruct(
     PARENT_EVENT_ID="parentEventId",
     STATUS="successful",
     NAME="eventName",
-    TYPE="type",
     BATCH_ID="batchId",
     IS_BATCHED="isBatched",
     EVENT_TYPE="eventType",
@@ -74,28 +71,27 @@ grpc_event_struct = EventStruct(
     PARENT_EVENT_ID="parentEventId",
     STATUS="successful",
     NAME="eventName",
-    TYPE="type",
     BATCH_ID="batchId",
     IS_BATCHED="isBatched",
     EVENT_TYPE="eventType",
     END_TIMESTAMP="endTimestamp",
     START_TIMESTAMP="startTimestamp",
     ATTACHED_MESSAGES_IDS="attachedMessageIds",
-    BODY="body"
+    BODY="body",
 )
 
+# TODO - unknown fields. Perhaps we have them in GRPC
 http_message_struct = MessageStruct(
     DIRECTION="direction",
     SESSION_ID="sessionId",
     MESSAGE_TYPE="messageType",
-    CONNECTION_ID="connectionId",
-    SESSION_ALIAS="sessionAlias",
-    SUBSEQUENCE="subsequence",
-    SEQUENCE="sequence",
+    CONNECTION_ID="connectionId",  # ??
+    SESSION_ALIAS="sessionAlias",  # ??
+    SUBSEQUENCE="subsequence",  # ??
+    SEQUENCE="sequence",  # ??
     TIMESTAMP="timestamp",
     BODY="body",
     BODY_BASE64="bodyBase64",
-    TYPE="type",
     MESSAGE_ID="messageId",
     ATTACHED_EVENT_IDS="attachedEventIds",
 )
@@ -111,7 +107,6 @@ grpc_message_struct = MessageStruct(
     TIMESTAMP="timestamp",
     BODY="body",
     BODY_BASE64="bodyBase64",
-    TYPE="type",
     MESSAGE_ID="messageId",
     ATTACHED_EVENT_IDS="attachedEventIds",
 )

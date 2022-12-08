@@ -15,13 +15,18 @@
 from th2_data_services.interfaces import IEventStub, IMessageStub
 from th2_data_services_lwdp.struct import (
     grpc_event_struct,
-    grpc_message_struct, http_event_struct, http_message_struct, EventStruct, MessageStruct,
+    grpc_message_struct,
+    http_event_struct,
+    http_message_struct,
+    EventStruct,
+    MessageStruct,
 )
 
 
 class EventStubBuilder(IEventStub):
     def __init__(self, event_struct: EventStruct):
-        """Event stub builder for Provider v6.
+        """Event stub builder.
+
         Args:
             event_struct: Event struct class.
         """
@@ -31,6 +36,7 @@ class EventStubBuilder(IEventStub):
     @property
     def template(self) -> dict:
         """Event stub template.
+
         Returns:
             (dict) Event stub template.
         """
@@ -44,13 +50,14 @@ class EventStubBuilder(IEventStub):
             self.event_fields.EVENT_TYPE: "Broken_Event",
             self.event_fields.PARENT_EVENT_ID: "Broken_Event",
             self.event_fields.STATUS: None,
-            self.event_fields.IS_BATCHED: None
+            self.event_fields.IS_BATCHED: None,
         }
 
 
 class MessageStubBuilder(IMessageStub):
     def __init__(self, message_struct: MessageStruct):
-        """Event stub builder for Provider 6.
+        """Event stub builder.
+
         Args:
             message_struct: Message struct class.
         """
@@ -60,6 +67,7 @@ class MessageStubBuilder(IMessageStub):
     @property
     def template(self) -> dict:
         """Message stub template.
+
         Returns:
             (dict) Message stub template.
         """
@@ -70,9 +78,8 @@ class MessageStubBuilder(IMessageStub):
             self.message_fields.TIMESTAMP: {"nano": 0, "epochSecond": 0},
             self.message_fields.BODY: [],
             self.message_fields.BODY_BASE64: [],
-            self.message_fields.TYPE: "message",
             self.message_fields.MESSAGE_ID: self.REQUIRED_FIELD,
-            self.message_fields.ATTACHED_EVENT_IDS: []
+            self.message_fields.ATTACHED_EVENT_IDS: [],
         }
 
 
