@@ -1,4 +1,8 @@
+import time
 from datetime import datetime, timezone
+
+from th2_data_services import Data
+
 from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.source_api.grpc import GRPCAPI
@@ -16,7 +20,28 @@ END_TIME = datetime(year=2022, month=11, day=10, hour=13, minute=53, second=8, m
 events = ds.command(commands.GetEvents(
     start_timestamp=START_TIME, end_timestamp=END_TIME, book_id='case3', scope='th2-scope'))
 
+<<<<<<< TH2-4529_add_get_messages_by_group_command
 # for i in events:
+=======
+for i in events:
+    print(i)
+
+START_TIME = datetime(year=2022, month=11, day=11, hour=12, minute=0, second=0, microsecond=0)
+END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, microsecond=0)
+
+msgs: Data = ds.command(commands.GetMessages(
+    start_timestamp=START_TIME,
+    end_timestamp=END_TIME,
+    book_id='case3',
+    streams=['arfq02fix30']))
+
+st = time.time()
+print(st)
+print(msgs.len)
+print(time.time()-st)
+
+# for i in msgs:
+>>>>>>> dev_2.0.1.0
 #     print(i)
 
 START_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=50, second=0, microsecond=0)

@@ -214,6 +214,55 @@ class HTTPAPI(IHTTPSourceAPI):
         url = f"{url}{query[1:]}"
         return self.__encode_url(url)
 
+    def search_message_groups(
+        self, 
+        start_timestamp: int, 
+        end_timestamp: int, 
+        book_id:str, 
+        message_groups: List[str]=None, 
+        sort:bool = None, 
+        raw_only:bool=None,
+        keep_open:bool=None
+        ) -> str:
+        """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested groups
+            message_groups: Set of books to request
+            sort: Enables message sorting in the request
+            raw_only: If true, only raw message will be returned in the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range
+
+        Returns:
+            Iterable object which return messages as parts of streaming response or message stream pointers.
+        """
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "bookId": book_id,
+            "group": message_groups,
+            "sort": sort,
+            "onlyRaw": raw_only,
+            "keepOpen": keep_open,
+        }
+
+        query = ""
+        url = f"{self._url}/search/sse/messages/group?"
+        for k, v in kwargs.items():
+            if v is None:
+                continue
+            if k == "group":
+                for s in message_groups:
+                    query += f"&{k}={s}"
+            else:
+                query += f"&{k}={v}"
+        url = f"{url}{query[1:]}"
+        return self.__encode_url(url)
+
     def execute_sse_request(self, url: str) -> Generator[bytes, None, None]:
         """Create stream connection.
 
