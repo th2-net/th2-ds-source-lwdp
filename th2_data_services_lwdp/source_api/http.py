@@ -128,7 +128,7 @@ class HTTPAPI(IHTTPSourceAPI):
             self,
             start_timestamp: int,
             book_id: str,
-            message_id: List[str] = None,
+            message_ids: List[str] = None,
             stream: List[str] = None,
             search_direction: Optional[str] = "next",
             result_count_limit: Union[int, float] = None,
@@ -142,7 +142,7 @@ class HTTPAPI(IHTTPSourceAPI):
         """
         kwargs = {
             "startTimestamp": start_timestamp,
-            "messageId": message_id,
+            "messageId": message_ids,
             "stream": stream,
             "searchDirection": search_direction,
             "resultCountLimit": result_count_limit,

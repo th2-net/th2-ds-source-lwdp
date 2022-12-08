@@ -430,7 +430,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             start_timestamp: datetime,
             book_id: str,
             streams: List[Union[str, Streams]],
-            message_id: List[str] = None,
+            message_ids: List[str] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -448,7 +448,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             result_count_limit: Result count limit.
             keep_open: If the search has reached the current moment.
                 It is need to wait further for the appearance of new data.
-            message_id: List of message IDs to restore search. If given, it has
+            message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores stream (uses streams from ids), startTimestamp and resumeFromId.
             attached_events: If true, additionally load attached_event_ids
             lookup_limit_days: The number of days that will be viewed on
@@ -467,7 +467,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
         self._result_count_limit = result_count_limit
         self._response_formats = response_formats
         self._keep_open = keep_open
-        self._message_id = message_id
+        self._message_ids = message_ids
         self._book_id = book_id
 
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
@@ -475,7 +475,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
         url = api.get_url_search_sse_messages(
             # TODO - why do we have IDE warning here?
             start_timestamp=self._start_timestamp,
-            message_id=self._message_id,
+            message_ids=self._message_ids,
             stream=[],  # sending empty list because command handles adding streams on its own
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
@@ -487,7 +487,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
 
         _check_list_or_tuple(self._streams, var_name='streams')
 
-        if self._start_timestamp == None and (self._message_id == None or self._message_id==[]):
+        if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
 
         fixed_part_len = len(url)
@@ -521,7 +521,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
             start_timestamp: datetime,
             book_id: str,
             streams: List[Union[str, Streams]],
-            message_id: List[str] = None,
+            message_ids: List[str] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -541,7 +541,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
             result_count_limit: Result count limit.
             keep_open: If the search has reached the current moment.
                 It is need to wait further for the appearance of new data.
-            message_id: List of message IDs to restore search. If given, it has
+            message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             attached_events: If true, additionally load attached_event_ids
             lookup_limit_days: The number of days that will be viewed on
@@ -558,7 +558,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
         self._result_count_limit = result_count_limit
         self._response_formats = response_formats
         self._keep_open = keep_open
-        self._message_id = message_id
+        self._message_ids = message_ids
         self._book_id = book_id
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
@@ -572,7 +572,7 @@ class GetMessagesSSEEvents(IHTTPCommand):
             result_count_limit=self._result_count_limit,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
-            message_id=self._message_id,
+            message_ids=self._message_ids,
             book_id=self._book_id,
         ).handle(data_source)
 
@@ -597,7 +597,7 @@ class GetMessages(IHTTPCommand):
             start_timestamp: datetime,
             book_id: str,
             streams: List[Union[str, Streams]],
-            message_id: List[str] = None,
+            message_ids: List[str] = None,
             search_direction: str = "next",
             result_count_limit: int = None,
             end_timestamp: datetime = None,
@@ -619,7 +619,7 @@ class GetMessages(IHTTPCommand):
             result_count_limit: Result count limit.
             keep_open: If the search has reached the current moment.
                 It is need to wait further for the appearance of new data.
-            message_id: List of message IDs to restore search. If given, it has
+            message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             attached_events: If true, additionally load attached_event_ids
             lookup_limit_days: The number of days that will be viewed on
@@ -638,7 +638,7 @@ class GetMessages(IHTTPCommand):
         self._result_count_limit = result_count_limit
         self._response_formats = response_formats
         self._keep_open = keep_open
-        self._message_id = message_id
+        self._message_ids = message_ids
         self._book_id = book_id
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
@@ -654,7 +654,7 @@ class GetMessages(IHTTPCommand):
             result_count_limit=self._result_count_limit,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
-            message_id=self._message_id,
+            message_ids=self._message_ids,
             book_id=self._book_id,
         )
 
