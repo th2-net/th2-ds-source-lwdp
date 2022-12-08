@@ -480,12 +480,12 @@ class GetMessagesSSEBytes(IHTTPCommand):
             book_id=self._book_id,
         ).replace("&stream=", "")
 
-        if not (isinstance(self._stream, tuple) or isinstance(self._stream, list)):
+        if not (isinstance(self._streams, tuple) or isinstance(self._streams, list)):
             raise TypeError(f"streams argument has to be list or tuple type. Got {type(self._streams)}")
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
-        for stream in self._stream:
+        for stream in self._streams:
             stream = f"&stream={stream}"
             if fixed_part_len + len(current_url) + len(stream) >= 2048:
                 resulting_urls.append(url + current_url)

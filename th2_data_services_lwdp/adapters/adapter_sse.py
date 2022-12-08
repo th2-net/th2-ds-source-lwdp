@@ -63,6 +63,7 @@ class StreamingSSEAdapter(IAdapter):
         yield from self.json_processor.fin()
 
     def handle_stream(self, stream: Iterable):
+        # TODO - perhaps we don't need this block.
         if callable(stream):
             stream = stream()
 
