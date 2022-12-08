@@ -34,6 +34,11 @@ from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 
 # LOG logger = logging.getLogger(__name__)
 
+def _check_list_or_tuple(variable, var_name):
+    if not (isinstance(variable, tuple) or isinstance(variable, list)):
+        raise TypeError(
+            f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
+
 
 class GetEventById(IHTTPCommand):
     """A Class-Command for request to rpt-data-provider.
@@ -471,7 +476,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             # TODO - why do we have IDE warning here?
             start_timestamp=self._start_timestamp,
             message_id=self._message_id,
-            stream=[], # sending empty list because command handles adding streams on its own
+            stream=[],  # sending empty list because command handles adding streams on its own
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
@@ -480,8 +485,7 @@ class GetMessagesSSEBytes(IHTTPCommand):
             book_id=self._book_id,
         ).replace("&stream=", "")
 
-        if not (isinstance(self._streams, tuple) or isinstance(self._streams, list)):
-            raise TypeError(f"streams argument has to be list or tuple type. Got {type(self._streams)}")
+        _check_list_or_tuple(self._streams, var_name='streams')
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
@@ -656,21 +660,23 @@ class GetMessages(IHTTPCommand):
 
         return Data(source).use_cache(self._cache)
 
-#DIVIDER
+
+# DIVIDER
 
 
 class GetMessagesByGroupsSSEBytes(IHTTPCommand):
     """TODO
     """
+
     def __init__(
             self,
             start_timestamp: datetime,
             end_timestamp: datetime,
             book_id: str,
-            groups: List[str] = None,
-            sort:bool = None, 
-            response_formats:List[str]=None,
-            keep_open:bool=None
+            groups: List[str],
+            sort: bool = None,
+            response_formats: List[str] = None,
+            keep_open: bool = None
     ):
         """TODO
         """
@@ -699,8 +705,7 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
             book_id=self._book_id,
         ).replace("&groups=", "")
 
-        if not (isinstance(self._groups, tuple) or isinstance(self._groups, list)):
-            raise TypeError(f"groups argument has to be list or tuple type. Got {type(self._groups)}")
+        _check_list_or_tuple(self._groups, var_name='groups')
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
@@ -728,10 +733,10 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
             start_timestamp: datetime,
             end_timestamp: datetime,
             book_id: str,
-            groups: List[str] = None,
-            sort:bool = None, 
-            response_formats:List[str]=None,
-            keep_open:bool=None,
+            groups: List[str],
+            sort: bool = None,
+            response_formats: List[str] = None,
+            keep_open: bool = None,
             char_enc: str = "utf-8",
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
@@ -756,7 +761,7 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             sort=self._sort,
-            book_id=self._book_id,
+            book_id=self._book_id
         ).handle(data_source)
 
         client = SSEClient(response,
@@ -775,10 +780,10 @@ class GetMessagesByGroups(IHTTPCommand):
             start_timestamp: datetime,
             end_timestamp: datetime,
             book_id: str,
-            groups: List[str] = None,
-            sort:bool = None, 
-            response_formats:List[str]=None,
-            keep_open:bool=None,
+            groups: List[str],
+            sort: bool = None,
+            response_formats: List[str] = None,
+            keep_open: bool = None,
             char_enc: str = "utf-8",
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
             cache: bool = False,
@@ -808,6 +813,8 @@ class GetMessagesByGroups(IHTTPCommand):
             keep_open=self._keep_open,
             sort=self._sort,
             book_id=self._book_id,
+            char_enc=self._char_enc,
+            decode_error_handler=self._decode_error_handler
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)

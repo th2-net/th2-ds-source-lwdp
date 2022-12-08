@@ -24,17 +24,18 @@ from urllib.parse import quote
 from th2_data_services_lwdp.interfaces.source_api import IHTTPSourceAPI
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 
+
 # LOG logger = logging.getLogger("th2_data_services")
 # LOG logger.setLevel(logging.DEBUG)
 
 
 class HTTPAPI(IHTTPSourceAPI):
     def __init__(
-        self,
-        url: str,
-        chunk_length: int = 65536,
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-        char_enc: str = "utf-8",
+            self,
+            url: str,
+            chunk_length: int = 65536,
+            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+            char_enc: str = "utf-8",
     ):
         """HTTP API.
 
@@ -73,7 +74,7 @@ class HTTPAPI(IHTTPSourceAPI):
     def get_url_get_message_aliases(self, book_id: str) -> str:
         """REST-API `book/{bookID}/message/aliases` call returns a list of message aliases in book named bookID."""
         return self.__encode_url(f"{self._url}/book/{book_id}/message/aliases")
-        
+
     def get_url_get_message_groups(self, book_id: str) -> str:
         """REST-API `book/{bookID}/message/groups` call returns a list of message groups in book named bookID."""
         return self.__encode_url(f"{self._url}/book/{book_id}/message/groups")
@@ -87,15 +88,15 @@ class HTTPAPI(IHTTPSourceAPI):
         return self.__encode_url(f"{self._url}/message/{message_id}")
 
     def get_url_search_sse_events(
-        self,
-        start_timestamp: int,
-        book_id: str,
-        scope: str,
-        end_timestamp: Optional[int] = None,
-        parent_event: Optional[str] = None,
-        search_direction: Optional[str] = "next",
-        result_count_limit: Union[int, float] = None,
-        filters: Optional[str] = None,
+            self,
+            start_timestamp: int,
+            book_id: str,
+            scope: str,
+            end_timestamp: Optional[int] = None,
+            parent_event: Optional[str] = None,
+            search_direction: Optional[str] = "next",
+            result_count_limit: Union[int, float] = None,
+            filters: Optional[str] = None,
     ) -> str:
         """REST-API `search/sse/events` call create a sse channel of event metadata that matches the filter.
 
@@ -124,16 +125,16 @@ class HTTPAPI(IHTTPSourceAPI):
         return self.__encode_url(url)
 
     def get_url_search_sse_messages(
-        self,
-        start_timestamp: int,
-        book_id: str,
-        message_id: List[str] = None,
-        stream: List[str] = None,
-        search_direction: Optional[str] = "next",
-        result_count_limit: Union[int, float] = None,
-        end_timestamp: Optional[int] = None,
-        response_formats: List[str] = None,
-        keep_open: bool = False,
+            self,
+            start_timestamp: int,
+            book_id: str,
+            message_id: List[str] = None,
+            stream: List[str] = None,
+            search_direction: Optional[str] = "next",
+            result_count_limit: Union[int, float] = None,
+            end_timestamp: Optional[int] = None,
+            response_formats: List[str] = None,
+            keep_open: bool = False,
     ) -> str:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
 
@@ -150,13 +151,13 @@ class HTTPAPI(IHTTPSourceAPI):
             "keepOpen": keep_open,
             "bookId": book_id,
         }
-     
+
         query = ""
         url = f"{self._url}/search/sse/messages?"
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["stream","responseFormats","messageId"]:
+            if k in ["stream", "responseFormats", "messageId"]:
                 for item in v:
                     query += f"&{k}={item}"
             else:
@@ -165,15 +166,15 @@ class HTTPAPI(IHTTPSourceAPI):
         return self.__encode_url(url)
 
     def get_url_search_messages_by_groups(
-        self, 
-        start_timestamp: int, 
-        end_timestamp: int, 
-        book_id:str, 
-        groups: List[str]=None, 
-        sort:bool = None, 
-        response_formats:List[str]=None,
-        keep_open:bool=None
-        ) -> str:
+            self,
+            start_timestamp: int,
+            end_timestamp: int,
+            book_id: str,
+            groups: List[str],
+            sort: bool = None,
+            response_formats: List[str] = None,
+            keep_open: bool = None
+    ) -> str:
         """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
 
         Args:
@@ -205,7 +206,7 @@ class HTTPAPI(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["groups","responseFormats"]:
+            if k in ["groups", "responseFormats"]:
                 for item in v:
                     query += f"&{k}={item}"
             else:
@@ -229,7 +230,8 @@ class HTTPAPI(IHTTPSourceAPI):
         if response.status != HTTPStatus.OK:
             for s in HTTPStatus:
                 if s == response.status:
-                    raise exceptions.HTTPError(f"{s.value} {s.phrase} ({s.description}). {response.data}")
+                    raise exceptions.HTTPError(
+                        f"{s.value} {s.phrase} ({s.description}). {response.data}")
             raise exceptions.HTTPError(f"Http returned bad status: {response.status}")
 
         yield from response.stream(self._chunk_length)
