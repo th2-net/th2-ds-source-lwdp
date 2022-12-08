@@ -206,7 +206,7 @@ class HTTPAPI(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["groups", "responseFormats"]:
+            if k in ["group", "responseFormats"]:
                 for item in v:
                     query += f"&{k}={item}"
             else:
