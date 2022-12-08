@@ -706,14 +706,14 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
             keep_open=self._keep_open,
             sort=self._sort,
             book_id=self._book_id,
-        ).replace("&groups=", "")
+        ).replace("&group=", "")
 
         _check_list_or_tuple(self._groups, var_name='groups')
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
         for group in self._groups:
-            group = f"&groups={group}"
+            group = f"&group={group}"
             if fixed_part_len + len(current_url) + len(group) >= 2048:
                 resulting_urls.append(url + current_url)
                 current_url = ""

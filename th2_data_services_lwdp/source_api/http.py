@@ -195,7 +195,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
             "bookId": book_id,
-            "groups": groups,
+            "group": groups,
             "sort": sort,
             "reseponseFormats": response_formats,
             "keepOpen": keep_open,
