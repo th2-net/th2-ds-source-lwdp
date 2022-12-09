@@ -23,7 +23,7 @@ from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
-from th2_data_services_lwdp.streams import Streams
+from th2_data_services_lwdp.streams import Streams, Stream
 from th2_data_services.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
@@ -41,11 +41,19 @@ def _check_list_or_tuple(variable, var_name):
 
 
 class GetEventScopes(IHTTPCommand):
-    """TODO
+    """A Class-Command for request to lw-data-provider.
+
+    It retrieves a list of event scopes in book.
+
+    Returns:
+        dict: List[str].
     """
 
     def __init__(self, book_id: str):
-        """TODO
+        """GetEventScopes constructor.
+
+        Args:
+            book_id: Name of book to search in.
         """
         super().__init__()
         self._book_id = book_id
@@ -60,11 +68,19 @@ class GetEventScopes(IHTTPCommand):
 
 
 class GetMessageAliases(IHTTPCommand):
-    """TODO
+    """A Class-Command for request to lw-data-provider.
+
+    It retrieves a list of message aliases in book.
+
+    Returns:
+        dict: List[str].
     """
 
     def __init__(self, book_id: str):
-        """TODO
+        """GetMessageAliases constructor.
+
+        Args:
+            book_id: Name of book to search in.
         """
         super().__init__()
         self._book_id = book_id
@@ -79,11 +95,19 @@ class GetMessageAliases(IHTTPCommand):
 
 
 class GetMessageGroups(IHTTPCommand):
-    """TODO
+    """A Class-Command for request to lw-data-provider.
+
+    It retrieves a list of message groups in book.
+
+    Returns:
+        dict: List[str].
     """
 
     def __init__(self, book_id: str):
-        """TODO
+        """GetMessageGroups constructor.
+
+        Args:
+            book_id: Name of book to search in.
         """
         super().__init__()
         self._book_id = book_id
@@ -98,11 +122,16 @@ class GetMessageGroups(IHTTPCommand):
 
 
 class GetBooks(IHTTPCommand):
-    """TODO
+    """A Class-Command for request to lw-data-provider.
+
+    It retrieves a list of books from provider.
+
+    Returns:
+        dict: List[str].
     """
 
     def __init__(self):
-        """TODO
+        """GetBooks constructor.
         """
         super().__init__()
 
@@ -116,7 +145,7 @@ class GetBooks(IHTTPCommand):
 
 
 class GetEventById(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
 
@@ -159,7 +188,7 @@ class GetEventById(IHTTPCommand):
 
 
 class GetEventsById(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
 
@@ -192,7 +221,7 @@ class GetEventsById(IHTTPCommand):
 
 
 class GetEventsSSEBytes(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
 
@@ -204,7 +233,7 @@ class GetEventsSSEBytes(IHTTPCommand):
             self,
             start_timestamp: datetime,
             book_id: str,
-            scope: str,
+            scopes: str,
             end_timestamp: datetime = None,
             parent_event: str = None,
             search_direction: str = "next",
@@ -214,17 +243,14 @@ class GetEventsSSEBytes(IHTTPCommand):
         """GetEventsSSEBytes constructor.
 
         Args:
+            Args:
             start_timestamp: Start timestamp of search.
+            book_id: Book ID for messages
+            scopes: Scope names for events
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
-            resume_from_id: Event id from which search starts.
             result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-                the one closest to the specified timestamp.
-            limit_for_parent: How many children events for each parent do we want to request.
-            attached_messages: Gets messages ids which linked to events.
             filters: Filters using in search for messages.
 
         """
@@ -236,7 +262,7 @@ class GetEventsSSEBytes(IHTTPCommand):
         self._result_count_limit = result_count_limit
         self._filters = filters
         self._book_id = book_id
-        self._scope = scope
+        self._scopes = scopes
         if isinstance(filters, LwDPEventFilter):
             self._filters = filters.url()
         elif isinstance(filters, (tuple, list)):
@@ -245,7 +271,6 @@ class GetEventsSSEBytes(IHTTPCommand):
     def handle(self, data_source: HTTPDataSource):  # noqa: D102
         """Returns SSE Event stream in bytes."""
         api: HTTPAPI = data_source.source_api
-        # TODO - why do we have IDE warning here?
         url = api.get_url_search_sse_events(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -254,7 +279,7 @@ class GetEventsSSEBytes(IHTTPCommand):
             result_count_limit=self._result_count_limit,
             filters=self._filters,
             book_id=self._book_id,
-            scope=self._scope,
+            scopes=self._scopes,
         )
 
         # LOG         logger.info(url)
@@ -263,7 +288,7 @@ class GetEventsSSEBytes(IHTTPCommand):
 
 
 class GetEventsSSEEvents(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
 
@@ -275,7 +300,7 @@ class GetEventsSSEEvents(IHTTPCommand):
             self,
             start_timestamp: datetime,
             book_id: str,
-            scope: str,
+            scopes: str,
             end_timestamp: datetime = None,
             parent_event: str = None,
             search_direction: str = "next",
@@ -285,19 +310,14 @@ class GetEventsSSEEvents(IHTTPCommand):
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """GetEventsSSEEvents constructor.
-
         Args:
             start_timestamp: Start timestamp of search.
+            book_id: Book ID for messages
+            scopes: Scope names for events
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
-            resume_from_id: Event id from which search starts.
             result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-                the one closest to the specified timestamp.
-            limit_for_parent: How many children events for each parent do we want to request.
-            attached_messages: Gets messages ids which linked to events.
             filters: Filters using in search for messages.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -311,7 +331,7 @@ class GetEventsSSEEvents(IHTTPCommand):
         self._result_count_limit = result_count_limit
         self._filters = filters
         self._book_id = book_id
-        self._scope = scope
+        self._scopes = scopes
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
 
@@ -324,7 +344,7 @@ class GetEventsSSEEvents(IHTTPCommand):
             result_count_limit=self._result_count_limit,
             filters=self._filters,
             book_id=self._book_id,
-            scope=self._scope,
+            scopes=self._scopes,
         ).handle(data_source)
 
         client = SSEClient(
@@ -337,7 +357,7 @@ class GetEventsSSEEvents(IHTTPCommand):
 
 
 class GetEvents(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
 
@@ -349,8 +369,7 @@ class GetEvents(IHTTPCommand):
             self,
             start_timestamp: datetime,
             book_id: str,
-            # TODO - let's do scopes. Now it has scope only, but it will have scopes in the future
-            scope: str,
+            scopes: str,
             end_timestamp: datetime = None,
             parent_event: str = None,
             search_direction: str = "next",
@@ -360,21 +379,16 @@ class GetEvents(IHTTPCommand):
             sse_handler: Optional[IAdapter] = None,
     ):
         """GetEvents constructor.
-
         Args:
             start_timestamp: Start timestamp of search.
+            book_id: Book ID for messages
+            scopes: Scope names for events
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
-            resume_from_id: Event id from which search starts.
             result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
-                the one closest to the specified timestamp.
-            limit_for_parent: How many children events for each parent do we want to request.
-            attached_messages: Gets messages ids which linked to events.
             filters: Filters using in search for messages.
-            cache: If True, all requested data from rpt-data-provider will be saved to cache.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
         """
         super().__init__()
@@ -385,10 +399,9 @@ class GetEvents(IHTTPCommand):
         self._result_count_limit = result_count_limit
         self._filters = filters
         self._book_id = book_id
-        self._scope = scope
+        self._scopes = scopes
         self._cache = cache
         self._sse_handler = sse_handler or get_default_sse_adapter()
-        self._event_system_adapter = DeleteSystemEvents()  # TODO - is it not used anywhere??
 
     def handle(self, data_source: HTTPDataSource) -> Data:  # noqa: D102
         sse_events_stream_obj = GetEventsSSEEvents(
@@ -399,7 +412,7 @@ class GetEvents(IHTTPCommand):
             result_count_limit=self._result_count_limit,
             filters=self._filters,
             book_id=self._book_id,
-            scope=self._scope
+            scopes=self._scopes 
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
@@ -409,12 +422,9 @@ class GetEvents(IHTTPCommand):
 
 
 class GetMessageById(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the message by id.
-
-    Please note,  doesn't return `attachedEventIds`. It will be == [].
-    It's expected that Provider7 will be support it.
 
     Returns:
         dict: Th2 message.
@@ -454,12 +464,9 @@ class GetMessageById(IHTTPCommand):
 
 
 class GetMessagesById(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It retrieves the messages by ids.
-
-    Please note,  doesn't return `attachedEventIds`. It will be == [].
-    It's expected that Provider7 will be support it.
 
     Returns:
         List[dict]: Th2 messages.
@@ -517,19 +524,16 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
 
         Args:
             start_timestamp: Start timestamp of search.
-            end_timestamp: End timestamp of search.
-            streams: Alias of messages.
-            resume_from_id: Message id from which search starts.
+            book_id: Book ID for messages
+            streams: List of aliases to request. If direction is not specified all directions will be requested for stream.
+            message_ids: List of message IDs to restore search. If given, it has
+                the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             search_direction: Search direction.
             result_count_limit: Result count limit.
+            end_timestamp: End timestamp of search.
+            response_formats: The format of the response
             keep_open: If the search has reached the current moment.
                 It is need to wait further for the appearance of new data.
-            message_ids: List of message IDs to restore search. If given, it has
-                the highest priority and ignores stream (uses streams from ids), startTimestamp and resumeFromId.
-            attached_events: If true, additionally load attached_event_ids
-            lookup_limit_days: The number of days that will be viewed on
-                the first request to get the one closest to the specified timestamp.
-            filters: Filters using in search for messages.
         """
         super().__init__()
         self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
@@ -549,10 +553,9 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
         url = api.get_url_search_sse_messages(
-            # TODO - why do we have IDE warning here?
             start_timestamp=self._start_timestamp,
             message_ids=self._message_ids,
-            stream=[],  # sending empty list because command handles adding streams on its own
+            stream=[""],  # sending empty list because command handles adding streams on its own
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
@@ -565,11 +568,16 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
-
+        
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
         for stream in self._streams:
-            stream = f"&stream={stream}"
+            if isinstance(stream, Streams):
+                stream = f"&{stream.url()}"
+            elif isinstance(stream, Stream):
+                stream =stream.url()
+            else:
+                stream = f"&stream={stream}"
             if fixed_part_len + len(current_url) + len(stream) >= 2048:
                 resulting_urls.append(url + current_url)
                 current_url = ""
@@ -584,7 +592,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
 
 
 class GetMessagesByStreamsSSEEvents(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
 
@@ -610,21 +618,18 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
 
         Args:
             start_timestamp: Start timestamp of search.
-            end_timestamp: End timestamp of search.
-            streams: Alias of messages.
-            resume_from_id: Message id from which search starts.
-            search_direction: Search direction.
-            result_count_limit: Result count limit.
-            keep_open: If the search has reached the current moment.
-                It is needed to wait further for the appearance of new data.
+            book_id: Book ID for messages
+            streams: List of aliases to request. If direction is not specified all directions will be requested for stream.
             message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
-            attached_events: If true, additionally load attached_event_ids
-            lookup_limit_days: The number of days that will be viewed on
-                the first request to get the one closest to the specified timestamp.
-            filters: Filters using in search for messages.
-            char_enc: Character encode that will use SSEClient.
-            decode_error_handler: Decode error handler.
+            search_direction: Search direction.
+            result_count_limit: Result count limit.
+            end_timestamp: End timestamp of search.
+            response_formats: The format of the response
+            keep_open: If the search has reached the current moment.
+                It is need to wait further for the appearance of new data.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
         """
         super().__init__()
         self._start_timestamp = start_timestamp
@@ -660,7 +665,7 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
 
 
 class GetMessagesByStreams(IHTTPCommand):
-    """A Class-Command for request to rpt-data-provider.
+    """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
 
@@ -688,26 +693,19 @@ class GetMessagesByStreams(IHTTPCommand):
 
         Args:
             start_timestamp: Start timestamp of search.
-            end_timestamp: End timestamp of search.
-            streams: Alias of messages.
-            resume_from_id: Message id from which search starts.
+            book_id: Book ID for messages
+            streams: List of aliases to request. If direction is not specified all directions will be requested for stream.
+            message_ids: List of message IDs to restore search. If given, it has
+                the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             search_direction: Search direction.
             result_count_limit: Result count limit.
+            end_timestamp: End timestamp of search.
+            response_formats: The format of the response
             keep_open: If the search has reached the current moment.
                 It is need to wait further for the appearance of new data.
-<<<<<<< TH2-4529_add_get_messages_by_group_command
-            message_ids: List of message IDs to restore search. If given, it has
-=======
-            message_id: List of message IDs to restore search. If given, it has
->>>>>>> dev_2.0.1.0
-                the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
-            attached_events: If true, additionally load attached_event_ids
-            lookup_limit_days: The number of days that will be viewed on
-                the first request to get the one closest to the specified timestamp.
-            filters: Filters using in search for messages.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
-            cache: If True, all requested data from rpt-data-provider will be saved to cache.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
         """
         super().__init__()
@@ -739,16 +737,18 @@ class GetMessagesByStreams(IHTTPCommand):
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
-        source = partial(self._sse_handler.handle, sse_events_stream)
+        source = partial(self._sse_handler.handle_stream, sse_events_stream)
 
         return Data(source).use_cache(self._cache)
 
 
-# DIVIDER
-
-
 class GetMessagesByGroupsSSEBytes(IHTTPCommand):
-    """TODO
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by groups.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
     """
 
     def __init__(
@@ -761,7 +761,17 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
             response_formats: List[str] = None,
             keep_open: bool = None
     ):
-        """TODO
+        """GetMessagesByGroups Constructor.
+        
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            raw_only: If true, only raw message will be returned in the response.
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
         """
         super().__init__()
         self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
@@ -808,7 +818,12 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
 
 
 class GetMessagesByGroupsSSEEvents(IHTTPCommand):
-    """TODO
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages strean by groups.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
     """
 
     def __init__(
@@ -823,7 +838,19 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
             char_enc: str = "utf-8",
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
-        """TODO
+        """GetMessagesByGroupsSSEEvents Constructor.
+        
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            raw_only: If true, only raw message will be returned in the response.
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
         """
         super().__init__()
         self._start_timestamp = start_timestamp
@@ -855,11 +882,13 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
 
 
 class GetMessagesByGroups(IHTTPCommand):
-    """TODO
+    """A Class-Command for request to lw-data-provider.
 
-    sort - sorting within a group. It is not sorted between groups
-    groups - don't support directions now.
-    """
+    It searches messages stream by groups.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
+    """   
 
     def __init__(
             self,
@@ -875,7 +904,21 @@ class GetMessagesByGroups(IHTTPCommand):
             cache: bool = False,
             sse_handler: Optional[IAdapter] = None,
     ):
-        """TODO
+        """GetMessagesByGroups Constructor.
+        
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            raw_only: If true, only raw message will be returned in the response.
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
         """
         super().__init__()
         self._start_timestamp = start_timestamp
@@ -904,6 +947,6 @@ class GetMessagesByGroups(IHTTPCommand):
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
-        source = partial(self._sse_handler.handle, sse_events_stream)
+        source = partial(self._sse_handler.handle_stream, sse_events_stream)
 
         return Data(source).use_cache(self._cache)

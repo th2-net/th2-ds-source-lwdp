@@ -49,17 +49,11 @@ class StreamingSSEAdapter(IAdapter):
         self.json_processor = json_processor
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
-    def handle(self, record: Union[Generator[SSEEvent, None, None], Callable]) -> Generator[dict, None, None]:
-        # TODO - update this (it should be non-stream)
-        if callable(record):
-            stream = record()
-        else:
-            stream = record
-        for event in stream:
-            if event.event == "error":
-                raise HTTPError(event.data)
-            if event.event not in self.events_types_blacklist:
-                yield from self.json_processor.decode(event.data)
+    def handle(self, record: SSEEvent) -> dict:
+        if record.event == "error":
+            raise HTTPError(record.data)
+        if record.event not in self.events_types_blacklist:
+            yield from self.json_processor.decode(record.data)
         yield from self.json_processor.fin()
 
     def handle_stream(self, stream: Iterable):
@@ -69,10 +63,7 @@ class StreamingSSEAdapter(IAdapter):
             stream = stream()
 
         for event in stream:
-            if event.event == "error":
-                raise HTTPError(event.data)
-            if event.event not in self.events_types_blacklist:
-                yield from self.json_processor.decode(event.data)
+            yield from self.handle(event)
         yield from self.json_processor.fin()
 
 

@@ -18,7 +18,7 @@ END_TIME = datetime(year=2022, month=11, day=10, hour=13, minute=53, second=8, m
 
 
 events = ds.command(commands.GetEvents(
-    start_timestamp=START_TIME, end_timestamp=END_TIME, book_id='case3', scope='th2-scope'))
+    start_timestamp=START_TIME, end_timestamp=END_TIME, book_id='case3', scopes='th2-scope'))
 
 for i in events:
     print(i)
@@ -34,9 +34,10 @@ msgs = ds.command(commands.GetMessagesByStreams(
 
 st = time.time()
 print(st)
-print(msgs.len)
+for i in msgs:
+    print(i)
 print(time.time()-st)
-
+'''
 START_TIME = datetime(year=2022, month=11, day=11, hour=10, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=11, hour=20, minute=53, second=8, microsecond=0)
 
@@ -64,3 +65,4 @@ for book in books:
     groups = ds.command(commands.GetMessageGroups(book))
     print(f"{groups=}")
 
+'''
