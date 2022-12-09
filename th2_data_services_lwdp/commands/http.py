@@ -270,7 +270,7 @@ class GetEventsSSEBytes(IHTTPCommand):
     def handle(self, data_source: HTTPDataSource):  # noqa: D102
         """Returns SSE Event stream in bytes."""
         api: HTTPAPI = data_source.source_api
-        url = api.get_url_search_sse_events(
+        urls = [api.get_url_search_sse_events(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             parent_event=self._parent_event,
@@ -278,12 +278,12 @@ class GetEventsSSEBytes(IHTTPCommand):
             result_count_limit=self._result_count_limit,
             filters=self._filters,
             book_id=self._book_id,
-            scopes=self._scopes,
-        )
+            scopes=scope,
+        ) for scope in self._scopes]
 
         # LOG         logger.info(url)
-        print(url)
-        yield from api.execute_sse_request(url)
+        for url in urls:
+            yield from api.execute_sse_request(url)
 
 
 class GetEventsSSEEvents(IHTTPCommand):
@@ -522,7 +522,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         response_formats: List[str] = None,
         keep_open: bool = False,
     ):
-        """GetMessagesSSEBytes constructor.
+        """GetMessagesByStreamsSSEBytes constructor.
 
         Args:
             start_timestamp: Start timestamp of search.
@@ -616,7 +616,7 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
-        """GetMessagesSSEEvents constructor.
+        """GetMessagesByStreamsSSEEvents constructor.
 
         Args:
             start_timestamp: Start timestamp of search.
