@@ -11,8 +11,8 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-import warnings
-from typing import Generator, Callable, Union, Iterable
+
+from typing import Iterable
 
 from sseclient import Event as SSEEvent
 from urllib3.exceptions import HTTPError
@@ -23,15 +23,21 @@ from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
 
 
 class SSEAdapter(IAdapter):
-    """SSE Adapter handles bytes from sse-stream into Dict object."""
+    def __init__(self, json_processor: BufferedJSONProcessor):
+        """SSE adapter. Convert SSE events to dicts.
 
-    def __init__(self):
-        warnings.warn("This class is deprecated please use StreamingSSEAdapter")
+        Args:
+            json_processor: BufferedJSONProcessor
+        """
+        self.json_processor = json_processor
+        self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
     def handle(self, record: SSEEvent) -> dict:
         """Adapter handler.
+
         Args:
             record: SSE Event.
+
         Returns:
             Dict object.
         """
@@ -41,29 +47,15 @@ class SSEAdapter(IAdapter):
             try:
                 return json.loads(record.data)
             except json.JSONDecodeError as e:
-                raise ValueError(f"json.decoder.JSONDecodeError: Invalid json received.\n" f"{e}\n" f"{record.data}")
-
-
-class StreamingSSEAdapter(IAdapter):
-    def __init__(self, json_processor: BufferedJSONProcessor):
-        self.json_processor = json_processor
-        self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
-
-    def handle(self, record: Union[Generator[SSEEvent, None, None], Callable]) -> Generator[dict, None, None]:
-        # TODO - update this (it should be non-stream)
-        if callable(record):
-            stream = record()
-        else:
-            stream = record
-        for event in stream:
-            if event.event == "error":
-                raise HTTPError(event.data)
-            if event.event not in self.events_types_blacklist:
-                yield from self.json_processor.decode(event.data)
-        yield from self.json_processor.fin()
+                raise ValueError(
+                    f"json.decoder.JSONDecodeError: Invalid json received.\n"
+                    f"{e}\n"
+                    f"{record.data}"
+                )
 
     def handle_stream(self, stream: Iterable):
-        # TODO - perhaps we don't need this block.
+        # We need this block because we put generator function in the commands.
+        # TODO this hack will be removed when we add Data.map_stream
         if callable(stream):
             stream = stream()
 
@@ -75,5 +67,6 @@ class StreamingSSEAdapter(IAdapter):
         yield from self.json_processor.fin()
 
 
-def get_default_sse_adapter():
-    return StreamingSSEAdapter(BufferedJSONProcessor())
+def get_default_sse_adapter(buffer_limit=250):
+    """Returns SSEAdapter object."""
+    return SSEAdapter(BufferedJSONProcessor(buffer_limit))

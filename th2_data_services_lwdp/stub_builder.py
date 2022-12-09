@@ -16,12 +16,17 @@ from th2_data_services.interfaces import IEventStub, IMessageStub
 from th2_data_services_lwdp.struct import (
     grpc_event_struct,
     grpc_message_struct,
+    http_event_struct,
+    http_message_struct,
+    EventStruct,
+    MessageStruct,
 )
 
 
 class EventStubBuilder(IEventStub):
-    def __init__(self, event_struct=grpc_event_struct):
-        """Event stub builder for Provider v6.
+    def __init__(self, event_struct: EventStruct):
+        """Event stub builder.
+
         Args:
             event_struct: Event struct class.
         """
@@ -31,6 +36,7 @@ class EventStubBuilder(IEventStub):
     @property
     def template(self) -> dict:
         """Event stub template.
+
         Returns:
             (dict) Event stub template.
         """
@@ -49,8 +55,9 @@ class EventStubBuilder(IEventStub):
 
 
 class MessageStubBuilder(IMessageStub):
-    def __init__(self, message_struct=grpc_message_struct):
-        """Event stub builder for Provider 6.
+    def __init__(self, message_struct: MessageStruct):
+        """Event stub builder.
+
         Args:
             message_struct: Message struct class.
         """
@@ -60,6 +67,7 @@ class MessageStubBuilder(IMessageStub):
     @property
     def template(self) -> dict:
         """Message stub template.
+
         Returns:
             (dict) Message stub template.
         """
@@ -70,11 +78,12 @@ class MessageStubBuilder(IMessageStub):
             self.message_fields.TIMESTAMP: {"nano": 0, "epochSecond": 0},
             self.message_fields.BODY: [],
             self.message_fields.BODY_BASE64: [],
-            self.message_fields.TYPE: "message",
             self.message_fields.MESSAGE_ID: self.REQUIRED_FIELD,
             self.message_fields.ATTACHED_EVENT_IDS: [],
         }
 
 
-event_stub_builder = EventStubBuilder()
-message_stub_builder = MessageStubBuilder()
+http_event_stub_builder = EventStubBuilder(http_event_struct)
+http_message_stub_builder = MessageStubBuilder(http_message_struct)
+grpc_event_stub_builder = EventStubBuilder(grpc_event_struct)
+grpc_message_stub_builder = MessageStubBuilder(grpc_message_struct)

@@ -13,21 +13,36 @@
 #  limitations under the License.
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, TypeVar, Generic
 
 import requests
 import urllib3
 
 if TYPE_CHECKING:
-    from th2_data_services_lwdp.interfaces.command import IGRPCCommand, ILwDPCommand, IHTTPCommand
+    from th2_data_services_lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
 
 from th2_data_services.interfaces import IDataSource
-from th2_data_services_lwdp.interfaces.source_api import IGRPCSourceAPI, ILwDPSourceAPI, IHTTPSourceAPI
+from th2_data_services_lwdp.interfaces.source_api import IGRPCSourceAPI, ILwDPSourceAPI, \
+    IHTTPSourceAPI
 from th2_data_services_lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services_lwdp.stub_builder import IEventStub, IMessageStub
 
+CommandT = TypeVar('CommandT', bound='ILwDPCommand')
+EventStructT = TypeVar('EventStructT', bound='IEventStruct')
+MessageStructT = TypeVar('MessageStructT', bound='IMessageStruct')
+EventStubBuilderT = TypeVar('EventStubBuilderT', bound='IEventStub')
+MessageStubBuilderT = TypeVar('MessageStubBuilderT', bound='IMessageStub')
 
-class ILwDPDataSource(IDataSource):
+
+# LOG import logging
+
+# LOG logger = logging.getLogger(__name__)
+
+
+class ILwDPDataSource(IDataSource, Generic[EventStructT,
+                                           MessageStructT,
+                                           EventStubBuilderT,
+                                           MessageStubBuilderT]):
     def __init__(
             self,
             url: str,
@@ -58,27 +73,27 @@ class ILwDPDataSource(IDataSource):
         return self._url
 
     @property
-    def event_struct(self) -> IEventStruct:
+    def event_struct(self) -> EventStructT:
         """Returns event structure class."""
         return self._event_struct
 
     @property
-    def message_struct(self) -> IMessageStruct:
+    def message_struct(self) -> MessageStructT:
         """Returns message structure class."""
         return self._message_struct
 
     @property
-    def event_stub_builder(self) -> IEventStub:
+    def event_stub_builder(self) -> EventStubBuilderT:
         """Returns event stub template."""
         return self._event_stub_builder
 
     @property
-    def message_stub_builder(self) -> IMessageStub:
+    def message_stub_builder(self) -> MessageStubBuilderT:
         """Returns message stub template."""
         return self._message_stub_builder
 
     @abstractmethod
-    def command(self, cmd: 'ILwDPCommand'):
+    def command(self, cmd: CommandT):
         """Execute the transmitted command."""
 
     @property
@@ -87,7 +102,10 @@ class ILwDPDataSource(IDataSource):
         """Returns Provider API."""
 
 
-class IGRPCDataSource(ILwDPDataSource):
+class IGRPCDataSource(ILwDPDataSource, Generic[EventStructT,
+                                               MessageStructT,
+                                               EventStubBuilderT,
+                                               MessageStubBuilderT]):
     """Interface of DataSource that provides work with lwdp-data-provider via GRPC."""
 
     @abstractmethod
@@ -99,9 +117,13 @@ class IGRPCDataSource(ILwDPDataSource):
     def source_api(self) -> IGRPCSourceAPI:
         """Returns GRPC Provider API."""
 
-class IHTTPDataSource(ILwDPDataSource):
+
+class IHTTPDataSource(ILwDPDataSource, Generic[EventStructT,
+                                               MessageStructT,
+                                               EventStubBuilderT,
+                                               MessageStubBuilderT]):
     """Interface of DataSource that provides work with lwdp-data-provider via HTTP"""
-    
+
     @abstractmethod
     def command(self, cmd):
         """Execute the transmitted HTTP command."""
@@ -119,7 +141,8 @@ class IHTTPDataSource(ILwDPDataSource):
         try:
             requests.get(self.url, timeout=timeout, verify=certification)
         except ConnectionError as error:
-            raise urllib3.exceptions.HTTPError(f"Unable to connect to host '{self.url}'\nReason: {error}")
+            raise urllib3.exceptions.HTTPError(
+                f"Unable to connect to host '{self.url}'\nReason: {error}")
 
     @property
     @abstractmethod

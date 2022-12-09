@@ -1,5 +1,5 @@
 import time
-from datetime import datetime, timezone
+from datetime import datetime
 
 from th2_data_services import Data
 
@@ -7,36 +7,63 @@ from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.commands import http as commands
 
-# ds = HTTPDataSource("http://th2-kuber-test03:30452")
+ds_api = HTTPAPI("http://th2-kuber-test03:32681")
 ds = HTTPDataSource("http://10.100.66.105:32681")
 
-START_TIME = datetime(year=2022, month=11, day=10, hour=12, minute=0, second=0, microsecond=0)
+START_TIME = datetime(year=2022, month=11, day=10, hour=10, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=10, hour=13, minute=53, second=8, microsecond=0)
-st = int(START_TIME.replace(tzinfo=timezone.utc).timestamp() * 10 ** 9)
-et = int(END_TIME.replace(tzinfo=timezone.utc).timestamp() * 10 ** 9)
+# st = int(START_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
+# et = int(END_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 
-# events = ds.command(commands.GetEvents(
-#     start_timestamp=START_TIME, end_timestamp=END_TIME))
 
-events = ds.command(commands.GetEvents(
-    start_timestamp=START_TIME, end_timestamp=END_TIME, book_id='case3', scope='th2-scope'))
+events = ds.command(
+    commands.GetEvents(
+        start_timestamp=START_TIME, end_timestamp=END_TIME, book_id="case3", scopes=["th2-scope"]
+    )
+)
 
-for i in events:
+for i in events.limit(5):
     print(i)
 
-START_TIME = datetime(year=2022, month=11, day=11, hour=12, minute=0, second=0, microsecond=0)
+START_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, microsecond=0)
 
-msgs: Data = ds.command(commands.GetMessages(
-    start_timestamp=START_TIME,
-    end_timestamp=END_TIME,
-    book_id='case3',
-    streams=['arfq02fix30']))
+msgs = ds.command(
+    commands.GetMessagesByStreams(
+        start_timestamp=START_TIME, end_timestamp=END_TIME, book_id="case3", streams=["arfq02fix30"]
+    )
+)
 
 st = time.time()
 print(st)
-print(msgs.len)
-print(time.time()-st)
+print(msgs)
+print(time.time() - st)
 
-# for i in msgs:
-#     print(i)
+START_TIME = datetime(year=2022, month=11, day=11, hour=10, minute=50, second=0, microsecond=0)
+END_TIME = datetime(year=2022, month=11, day=11, hour=20, minute=53, second=8, microsecond=0)
+
+messages_by_groups: Data = ds.command(
+    commands.GetMessagesByGroups(
+        start_timestamp=START_TIME,
+        end_timestamp=END_TIME,
+        book_id="case3",
+        groups=["Case030", "Case031", "Case032", "arfq02dc30", "arfq02fix30", "csvtest1"],
+    )
+)
+for i in messages_by_groups.limit(5):
+    print(i)
+
+books = ds.command(commands.GetBooks())
+print(books)
+
+for book in books:
+    print(f"{book=}")
+
+    scopes = ds.command(commands.GetEventScopes(book))
+    print(f"{scopes=}")
+
+    aliases = ds.command(commands.GetMessageAliases(book))
+    print(f"{aliases=}")
+
+    groups = ds.command(commands.GetMessageGroups(book))
+    print(f"{groups=}")

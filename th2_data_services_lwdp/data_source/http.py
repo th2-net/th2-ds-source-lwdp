@@ -21,8 +21,6 @@ from typing import TYPE_CHECKING, Union
 from th2_data_services.exceptions import CommandError
 from th2_data_services.interfaces import IEventStruct, IMessageStruct, IEventStub, IMessageStub
 
-if TYPE_CHECKING:
-    from th2_data_services.interfaces.command import IAdaptableCommand
 
 if TYPE_CHECKING:
     from th2_data_services_lwdp.interfaces.command import IHTTPCommand
@@ -31,12 +29,12 @@ from th2_data_services.interfaces.data_source import IDataSource
 from th2_data_services_lwdp.struct import (
     http_event_struct,
     http_message_struct,
-    HTTPEventStruct,
-    HTTPMessageStruct,
+    EventStruct,
+    MessageStruct,
 )
 from th2_data_services_lwdp.stub_builder import (
-    event_stub_builder,
-    message_stub_builder,
+    http_event_stub_builder,
+    http_message_stub_builder, EventStubBuilder, MessageStubBuilder,
 )
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.interfaces.data_source import IHTTPDataSource
@@ -44,12 +42,9 @@ from th2_data_services_lwdp.interfaces.data_source import IHTTPDataSource
 #LOG logger = logging.getLogger(__name__)
 
 
-class HTTPDataSource(IHTTPDataSource):
-    """DataSource class which provide work with rpt-data-provider.
-
-    Rpt-data-provider version: 5.x.y
-    Protocol: HTTP
-    """
+class HTTPDataSource(IHTTPDataSource[EventStruct,
+                                     MessageStruct, EventStubBuilder, MessageStubBuilder]):
+    """DataSource class which provide work with http LwDP."""
 
     def __init__(
         self,
@@ -59,9 +54,9 @@ class HTTPDataSource(IHTTPDataSource):
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         event_struct: IEventStruct = http_event_struct,
         message_struct: IMessageStruct = http_message_struct,
-        event_stub_builder: IEventStub = event_stub_builder,
-        message_stub_builder: IMessageStub = message_stub_builder,
-        check_connect_timeout: Union(int, float) = 5,
+        event_stub_builder: IEventStub = http_event_stub_builder,
+        message_stub_builder: IMessageStub = http_message_stub_builder,
+        check_connect_timeout: Union[int, float] = 5,
     ):
         """HTTPDataSource constructor.
 
@@ -107,13 +102,3 @@ class HTTPDataSource(IHTTPDataSource):
     def source_api(self) -> HTTPAPI:
         """HTTP  API."""
         return self._provider_api
-
-    @property
-    def event_struct(self) -> HTTPEventStruct:
-        """Returns event structure class."""
-        return self._event_struct
-
-    @property
-    def message_struct(self) -> HTTPMessageStruct:
-        """Returns message structure class."""
-        return self._message_struct

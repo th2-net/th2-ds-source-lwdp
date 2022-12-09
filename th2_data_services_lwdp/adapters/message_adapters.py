@@ -13,10 +13,10 @@
 #  limitations under the License.
 import pprint
 from _warnings import warn
-from typing import Union, List
+from typing import Iterable
 
 from th2_data_services.interfaces.adapter import IMessageAdapter
-from th2_data_services_lwdp.struct import GRPCMessageStruct, grpc_message_struct
+from th2_data_services_lwdp.struct import grpc_message_struct, MessageStruct
 
 
 class DeleteMessageWrappersAdapter(IMessageAdapter):
@@ -25,7 +25,7 @@ class DeleteMessageWrappersAdapter(IMessageAdapter):
     It used for the message to which an AdaptorGRPCObjectToDict has been applied.
     """
 
-    def __init__(self, message_struct: GRPCMessageStruct = grpc_message_struct):
+    def __init__(self, message_struct: MessageStruct = grpc_message_struct):
         """AdapterDeleteMessageWrappers constructor.
 
         Args:
@@ -54,3 +54,6 @@ class DeleteMessageWrappersAdapter(IMessageAdapter):
         message[message_id_field] = message_id
 
         return message
+
+    def handle_stream(self, stream: Iterable):
+        pass

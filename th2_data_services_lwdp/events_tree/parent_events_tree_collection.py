@@ -15,16 +15,15 @@
 from typing import Callable, Optional
 
 from th2_data_services import Data
-from th2_data_services.interfaces.events_tree import ParentEventsTreeCollection
+from th2_data_services.interfaces.events_tree import ParentEventsTreeCollection as PETC
 from th2_data_services.events_tree.exceptions import FieldIsNotExist
-from th2_data_services.interfaces import IEventStruct
 from th2_data_services_lwdp.command_resolver import resolver_get_events_by_id
 from th2_data_services_lwdp.data_source import GRPCDataSource
-from th2_data_services_lwdp.struct import grpc_event_struct
-from th2_data_services_lwdp.stub_builder import event_stub_builder
+from th2_data_services_lwdp.struct import http_event_struct, EventStruct
+from th2_data_services_lwdp.stub_builder import http_event_stub_builder
 
 
-class ParentEventsTreeCollectionProvider(ParentEventsTreeCollection):
+class ParentEventsTreeCollection(PETC):
     """ParentEventsTreeCollection for data-provider v6."""
 
     def __init__(
@@ -32,10 +31,10 @@ class ParentEventsTreeCollectionProvider(ParentEventsTreeCollection):
         data: Data,
         data_source: GRPCDataSource = None,
         preserve_body: bool = False,
-        event_struct: IEventStruct = grpc_event_struct,
+        event_struct: EventStruct = http_event_struct,
         stub: bool = False,
     ):
-        """ParentEventsTreeCollectionProvider6 constructor.
+        """ParentEventsTreeCollection constructor.
 
         Args:
             data: Data object.
@@ -102,4 +101,4 @@ class ParentEventsTreeCollectionProvider(ParentEventsTreeCollection):
         Returns:
             Stub event.
         """
-        return event_stub_builder.build({self._event_struct.EVENT_ID: id_})
+        return http_event_stub_builder.build({self._event_struct.EVENT_ID: id_})
