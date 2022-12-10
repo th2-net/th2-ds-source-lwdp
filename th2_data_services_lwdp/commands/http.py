@@ -595,7 +595,6 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
 
         for url in resulting_urls:
             # LOG             logger.info(url)
-            print(url)
             yield from api.execute_sse_request(url)
 
 
@@ -821,7 +820,6 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
 
         for url in resulting_urls:
             # LOG             logger.info(url)
-            print(url)
             yield from api.execute_sse_request(url)
 
 
