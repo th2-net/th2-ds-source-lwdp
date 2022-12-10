@@ -22,8 +22,8 @@ events = ds.command(
     )
 )
 
-for i in events.limit(5):
-    print(i)
+#for i in events.limit(5):
+#    print(i)
 
 START_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, microsecond=0)
