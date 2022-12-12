@@ -582,7 +582,12 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
         if(isinstance(self._streams, Streams)):
-            resulting_urls.append(f"{url}&{self._streams.url()}")
+            stream = f"&{self._streams.url()}"
+            maximum_allowed_stream_length = 2048 - fixed_part_len
+            while len(stream) >= maximum_allowed_stream_length:
+                    resulting_urls.append(url + stream[:stream[:maximum_allowed_stream_length].rindex('&')])
+                    stream = stream[stream[:maximum_allowed_stream_length].rindex('&'):]
+                    current_url = stream
         else:
             for stream in self._streams:
                 if isinstance(stream, Streams):
@@ -591,6 +596,11 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
                     stream = stream.url()
                 else:
                     stream = f"&stream={stream}"
+                maximum_allowed_stream_length = 2048 - len(current_url) - fixed_part_len
+                while len(stream) >= maximum_allowed_stream_length:
+                    resulting_urls.append(url + current_url + stream[:stream[:maximum_allowed_stream_length].rindex('&')])
+                    current_url = ""
+                    stream = stream[stream[:maximum_allowed_stream_length].rindex('&'):]
                 if fixed_part_len + len(current_url) + len(stream) >= 2048:
                     resulting_urls.append(url + current_url)
                     current_url = ""
@@ -600,6 +610,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
 
         for url in resulting_urls:
             # LOG             logger.info(url)
+            print(len(url))
             yield from api.execute_sse_request(url)
 
 
