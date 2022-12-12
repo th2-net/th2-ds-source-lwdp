@@ -520,7 +520,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         self,
         start_timestamp: datetime,
         book_id: str,
-        streams: List[Union[str, Streams]],
+        streams: Union[List[Union[str, Streams, Stream]],Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -558,7 +558,9 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         self._message_ids = message_ids
         self._book_id = book_id
 
-        _check_list_or_tuple(self._streams, var_name="streams")
+        if not (isinstance(self._streams, tuple) or isinstance(self._streams, list) or isinstance(self._streams, Streams)):
+            raise TypeError(f"streams argument has to be list, tuple or Streams type. Got {type(self._streams)}")
+
 
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
@@ -579,17 +581,20 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
-        for stream in self._streams:
-            if isinstance(stream, Streams):
-                stream = f"&{stream.url()}"
-            elif isinstance(stream, Stream):
-                stream = stream.url()
-            else:
-                stream = f"&stream={stream}"
-            if fixed_part_len + len(current_url) + len(stream) >= 2048:
-                resulting_urls.append(url + current_url)
-                current_url = ""
-            current_url += stream
+        if(isinstance(self._streams, Streams)):
+            resulting_urls.append(f"{url}&{self._streams.url()}")
+        else:
+            for stream in self._streams:
+                if isinstance(stream, Streams):
+                    stream = f"&{stream.url()}"
+                elif isinstance(stream, Stream):
+                    stream = stream.url()
+                else:
+                    stream = f"&stream={stream}"
+                if fixed_part_len + len(current_url) + len(stream) >= 2048:
+                    resulting_urls.append(url + current_url)
+                    current_url = ""
+                current_url += stream
         if current_url:
             resulting_urls.append(url + current_url)
 
@@ -611,7 +616,7 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
         self,
         start_timestamp: datetime,
         book_id: str,
-        streams: List[Union[str, Streams]],
+        streams: Union[List[Union[str, Streams, Stream]],Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -684,7 +689,7 @@ class GetMessagesByStreams(IHTTPCommand):
         self,
         start_timestamp: datetime,
         book_id: str,
-        streams: List[Union[str, Streams]],
+        streams: Union[List[Union[str, Streams, Stream]],Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
