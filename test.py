@@ -1,5 +1,5 @@
 import time
-from datetime import datetime
+from datetime import datetime,timezone
 
 from th2_data_services import Data
 
@@ -12,58 +12,24 @@ ds = HTTPDataSource("http://10.100.66.105:32681")
 
 START_TIME = datetime(year=2022, month=11, day=10, hour=10, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=10, hour=13, minute=53, second=8, microsecond=0)
-# st = int(START_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
-# et = int(END_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
+st = int(START_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
+et = int(END_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 
+groups = ["core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
+]
 
-events = ds.command(
-    commands.GetEvents(
-        start_timestamp=START_TIME, end_timestamp=END_TIME, book_id="case3", scopes=["th2-scope"]
-    )
-)
-
-#for i in events.limit(5):
-#    print(i)
-
-START_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=50, second=0, microsecond=0)
-END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, microsecond=0)
-
-msgs = ds.command(
-    commands.GetMessagesByStreams(
-        start_timestamp=START_TIME, end_timestamp=END_TIME, book_id="case3", streams=["arfq02fix30"]
-    )
-)
-
-st = time.time()
-print(st)
-print(msgs)
-print(time.time() - st)
-
-START_TIME = datetime(year=2022, month=11, day=11, hour=10, minute=50, second=0, microsecond=0)
-END_TIME = datetime(year=2022, month=11, day=11, hour=20, minute=53, second=8, microsecond=0)
-
-messages_by_groups: Data = ds.command(
-    commands.GetMessagesByGroups(
-        start_timestamp=START_TIME,
-        end_timestamp=END_TIME,
-        book_id="case3",
-        groups=["Case030", "Case031", "Case032", "arfq02dc30", "arfq02fix30", "csvtest1"],
-    )
-)
-for i in messages_by_groups.limit(5):
+url = ds_api.get_url_search_messages_by_groups(start_timestamp=st,end_timestamp=et,groups=groups,book_id='case3')
+for i in url:
     print(i)
-
-books = ds.command(commands.GetBooks())
-print(books)
-
-for book in books:
-    print(f"{book=}")
-
-    scopes = ds.command(commands.GetEventScopes(book))
-    print(f"{scopes=}")
-
-    aliases = ds.command(commands.GetMessageAliases(book))
-    print(f"{aliases=}")
-
-    groups = ds.command(commands.GetMessageGroups(book))
-    print(f"{groups=}")

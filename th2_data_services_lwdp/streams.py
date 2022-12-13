@@ -35,7 +35,7 @@ class Stream:
             str: Generated streams.
         """
         if self._direction is None:
-            return f"&stream={self._alias}:1&stream={self._alias}:2"
+            return f"&stream={self._alias}"
         return f"&stream={self._alias}:{self._direction}"
 
     # TODO
@@ -81,6 +81,16 @@ class Streams:
         class_name = self.__class__.__name__
         return f"{class_name}(" f"aliases={self._aliases}, " f"direction={self._direction})"
 
+    def as_list(self):
+        result = []
+        if self._direction is None:
+            for alias in self._aliases:
+                result.append(alias)
+        else:
+            for alias in self._aliases:
+                result.append(f"{alias}:{self._direction}")
+        return result
+
     def url(self) -> str:
         """Generates the stream part of the HTTP protocol API.
 
@@ -88,7 +98,7 @@ class Streams:
             str: Generated streams.
         """
         if self._direction is None:
-            return "&".join([f"stream={alias}:1&stream={alias}:2" for alias in self._aliases])
+            return "&".join([f"stream={alias}" for alias in self._aliases])
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._aliases])
 
     def grpc(self) -> List[MessageStream]:

@@ -550,7 +550,24 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
             if end_timestamp is None
             else int(1000 * end_timestamp.replace(tzinfo=timezone.utc).timestamp())
         )
-        self._streams = streams
+        
+        if isinstance(streams, Streams):
+            self._streams = streams.as_list()
+        elif isinstance(streams, (tuple, list, Streams)):
+            self._streams = []
+            for stream in streams:
+                if isinstance(stream, Stream):
+                    self._streams.append(stream.url()[8:])
+                elif isinstance(stream, Streams):
+                    self._streams += stream.as_list()
+                else:
+                    self._streams.append(stream)
+        else:
+            raise TypeError(
+                f"streams argument has to be list, tuple or Streams type. "
+                f"Got {type(self._streams)}"
+            )             
+                    
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
         self._response_formats = response_formats
@@ -558,31 +575,24 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         self._message_ids = message_ids
         self._book_id = book_id
 
-        if not (isinstance(self._streams, (tuple, list, Streams))):
-            raise TypeError(
-                f"streams argument has to be list, tuple or Streams type. "
-                f"Got {type(self._streams)}"
-            )
-
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
-        url = api.get_url_search_sse_messages(
+        urls = api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             message_ids=self._message_ids,
-            stream=[""],  # Putting empty list because command handles adding streams on its own.
+            stream=self._streams,
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             book_id=self._book_id,
-        ).replace("&stream=", "")
+        )
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
 
-        fixed_part_len = len(url)
-        current_url, resulting_urls = "", []
+        """
         if isinstance(self._streams, Streams):
             stream = f"&{self._streams.url()}"
             maximum_allowed_stream_length = 2048 - fixed_part_len
@@ -616,9 +626,10 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
                 current_url += stream
         if current_url:
             resulting_urls.append(url + current_url)
-
-        for url in resulting_urls:
+        """
+        for url in urls:
             # LOG             logger.info(url)
+            print(url)
             print(len(url))
             yield from api.execute_sse_request(url)
 
@@ -822,28 +833,18 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
 
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
-        url = api.get_url_search_messages_by_groups(
+        urls = api.get_url_search_messages_by_groups(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
-            groups=[],
+            groups=self._groups,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             sort=self._sort,
             book_id=self._book_id,
-        ).replace("&group=", "")
+        )
 
-        fixed_part_len = len(url)
-        current_url, resulting_urls = "", []
-        for group in self._groups:
-            group = f"&group={group}"
-            if fixed_part_len + len(current_url) + len(group) >= 2048:
-                resulting_urls.append(url + current_url)
-                current_url = ""
-            current_url += group
-        if current_url:
-            resulting_urls.append(url + current_url)
-
-        for url in resulting_urls:
+        for url in urls:
+            print(url)
             # LOG             logger.info(url)
             yield from api.execute_sse_request(url)
 

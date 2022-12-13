@@ -151,6 +151,12 @@ class HTTPAPI(IHTTPSourceAPI):
             "keepOpen": keep_open,
             "bookId": book_id,
         }
+        if stream:
+            kwargs["stream"] = None
+            optional = [f"&stream={x}" for x in stream]
+        else:
+            kwargs["messageId"] = None
+            optional = [f"&messageId={x}" for x in message_ids]
 
         query = ""
         url = f"{self._url}/search/sse/messages?"
@@ -163,8 +169,10 @@ class HTTPAPI(IHTTPSourceAPI):
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
+        urls = self.__split_requests(url,optional,2048)
+        return [self.__encode_url(url) for url in urls]
         return self.__encode_url(url)
-
+        
     def get_url_search_messages_by_groups(
             self,
             start_timestamp: int,
@@ -195,59 +203,24 @@ class HTTPAPI(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
             "bookId": book_id,
-            "group": groups,
             "sort": sort,
             "reseponseFormats": response_formats,
             "keepOpen": keep_open,
         }
-
+        groups = [f"&group={x}" for x in groups]
         query = ""
         url = f"{self._url}/search/sse/messages/group?"
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["group", "responseFormats"]:
+            if k in ["responseFormats"]:
                 for item in v:
                     query += f"&{k}={item}"
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
-        return self.__encode_url(url)
-
-    def search_message_groups(
-        self, 
-        start_timestamp: int, 
-        end_timestamp: int, 
-        book_id:str, 
-        message_groups: List[str]=None, 
-        sort:bool = None, 
-        raw_only:bool=None,
-        keep_open:bool=None
-        ) -> str:
-        """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
-        """
-        kwargs = {
-            "startTimestamp": start_timestamp,
-            "endTimestamp": end_timestamp,
-            "bookId": book_id,
-            "group": message_groups,
-            "sort": sort,
-            "onlyRaw": raw_only,
-            "keepOpen": keep_open,
-        }
-
-        query = ""
-        url = f"{self._url}/search/sse/messages/group?"
-        for k, v in kwargs.items():
-            if v is None:
-                continue
-            if k == "group":
-                for s in message_groups:
-                    query += f"&{k}={s}"
-            else:
-                query += f"&{k}={v}"
-        url = f"{url}{query[1:]}"
-        return self.__encode_url(url)
+        urls = self.__split_requests(url,groups,2048)
+        return [self.__encode_url(url) for url in urls]
 
     def execute_sse_request(self, url: str) -> Generator[bytes, None, None]:
         """Create stream connection.
@@ -283,3 +256,16 @@ class HTTPAPI(IHTTPSourceAPI):
             requests.Response: Response data.
         """
         return requests.get(url)
+
+    def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
+        result_urls = []
+        url = fixed_url
+        for s in optional:
+            if len(url) + len(s) >= max_url_len:
+                result_urls.append(url)
+                url = fixed_url + s
+                continue
+            url += s
+        if url:
+            result_urls.append(url)
+        return result_urls
