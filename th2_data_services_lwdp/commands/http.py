@@ -520,7 +520,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         self,
         start_timestamp: datetime,
         book_id: str,
-        streams: Union[List[Union[str, Streams, Stream]],Streams],
+        streams: Union[List[Union[str, Streams, Stream]], Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -541,7 +541,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
             end_timestamp: End timestamp of search.
             response_formats: The format of the response
             keep_open: If the search has reached the current moment.
-                It is need to wait further for the appearance of new data.
+                It needs to wait further for the appearance of new data.
         """
         super().__init__()
         self._start_timestamp = int(1000 * start_timestamp.replace(tzinfo=timezone.utc).timestamp())
@@ -558,16 +558,18 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         self._message_ids = message_ids
         self._book_id = book_id
 
-        if not (isinstance(self._streams, tuple) or isinstance(self._streams, list) or isinstance(self._streams, Streams)):
-            raise TypeError(f"streams argument has to be list, tuple or Streams type. Got {type(self._streams)}")
-
+        if not (isinstance(self._streams, (tuple, list, Streams))):
+            raise TypeError(
+                f"streams argument has to be list, tuple or Streams type. "
+                f"Got {type(self._streams)}"
+            )
 
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
         url = api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             message_ids=self._message_ids,
-            stream=[""],  # sending empty list because command handles adding streams on its own
+            stream=[""],  # Putting empty list because command handles adding streams on its own.
             search_direction=self._search_direction,
             result_count_limit=self._result_count_limit,
             end_timestamp=self._end_timestamp,
@@ -581,13 +583,15 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
 
         fixed_part_len = len(url)
         current_url, resulting_urls = "", []
-        if(isinstance(self._streams, Streams)):
+        if isinstance(self._streams, Streams):
             stream = f"&{self._streams.url()}"
             maximum_allowed_stream_length = 2048 - fixed_part_len
             while len(stream) >= maximum_allowed_stream_length:
-                    resulting_urls.append(url + stream[:stream[:maximum_allowed_stream_length].rindex('&')])
-                    stream = stream[stream[:maximum_allowed_stream_length].rindex('&'):]
-                    current_url = stream
+                resulting_urls.append(
+                    url + stream[: stream[:maximum_allowed_stream_length].rindex("&")]
+                )
+                stream = stream[stream[:maximum_allowed_stream_length].rindex("&") :]
+                current_url = stream
         else:
             for stream in self._streams:
                 if isinstance(stream, Streams):
@@ -596,11 +600,16 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
                     stream = stream.url()
                 else:
                     stream = f"&stream={stream}"
+
                 maximum_allowed_stream_length = 2048 - len(current_url) - fixed_part_len
                 while len(stream) >= maximum_allowed_stream_length:
-                    resulting_urls.append(url + current_url + stream[:stream[:maximum_allowed_stream_length].rindex('&')])
+                    resulting_urls.append(
+                        url
+                        + current_url
+                        + stream[: stream[:maximum_allowed_stream_length].rindex("&")]
+                    )
                     current_url = ""
-                    stream = stream[stream[:maximum_allowed_stream_length].rindex('&'):]
+                    stream = stream[stream[:maximum_allowed_stream_length].rindex("&") :]
                 if fixed_part_len + len(current_url) + len(stream) >= 2048:
                     resulting_urls.append(url + current_url)
                     current_url = ""
@@ -627,7 +636,7 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
         self,
         start_timestamp: datetime,
         book_id: str,
-        streams: Union[List[Union[str, Streams, Stream]],Streams],
+        streams: Union[List[Union[str, Streams, Stream]], Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -700,7 +709,7 @@ class GetMessagesByStreams(IHTTPCommand):
         self,
         start_timestamp: datetime,
         book_id: str,
-        streams: Union[List[Union[str, Streams, Stream]],Streams],
+        streams: Union[List[Union[str, Streams, Stream]], Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
