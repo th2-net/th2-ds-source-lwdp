@@ -15,7 +15,7 @@
 from th2_data_services_lwdp.interfaces.filter import ILwDPFilter
 from typing import Sequence, Any, Union
 
-from th2_grpc_data_provider.data_provider_pb2 import Filter as grpc_Filter, FilterName as grpc_FilterName
+from th2_grpc_lw_data_provider.lw_data_provider_pb2 import Filter as grpc_Filter, FilterName as grpc_FilterName
 import google.protobuf.wrappers_pb2
 
 

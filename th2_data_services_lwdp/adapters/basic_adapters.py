@@ -17,7 +17,7 @@ from typing import Union
 from th2_data_services.interfaces.adapter import IAdapter
 
 from google.protobuf.json_format import MessageToDict
-from th2_grpc_data_provider.data_provider_pb2 import EventResponse, MessageGroupResponse
+from th2_grpc_lw_data_provider.lw_data_provider_pb2 import EventResponse, MessageGroupResponse
 
 
 class GRPCObjectToDictAdapter(IAdapter):

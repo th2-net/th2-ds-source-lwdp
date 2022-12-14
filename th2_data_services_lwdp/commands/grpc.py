@@ -17,7 +17,7 @@ from functools import partial
 from typing import List, Iterable, Generator, Union
 
 from grpc._channel import _InactiveRpcError
-from th2_grpc_data_provider.data_provider_pb2 import (
+from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
     EventResponse,
     MessageGroupResponse,
     MessageStreamPointer,
