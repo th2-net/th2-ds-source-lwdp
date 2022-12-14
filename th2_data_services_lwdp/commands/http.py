@@ -281,13 +281,14 @@ class GetEventsSSEBytes(IHTTPCommand):
                 result_count_limit=self._result_count_limit,
                 filters=self._filters,
                 book_id=self._book_id,
-                scopes=scope,
+                scope=scope,
             )
             for scope in self._scopes
         ]
 
         # LOG         logger.info(url)
         for url in urls:
+            print(url)
             yield from api.execute_sse_request(url)
 
 
@@ -527,6 +528,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         end_timestamp: datetime = None,
         response_formats: List[str] = None,
         keep_open: bool = False,
+        max_url_length: int = 2048,
     ):
         """GetMessagesByStreamsSSEBytes constructor.
 
@@ -574,6 +576,7 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
         self._keep_open = keep_open
         self._message_ids = message_ids
         self._book_id = book_id
+        self._max_url_length = max_url_length
 
     def handle(self, data_source: HTTPDataSource) -> Generator[dict, None, None]:  # noqa: D102
         api: HTTPAPI = data_source.source_api
@@ -587,50 +590,14 @@ class GetMessagesByStreamsSSEBytes(IHTTPCommand):
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             book_id=self._book_id,
+            max_url_length=self._max_url_length
         )
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
 
-        """
-        if isinstance(self._streams, Streams):
-            stream = f"&{self._streams.url()}"
-            maximum_allowed_stream_length = 2048 - fixed_part_len
-            while len(stream) >= maximum_allowed_stream_length:
-                resulting_urls.append(
-                    url + stream[: stream[:maximum_allowed_stream_length].rindex("&")]
-                )
-                stream = stream[stream[:maximum_allowed_stream_length].rindex("&") :]
-                current_url = stream
-        else:
-            for stream in self._streams:
-                if isinstance(stream, Streams):
-                    stream = f"&{stream.url()}"
-                elif isinstance(stream, Stream):
-                    stream = stream.url()
-                else:
-                    stream = f"&stream={stream}"
-
-                maximum_allowed_stream_length = 2048 - len(current_url) - fixed_part_len
-                while len(stream) >= maximum_allowed_stream_length:
-                    resulting_urls.append(
-                        url
-                        + current_url
-                        + stream[: stream[:maximum_allowed_stream_length].rindex("&")]
-                    )
-                    current_url = ""
-                    stream = stream[stream[:maximum_allowed_stream_length].rindex("&") :]
-                if fixed_part_len + len(current_url) + len(stream) >= 2048:
-                    resulting_urls.append(url + current_url)
-                    current_url = ""
-                current_url += stream
-        if current_url:
-            resulting_urls.append(url + current_url)
-        """
         for url in urls:
             # LOG             logger.info(url)
-            print(url)
-            print(len(url))
             yield from api.execute_sse_request(url)
 
 
@@ -654,6 +621,7 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
         end_timestamp: datetime = None,
         response_formats: List[str] = None,
         keep_open: bool = False,
+        max_url_length: int = 2048,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
@@ -684,6 +652,7 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
         self._keep_open = keep_open
         self._message_ids = message_ids
         self._book_id = book_id
+        self._max_url_length = max_url_length
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
 
@@ -698,6 +667,7 @@ class GetMessagesByStreamsSSEEvents(IHTTPCommand):
             keep_open=self._keep_open,
             message_ids=self._message_ids,
             book_id=self._book_id,
+            max_url_length = self._max_url_length,
         ).handle(data_source)
 
         client = SSEClient(
@@ -727,6 +697,7 @@ class GetMessagesByStreams(IHTTPCommand):
         end_timestamp: datetime = None,
         response_formats: List[str] = None,
         keep_open: bool = False,
+        max_url_length: int = 2048,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
@@ -761,6 +732,7 @@ class GetMessagesByStreams(IHTTPCommand):
         self._keep_open = keep_open
         self._message_ids = message_ids
         self._book_id = book_id
+        self._max_url_length = max_url_length
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
@@ -777,6 +749,7 @@ class GetMessagesByStreams(IHTTPCommand):
             keep_open=self._keep_open,
             message_ids=self._message_ids,
             book_id=self._book_id,
+            max_url_length=self._max_url_length
         )
 
         sse_events_stream = partial(sse_events_stream_obj.handle, data_source)
@@ -803,6 +776,7 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
         sort: bool = None,
         response_formats: List[str] = None,
         keep_open: bool = None,
+        max_url_length: int = 2048,
     ):
         """GetMessagesByGroups Constructor.
 
@@ -828,6 +802,7 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._book_id = book_id
+        self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
@@ -841,10 +816,10 @@ class GetMessagesByGroupsSSEBytes(IHTTPCommand):
             keep_open=self._keep_open,
             sort=self._sort,
             book_id=self._book_id,
+            max_url_length=self._max_url_length
         )
 
         for url in urls:
-            print(url)
             # LOG             logger.info(url)
             yield from api.execute_sse_request(url)
 
@@ -867,6 +842,7 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
         sort: bool = None,
         response_formats: List[str] = None,
         keep_open: bool = None,
+        max_url_length: int = 2048,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
@@ -892,6 +868,7 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._book_id = book_id
+        self._max_url_length = max_url_length
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
 
@@ -904,6 +881,7 @@ class GetMessagesByGroupsSSEEvents(IHTTPCommand):
             keep_open=self._keep_open,
             sort=self._sort,
             book_id=self._book_id,
+            max_url_length=self._max_url_length
         ).handle(data_source)
 
         client = SSEClient(
@@ -931,6 +909,7 @@ class GetMessagesByGroups(IHTTPCommand):
         sort: bool = None,
         response_formats: List[str] = None,
         keep_open: bool = None,
+        max_url_length: int = 2048,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
@@ -960,6 +939,7 @@ class GetMessagesByGroups(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._book_id = book_id
+        self._max_url_length = max_url_length
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
@@ -974,6 +954,7 @@ class GetMessagesByGroups(IHTTPCommand):
             keep_open=self._keep_open,
             sort=self._sort,
             book_id=self._book_id,
+            max_url_length=self._max_url_length,
             char_enc=self._char_enc,
             decode_error_handler=self._decode_error_handler,
         )

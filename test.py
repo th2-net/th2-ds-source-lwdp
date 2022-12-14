@@ -11,25 +11,48 @@ ds_api = HTTPAPI("http://th2-kuber-test03:32681")
 ds = HTTPDataSource("http://10.100.66.105:32681")
 
 START_TIME = datetime(year=2022, month=11, day=10, hour=10, minute=50, second=0, microsecond=0)
-END_TIME = datetime(year=2022, month=11, day=10, hour=13, minute=53, second=8, microsecond=0)
+END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, microsecond=0)
 st = int(START_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 et = int(END_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 
-groups = ["core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-,"core_smoke","group_smoke","test12case","test13case","test2case","test3case","test5case","test6case","test8case","test9case","testpages15"
-]
+streams = [
+            "Test-1234",
+            "Test-1234",
+            "Test-12345",
+            "Test-123456",
+            "Test-1234567",
+            "Test-12345678",
+            "Test-123456789",
+            "Test-1234567810",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest1",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest2",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest3",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest4",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest5",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest6",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest7",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest8",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest9",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest10",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest11",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest12",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest13",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest14",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest15",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest16",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest17",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest18",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest19",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest20",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest21",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest22",
+            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest23",
+            "arfq01fix07",
+            "arfq01dc03",
+            "arfq02dc10",
+            "arfq02fix30"]
 
-url = ds_api.get_url_search_messages_by_groups(start_timestamp=st,end_timestamp=et,groups=groups,book_id='case3')
+url = ds.command(commands.GetMessagesByStreams(start_timestamp=st,end_timestamp=et,streams=streams,book_id='case3'))
 for i in url:
     print(i)

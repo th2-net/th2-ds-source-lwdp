@@ -19,7 +19,7 @@ from th2_grpc_data_provider.data_provider_pb2 import Filter as grpc_Filter, Filt
 import google.protobuf.wrappers_pb2
 
 
-class LWDPFilter(ILwDPFilter):
+class LwDPFilter(ILwDPFilter):
     """General interface for Filters of Provider v6."""
 
     def __init__(
@@ -82,7 +82,7 @@ class LWDPFilter(ILwDPFilter):
         )
 
 
-class _LwDPFilterBase(LWDPFilter):
+class _LwDPFilterBase(LwDPFilter):
     FILTER_NAME = "FILTER_NAME"
 
     def __init__(self, values: Sequence[Any], negative: bool = False, conjunct: bool = False):

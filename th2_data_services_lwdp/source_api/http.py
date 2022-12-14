@@ -91,7 +91,7 @@ class HTTPAPI(IHTTPSourceAPI):
             self,
             start_timestamp: int,
             book_id: str,
-            scopes: str,
+            scope: str,
             end_timestamp: Optional[int] = None,
             parent_event: Optional[str] = None,
             search_direction: Optional[str] = "next",
@@ -109,7 +109,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "searchDirection": search_direction,
             "resultCountLimit": result_count_limit,
             "bookId": book_id,
-            "scope": scopes,
+            "scope": scope,
         }
 
         query = ""
@@ -135,7 +135,8 @@ class HTTPAPI(IHTTPSourceAPI):
             end_timestamp: Optional[int] = None,
             response_formats: List[str] = None,
             keep_open: bool = False,
-    ) -> str:
+            max_url_length = 2048,
+    ) -> List[str]:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
 
         https://github.com/th2-net/th2-rpt-data-provider#sse-requests-api
@@ -169,9 +170,8 @@ class HTTPAPI(IHTTPSourceAPI):
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
-        urls = self.__split_requests(url,optional,2048)
+        urls = self.__split_requests(url,optional,max_url_length)
         return [self.__encode_url(url) for url in urls]
-        return self.__encode_url(url)
         
     def get_url_search_messages_by_groups(
             self,
@@ -181,8 +181,9 @@ class HTTPAPI(IHTTPSourceAPI):
             groups: List[str],
             sort: bool = None,
             response_formats: List[str] = None,
-            keep_open: bool = None
-    ) -> str:
+            keep_open: bool = None,
+            max_url_length = 2048,
+    ) -> List[str]:
         """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
 
         Args:
@@ -204,7 +205,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "endTimestamp": end_timestamp,
             "bookId": book_id,
             "sort": sort,
-            "reseponseFormats": response_formats,
+            "responseFormats": response_formats,
             "keepOpen": keep_open,
         }
         groups = [f"&group={x}" for x in groups]
@@ -219,7 +220,7 @@ class HTTPAPI(IHTTPSourceAPI):
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
-        urls = self.__split_requests(url,groups,2048)
+        urls = self.__split_requests(url,groups,max_url_length)
         return [self.__encode_url(url) for url in urls]
 
     def execute_sse_request(self, url: str) -> Generator[bytes, None, None]:
