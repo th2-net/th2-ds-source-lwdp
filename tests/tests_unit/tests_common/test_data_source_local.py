@@ -4,8 +4,8 @@ import pytest
 import requests
 
 from th2_data_services.data import Data
-from th2_data_services.provider.exceptions import CommandError
-from tests.tests_unit.tests_diff_version.conftest import http, HTTPProviderDataSource
+from th2_data_services.exceptions import CommandError
+from ..conftest import http, HTTPDataSource
 
 """
 Slava Ermakov 2022.10.31
@@ -18,7 +18,7 @@ The same tests are placed in tests/tests_integration
 
 
 @pytest.mark.skip(reason="data_source should be changed to mock")
-def test_find_message_by_id_from_data_provider_with_error(demo_data_source: HTTPProviderDataSource):
+def test_find_message_by_id_from_data_provider_with_error(demo_data_source: HTTPDataSource):
     data_source = demo_data_source
 
     with pytest.raises(CommandError) as exc_info:
@@ -26,7 +26,7 @@ def test_find_message_by_id_from_data_provider_with_error(demo_data_source: HTTP
 
 
 @pytest.mark.skip(reason="data_source should be changed to mock")
-def test_get_events_from_data_provider_with_error(demo_data_source: HTTPProviderDataSource):
+def test_get_events_from_data_provider_with_error(demo_data_source: HTTPDataSource):
     data_source = demo_data_source
 
     events = data_source.command(http.GetEvents(start_timestamp="test", end_timestamp="test"))
@@ -36,7 +36,7 @@ def test_get_events_from_data_provider_with_error(demo_data_source: HTTPProvider
 
 
 @pytest.mark.skip(reason="data_source should be changed to mock")
-def test_get_messages_from_data_provider_with_error(demo_data_source: HTTPProviderDataSource):
+def test_get_messages_from_data_provider_with_error(demo_data_source: HTTPDataSource):
     data_source = demo_data_source
 
     events = data_source.command(http.GetMessages(start_timestamp="test", end_timestamp="test", stream="test"))
@@ -48,7 +48,7 @@ def test_get_messages_from_data_provider_with_error(demo_data_source: HTTPProvid
 @pytest.mark.skip(reason="data_source should be changed to mock")
 def test_check_url_for_data_source():
     with pytest.raises(requests.exceptions.ConnectionError) as exc_info:
-        data_source = HTTPProviderDataSource("http://test_test:8080/")
+        data_source = HTTPDataSource("http://test_test:8080/")
     assert "Max retries exceeded with url" in str(exc_info)
 
 
@@ -76,14 +76,14 @@ def test_get_messages_with_multiple_url(
     )
 
 
-# def test_unprintable_character(demo_data_source: HTTPProviderDataSource):
+# def test_unprintable_character(demo_data_source: HTTPDataSource):
 #     event = demo_data_source.command(http.GetEventById(("b85d9dca-6236-11ec-bc58-1b1c943c5c0d")))
 #
 #     assert "\x80" in event["body"][0]["value"] and event["body"][0]["value"] == "nobJjpBJkTuQMmscc4R\x80"
 
 
 @pytest.mark.skip(reason="data_source should be changed to mock")
-def test_attached_messages(demo_data_source: HTTPProviderDataSource):
+def test_attached_messages(demo_data_source: HTTPDataSource):
     events = demo_data_source.command(
         http.GetEvents(
             start_timestamp=datetime(year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0),
