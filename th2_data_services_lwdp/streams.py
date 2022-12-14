@@ -1,7 +1,7 @@
 from typing import List
 
 from th2_grpc_common.common_pb2 import Direction
-from th2_grpc_data_provider.data_provider_pb2 import MessageStream
+from th2_grpc_lw_data_provider.lw_data_provider_pb2 import MessageStream
 
 
 class Stream:
