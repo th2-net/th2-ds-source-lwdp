@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 
-
 from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.commands import http as commands
@@ -52,10 +51,21 @@ streams = [
     "arfq02fix30",
 ]
 
-url = ds.command(
-    commands.GetMessagesByBookByStreams(
-        start_timestamp=st, end_timestamp=et, streams=streams, book_id="case3"
+# url = ds.command(
+#     commands.GetMessagesByBookByStreams(
+#         start_timestamp=st, end_timestamp=et, streams=streams, book_id="case3"
+#     )
+# )
+# for i in url:
+#     print(i)
+
+pages = ds.command(
+    commands.GetPages(
+        "case3",
+        datetime.fromtimestamp(1668185420 - 1000),
+        datetime.fromtimestamp(1668185420 + 1000)
     )
 )
-for i in url:
-    print(i)
+
+for page in pages:
+    print(page)
