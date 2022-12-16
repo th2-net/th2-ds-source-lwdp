@@ -27,8 +27,9 @@ jobs:
         run: |
           pip install pytest
           pip install pytest-xdist
-      - name: lwdp v2 tests
+          pip install -r requirements.txt
+
+      - name: lwdp unit tests
         run: |
-          pip install --pre -e . -q
           pip list
           pytest tests/tests_unit -n auto
