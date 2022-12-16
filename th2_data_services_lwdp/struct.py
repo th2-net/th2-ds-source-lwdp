@@ -80,7 +80,7 @@ grpc_event_struct = EventStruct(
     BODY="body",
 )
 
-# TODO - unknown fields. Perhaps we have them in GRPC
+# +TODO - unknown fields. Perhaps we have them in GRPC
 http_message_struct = MessageStruct(
     DIRECTION="direction",
     SESSION_ID="sessionId",

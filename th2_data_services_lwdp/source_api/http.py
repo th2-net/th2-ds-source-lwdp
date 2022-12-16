@@ -22,7 +22,6 @@ from urllib3 import PoolManager, exceptions
 from urllib.parse import quote
 
 from th2_data_services_lwdp.interfaces.source_api import IHTTPSourceAPI
-from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 
 
 # LOG logger = logging.getLogger("th2_data_services")
@@ -30,25 +29,15 @@ from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 
 
 class HTTPAPI(IHTTPSourceAPI):
-    def __init__(
-            self,
-            url: str,
-            chunk_length: int = 65536,
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            char_enc: str = "utf-8",
-    ):
+    def __init__(self, url: str, chunk_length: int = 65536):
         """HTTP API.
 
         Args:
             url: HTTP data source url.
             chunk_length: How much of the content to read in one chunk.
-            char_enc: Encoding for the byte stream.
-            decode_error_handler: Registered decode error handler.
         """
         self._url = self.__normalize_url(url)
-        self._char_enc = char_enc
         self._chunk_length = chunk_length
-        self._decode_error_handler = decode_error_handler
 
     def __normalize_url(self, url):
         if url is None:
@@ -88,20 +77,21 @@ class HTTPAPI(IHTTPSourceAPI):
         return self.__encode_url(f"{self._url}/message/{message_id}")
 
     def get_url_search_sse_events(
-            self,
-            start_timestamp: int,
-            book_id: str,
-            scopes: str,
-            end_timestamp: Optional[int] = None,
-            parent_event: Optional[str] = None,
-            search_direction: Optional[str] = "next",
-            result_count_limit: Union[int, float] = None,
-            filters: Optional[str] = None,
+        self,
+        start_timestamp: int,
+        book_id: str,
+        scope: str,
+        end_timestamp: Optional[int] = None,
+        parent_event: Optional[str] = None,
+        search_direction: Optional[str] = "next",
+        result_count_limit: Union[int, float] = None,
+        filters: Optional[str] = None,
     ) -> str:
         """REST-API `search/sse/events` call create a sse channel of event metadata that matches the filter.
 
         https://github.com/th2-net/th2-rpt-data-provider#sse-requests-api
         """
+        # +TODO - add __split_requests here like in get_url_search_sse_messages
         kwargs = {
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
@@ -109,7 +99,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "searchDirection": search_direction,
             "resultCountLimit": result_count_limit,
             "bookId": book_id,
-            "scope": scopes,
+            "scope": scope,
         }
 
         query = ""
@@ -125,17 +115,18 @@ class HTTPAPI(IHTTPSourceAPI):
         return self.__encode_url(url)
 
     def get_url_search_sse_messages(
-            self,
-            start_timestamp: int,
-            book_id: str,
-            message_ids: List[str] = None,
-            stream: List[str] = None,
-            search_direction: Optional[str] = "next",
-            result_count_limit: Union[int, float] = None,
-            end_timestamp: Optional[int] = None,
-            response_formats: List[str] = None,
-            keep_open: bool = False,
-    ) -> str:
+        self,
+        start_timestamp: int,
+        book_id: str,
+        message_ids: List[str] = None,
+        stream: List[str] = None,
+        search_direction: Optional[str] = "next",
+        result_count_limit: Union[int, float] = None,
+        end_timestamp: Optional[int] = None,
+        response_formats: List[str] = None,
+        keep_open: bool = False,
+        max_url_length=2048,
+    ) -> List[str]:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
 
         https://github.com/th2-net/th2-rpt-data-provider#sse-requests-api
@@ -151,6 +142,12 @@ class HTTPAPI(IHTTPSourceAPI):
             "keepOpen": keep_open,
             "bookId": book_id,
         }
+        if stream:
+            kwargs["stream"] = None
+            optional = [f"&stream={x}" for x in stream]
+        else:
+            kwargs["messageId"] = None
+            optional = [f"&messageId={x}" for x in message_ids]
 
         query = ""
         url = f"{self._url}/search/sse/messages?"
@@ -163,18 +160,20 @@ class HTTPAPI(IHTTPSourceAPI):
             else:
                 query += f"&{k}={v}"
         url = f"{url}{query[1:]}"
-        return self.__encode_url(url)
+        urls = self.__split_requests(url, optional, max_url_length)
+        return [self.__encode_url(url) for url in urls]
 
     def get_url_search_messages_by_groups(
-            self,
-            start_timestamp: int,
-            end_timestamp: int,
-            book_id: str,
-            groups: List[str],
-            sort: bool = None,
-            response_formats: List[str] = None,
-            keep_open: bool = None
-    ) -> str:
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        max_url_length=2048,
+    ) -> List[str]:
         """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
 
         Args:
@@ -195,59 +194,27 @@ class HTTPAPI(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
             "bookId": book_id,
-            "group": groups,
             "sort": sort,
-            "reseponseFormats": response_formats,
+            "responseFormats": response_formats,
             "keepOpen": keep_open,
         }
-
-        query = ""
+        groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
+        options = []
         url = f"{self._url}/search/sse/messages/group?"
+
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["group", "responseFormats"]:
+            if k in ["responseFormats"]:
                 for item in v:
-                    query += f"&{k}={item}"
+                    options.append(self._option(k, item))
             else:
-                query += f"&{k}={v}"
-        url = f"{url}{query[1:]}"
-        return self.__encode_url(url)
+                options.append(self._option(k, v))
 
-    def search_message_groups(
-        self, 
-        start_timestamp: int, 
-        end_timestamp: int, 
-        book_id:str, 
-        message_groups: List[str]=None, 
-        sort:bool = None, 
-        raw_only:bool=None,
-        keep_open:bool=None
-        ) -> str:
-        """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
-        """
-        kwargs = {
-            "startTimestamp": start_timestamp,
-            "endTimestamp": end_timestamp,
-            "bookId": book_id,
-            "group": message_groups,
-            "sort": sort,
-            "onlyRaw": raw_only,
-            "keepOpen": keep_open,
-        }
-
-        query = ""
-        url = f"{self._url}/search/sse/messages/group?"
-        for k, v in kwargs.items():
-            if v is None:
-                continue
-            if k == "group":
-                for s in message_groups:
-                    query += f"&{k}={s}"
-            else:
-                query += f"&{k}={v}"
-        url = f"{url}{query[1:]}"
-        return self.__encode_url(url)
+        options_url = "&".join(options)
+        url = f"{url}{options_url}"
+        urls = self.__split_requests(url, groups, max_url_length)
+        return [self.__encode_url(url) for url in urls]
 
     def execute_sse_request(self, url: str) -> Generator[bytes, None, None]:
         """Create stream connection.
@@ -266,7 +233,8 @@ class HTTPAPI(IHTTPSourceAPI):
             for s in HTTPStatus:
                 if s == response.status:
                     raise exceptions.HTTPError(
-                        f"{s.value} {s.phrase} ({s.description}). {response.data}")
+                        f"{s.value} {s.phrase} ({s.description}). {response.data}"
+                    )
             raise exceptions.HTTPError(f"Http returned bad status: {response.status}")
 
         yield from response.stream(self._chunk_length)
@@ -283,3 +251,26 @@ class HTTPAPI(IHTTPSourceAPI):
             requests.Response: Response data.
         """
         return requests.get(url)
+
+    def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
+        if len(fixed_url) >= max_url_len:
+            raise Exception(
+                f"Fixed url part ({len(fixed_url)}) >= than max url len ({max_url_len})"
+            )
+
+        result_urls = []
+        url = fixed_url
+
+        for s in optional:
+            if len(url) + len(s) >= max_url_len:
+                result_urls.append(url)
+                url = fixed_url + s
+                continue
+            url += s
+        if url:
+            result_urls.append(url)
+
+        return result_urls
+
+    def _option(self, opt_name, value):
+        return f"{opt_name}={value}"

@@ -13,9 +13,8 @@
 #  limitations under the License.
 from __future__ import annotations
 
-#LOG import logging
+# LOG import logging
 
-from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from typing import TYPE_CHECKING, Union
 
 from th2_data_services.exceptions import CommandError
@@ -25,7 +24,6 @@ from th2_data_services.interfaces import IEventStruct, IMessageStruct, IEventStu
 if TYPE_CHECKING:
     from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 
-from th2_data_services.interfaces.data_source import IDataSource
 from th2_data_services_lwdp.struct import (
     http_event_struct,
     http_message_struct,
@@ -34,24 +32,25 @@ from th2_data_services_lwdp.struct import (
 )
 from th2_data_services_lwdp.stub_builder import (
     http_event_stub_builder,
-    http_message_stub_builder, EventStubBuilder, MessageStubBuilder,
+    http_message_stub_builder,
+    EventStubBuilder,
+    MessageStubBuilder,
 )
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.interfaces.data_source import IHTTPDataSource
 
-#LOG logger = logging.getLogger(__name__)
+# LOG logger = logging.getLogger(__name__)
 
 
-class HTTPDataSource(IHTTPDataSource[EventStruct,
-                                     MessageStruct, EventStubBuilder, MessageStubBuilder]):
+class HTTPDataSource(
+    IHTTPDataSource[EventStruct, MessageStruct, EventStubBuilder, MessageStubBuilder]
+):
     """DataSource class which provide work with http LwDP."""
 
     def __init__(
         self,
         url: str,
         chunk_length: int = 65536,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         event_struct: IEventStruct = http_event_struct,
         message_struct: IMessageStruct = http_message_struct,
         event_stub_builder: IEventStub = http_event_stub_builder,
@@ -64,22 +63,21 @@ class HTTPDataSource(IHTTPDataSource[EventStruct,
             url: HTTP data source url.
             check_connect_timeout: How many seconds to wait for the server to send data before giving up.
             chunk_length: How much of the content to read in one chunk.
-            char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             event_struct: Struct of event from rpt-data-provider.
             message_struct: Struct of message from rpt-data-provider.
             event_stub_builder: Stub for event.
             message_stub_builder: Stub for message.
         """
-        super().__init__(url, event_struct, message_struct, event_stub_builder, message_stub_builder)
+        super().__init__(
+            url, event_struct, message_struct, event_stub_builder, message_stub_builder
+        )
 
-        self._char_enc = char_enc
-        self._decode_error_handler = decode_error_handler
         self.__chunk_length = chunk_length
         self.check_connect(check_connect_timeout)
-        self._provider_api = HTTPAPI(url, chunk_length, decode_error_handler, char_enc)
+        self._provider_api = HTTPAPI(url, chunk_length)
 
-#LOG         logger.info(url)
+    # LOG         logger.info(url)
 
     def command(self, cmd: IHTTPCommand):
         """HTTP  command processor.
@@ -96,7 +94,9 @@ class HTTPDataSource(IHTTPDataSource[EventStruct,
         try:
             return cmd.handle(data_source=self)
         except Exception as e:
-            raise CommandError(f"The command '{cmd.__class__.__name__}' was broken. Details of error:\n{e}")
+            raise CommandError(
+                f"The command '{cmd.__class__.__name__}' was broken. Details of error:\n{e}"
+            )
 
     @property
     def source_api(self) -> HTTPAPI:

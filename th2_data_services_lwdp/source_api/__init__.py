@@ -13,3 +13,4 @@
 #  limitations under the License.
 
 from .grpc import GRPCAPI
+from .http import HTTPAPI

@@ -31,8 +31,8 @@ class EventsTreeCollection(IETC):
         data: Data,
         data_source: GRPCDataSource = None,
         preserve_body: bool = False,
-        # TODO - if we will have another one protocol.
-        #  We have to solve http_event_struct problem another way.
+        # +TODO - if we will have another one protocol.
+        #    We have to solve http_event_struct problem another way.
         event_struct: EventStruct = http_event_struct,
         stub: bool = False,
     ):

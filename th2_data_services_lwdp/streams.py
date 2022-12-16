@@ -1,7 +1,7 @@
 from typing import List
 
 from th2_grpc_common.common_pb2 import Direction
-from th2_grpc_data_provider.data_provider_pb2 import MessageStream
+from th2_grpc_lw_data_provider.lw_data_provider_pb2 import MessageStream
 
 
 class Stream:
@@ -35,10 +35,10 @@ class Stream:
             str: Generated streams.
         """
         if self._direction is None:
-            return f"&stream={self._alias}:1&stream={self._alias}:2"
+            return f"&stream={self._alias}"
         return f"&stream={self._alias}:{self._direction}"
 
-    # TODO
+    # +TODO - Fix it when we need grpc
     def grpc(self) -> MessageStream:
         """Generates the grpc object of the GRPC protocol API.
 
@@ -81,6 +81,16 @@ class Streams:
         class_name = self.__class__.__name__
         return f"{class_name}(" f"aliases={self._aliases}, " f"direction={self._direction})"
 
+    def as_list(self):
+        result = []
+        if self._direction is None:
+            for alias in self._aliases:
+                result.append(alias)
+        else:
+            for alias in self._aliases:
+                result.append(f"{alias}:{self._direction}")
+        return result
+
     def url(self) -> str:
         """Generates the stream part of the HTTP protocol API.
 
@@ -88,7 +98,7 @@ class Streams:
             str: Generated streams.
         """
         if self._direction is None:
-            return "&".join([f"stream={alias}:1&stream={alias}:2" for alias in self._aliases])
+            return "&".join([f"stream={alias}" for alias in self._aliases])
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._aliases])
 
     def grpc(self) -> List[MessageStream]:

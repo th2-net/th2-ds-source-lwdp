@@ -44,12 +44,16 @@ class _StatusFilter(LwDPEventFilter):
 
     def url(self) -> str:
         """Generates the filter part of the HTTP protocol API.
+
         For help use this readme:
         https://github.com/th2-net/th2-rpt-data-provider#filters-api.
+
         Returns:
             str: Generated filter.
         """
-        return f"&filters={self.name}" + "".join([f"&{self.name}-values={val}" for val in self.values])
+        return f"&filters={self.name}" + "".join(
+            [f"&{self.name}-values={val}" for val in self.values]
+        )
 
 
 class PassedStatusFilter(_StatusFilter):
