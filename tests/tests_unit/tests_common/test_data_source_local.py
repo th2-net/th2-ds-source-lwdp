@@ -29,7 +29,9 @@ def test_find_message_by_id_from_data_provider_with_error(demo_data_source: HTTP
 def test_get_events_from_data_provider_with_error(demo_data_source: HTTPDataSource):
     data_source = demo_data_source
 
-    events = data_source.command(http.GetEvents(start_timestamp="test", end_timestamp="test"))
+    events = data_source.command(
+        http.GetEventsByBookByScopes(start_timestamp="test", end_timestamp="test")
+    )
     with pytest.raises(TypeError) as exc_info:
         list(events)
     assert "replace() takes no keyword arguments" in str(exc_info)
@@ -39,7 +41,9 @@ def test_get_events_from_data_provider_with_error(demo_data_source: HTTPDataSour
 def test_get_messages_from_data_provider_with_error(demo_data_source: HTTPDataSource):
     data_source = demo_data_source
 
-    events = data_source.command(http.GetMessages(start_timestamp="test", end_timestamp="test", stream="test"))
+    events = data_source.command(
+        http.GetMessages(start_timestamp="test", end_timestamp="test", stream="test")
+    )
     with pytest.raises(TypeError) as exc_info:
         list(events)
     assert "replace() takes no keyword arguments" in str(exc_info)
@@ -68,7 +72,9 @@ def test_get_messages_with_multiple_url(
     messages = demo_messages_from_data_source_with_test_streams.use_cache(True)
 
     messages_hand_demo_expected = demo_messages_from_data_source
-    messages_hand_demo_actual = messages.filter(lambda record: record.get("sessionId") == "arfq01fix07")
+    messages_hand_demo_actual = messages.filter(
+        lambda record: record.get("sessionId") == "arfq01fix07"
+    )
 
     assert (
         len(list(messages)) == 272
@@ -85,9 +91,13 @@ def test_get_messages_with_multiple_url(
 @pytest.mark.skip(reason="data_source should be changed to mock")
 def test_attached_messages(demo_data_source: HTTPDataSource):
     events = demo_data_source.command(
-        http.GetEvents(
-            start_timestamp=datetime(year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0),
-            end_timestamp=datetime(year=2022, month=6, day=30, hour=15, minute=0, second=0, microsecond=0),
+        http.GetEventsByBookByScopes(
+            start_timestamp=datetime(
+                year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0
+            ),
+            end_timestamp=datetime(
+                year=2022, month=6, day=30, hour=15, minute=0, second=0, microsecond=0
+            ),
             attached_messages=True,
         )
     )

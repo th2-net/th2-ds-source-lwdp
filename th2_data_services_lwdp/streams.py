@@ -38,7 +38,7 @@ class Stream:
             return f"&stream={self._alias}"
         return f"&stream={self._alias}:{self._direction}"
 
-    # TODO
+    # +TODO - Fix it when we need grpc
     def grpc(self) -> MessageStream:
         """Generates the grpc object of the GRPC protocol API.
 

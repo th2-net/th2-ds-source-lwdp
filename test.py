@@ -1,7 +1,5 @@
-import time
-from datetime import datetime,timezone
+from datetime import datetime, timezone
 
-from th2_data_services import Data
 
 from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
@@ -16,43 +14,48 @@ st = int(START_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 et = int(END_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 
 streams = [
-            "Test-1234",
-            "Test-1234",
-            "Test-12345",
-            "Test-123456",
-            "Test-1234567",
-            "Test-12345678",
-            "Test-123456789",
-            "Test-1234567810",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest1",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest2",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest3",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest4",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest5",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest6",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest7",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest8",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest9",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest10",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest11",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest12",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest13",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest14",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest15",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest16",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest17",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest18",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest19",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest20",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest21",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest22",
-            "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest23",
-            "arfq01fix07",
-            "arfq01dc03",
-            "arfq02dc10",
-            "arfq02fix30"]
+    "Test-1234",
+    "Test-1234",
+    "Test-12345",
+    "Test-123456",
+    "Test-1234567",
+    "Test-12345678",
+    "Test-123456789",
+    "Test-1234567810",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest1",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest2",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest3",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest4",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest5",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest6",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest7",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest8",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest9",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest10",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest11",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest12",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest13",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest14",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest15",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest16",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest17",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest18",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest19",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest20",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest21",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest22",
+    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest23",
+    "arfq01fix07",
+    "arfq01dc03",
+    "arfq02dc10",
+    "arfq02fix30",
+]
 
-url = ds.command(commands.GetMessagesByStreams(start_timestamp=st,end_timestamp=et,streams=streams,book_id='case3'))
+url = ds.command(
+    commands.GetMessagesByBookByStreams(
+        start_timestamp=st, end_timestamp=et, streams=streams, book_id="case3"
+    )
+)
 for i in url:
     print(i)

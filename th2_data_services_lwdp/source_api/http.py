@@ -91,6 +91,7 @@ class HTTPAPI(IHTTPSourceAPI):
 
         https://github.com/th2-net/th2-rpt-data-provider#sse-requests-api
         """
+        # +TODO - add __split_requests here like in get_url_search_sse_messages
         kwargs = {
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,

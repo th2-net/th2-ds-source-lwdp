@@ -52,7 +52,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
-        """TODO - TBU."""
+        """TODO - add description."""
         self._current_handle_function = self._data_object
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
@@ -60,17 +60,17 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._cache = cache
 
     def return_sse_bytes_stream(self):
-        """TODO - TBU."""
+        """TODO - add description."""
         self._current_handle_function = self._sse_bytes_stream
         return self
 
     def return_sse_events_stream(self):
-        """TODO - TBU."""
+        """TODO - add description."""
         self._current_handle_function = self._sse_events_stream
         return self
 
     def return_data_object(self):
-        """TODO - TBU."""
+        """TODO - add description."""
         self._current_handle_function = self._data_object
         return self
 
@@ -96,7 +96,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         return Data(source, cache=self._cache)
 
     def handle(self, data_source: HTTPDataSource):
-        """TODO - TBU."""
+        """TODO - add description."""
         return self._current_handle_function(data_source)
 
 
@@ -205,8 +205,8 @@ class GetBooks(IHTTPCommand):
 
 class GetPages(SSEHandlerClassBase):
     def __init__(self, book_id, start, end, sse_handler: IAdapter, cache: bool):
-        """TODO - TBU."""
-        # TODO - implement
+        """TODO - add description."""
+        # TODO - implement https://exactpro.atlassian.net/browse/TH2-4535
         super().__init__(sse_handler, cache)
 
     def _sse_bytes_stream(self, data_source: HTTPDataSource):
@@ -292,7 +292,7 @@ class GetEventsById(IHTTPCommand):
 
 
 # class GetEvents(SSEHandlerClassBase):
-class GetEvents(SSEHandlerClassBase):
+class GetEventsByBookByScopes(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
@@ -312,7 +312,8 @@ class GetEvents(SSEHandlerClassBase):
         result_count_limit: int = None,
         filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
         # Non-data source args.
-        # TODO max_url_length: int = 2048,
+        # +TODO - add `max_url_length: int = 2048,`
+        #   It'll be required when you implement `__split_requests` in source_api/http.py
         cache: bool = False,
         sse_handler: Optional[IAdapter] = None,
         char_enc: str = "utf-8",
@@ -332,10 +333,10 @@ class GetEvents(SSEHandlerClassBase):
             filters: Filters using in search for messages.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
-            char_enc: TODO - tbu
-            decode_error_handler: TODO - tbu
-            max_url_length: TODO - tbu
-            buffer_limit: TODO - tbu
+            char_enc: TODO - add description
+            decode_error_handler: TODO - add description
+            max_url_length: TODO - add description
+            buffer_limit: TODO - add description
         """
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
@@ -346,7 +347,7 @@ class GetEvents(SSEHandlerClassBase):
         )
 
         self._cache = cache
-        # TODO - we can make timestamps optional datetime or int
+        # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
         self._start_timestamp = _datetime2ms(start_timestamp)
         self._end_timestamp = _datetime2ms(end_timestamp)
@@ -384,6 +385,11 @@ class GetEvents(SSEHandlerClassBase):
         for url in urls:
             print(url)
             yield from api.execute_sse_request(url)
+
+
+class GetEventsByPageByScopes(SSEHandlerClassBase):
+    # TODO - implement https://exactpro.atlassian.net/browse/TH2-4535
+    pass
 
 
 class GetMessageById(IHTTPCommand):
@@ -465,7 +471,7 @@ class GetMessagesById(IHTTPCommand):
         return result
 
 
-class GetMessagesByStreams(SSEHandlerClassBase):
+class GetMessagesByBookByStreams(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
@@ -486,7 +492,7 @@ class GetMessagesByStreams(SSEHandlerClassBase):
         response_formats: List[str] = None,
         keep_open: bool = False,
         # Non-data source args.
-        # TODO - мы повторяем их. Мб нам их вынести как-то во что-то одно?
+        # +TODO - we often repeat these args. Perhaps it's better to move them to some class.
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -512,8 +518,8 @@ class GetMessagesByStreams(SSEHandlerClassBase):
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
-            max_url_length: TODO - tbu
-            buffer_limit: TODO - tbu
+            max_url_length: TODO - add description
+            buffer_limit: TODO - add description
         """
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
@@ -535,7 +541,7 @@ class GetMessagesByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
 
-        # TODO - we can make timestamps optional datetime or int
+        # + TODO - we can make timestamps optional datetime or int
         self._start_timestamp = _datetime2ms(start_timestamp)
         self._end_timestamp = (
             end_timestamp if end_timestamp is None else _datetime2ms(end_timestamp)
@@ -581,7 +587,7 @@ class GetMessagesByStreams(SSEHandlerClassBase):
             yield from api.execute_sse_request(url)
 
 
-class GetMessagesByGroups(SSEHandlerClassBase):
+class GetMessagesByBookByGroups(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by groups.
@@ -622,8 +628,8 @@ class GetMessagesByGroups(SSEHandlerClassBase):
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
-            max_url_length: TODO - tbu
-            buffer_limit: TODO - tbu
+            max_url_length: TODO - add description
+            buffer_limit: TODO - add description
         """
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
@@ -667,25 +673,11 @@ class GetMessagesByGroups(SSEHandlerClassBase):
             yield from api.execute_sse_request(url)
 
 
-class GetEventsByBookByScopes:
+class GetMessagesByPageByStreams(SSEHandlerClassBase):
+    # TODO - implement https://exactpro.atlassian.net/browse/TH2-4535
     pass
 
 
-class GetEventsByPageByScopes:
-    pass
-
-
-class GetMessagesByBookByStreams:
-    pass
-
-
-class GetMessagesByBookByGroups:
-    pass
-
-
-class GetMessagesByPageByStreams:
-    pass
-
-
-class GetMessagesByPageByGroups:
+class GetMessagesByPageByGroups(SSEHandlerClassBase):
+    # TODO - implement https://exactpro.atlassian.net/browse/TH2-4535
     pass

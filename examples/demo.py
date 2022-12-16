@@ -69,7 +69,7 @@ multiple_messages = data_source.command(
 # We can get events without knowing their ids beforehands, using SSE requests from the server with GetEvents command:
 
 events: Data = data_source.command(
-    commands.GetEvents(
+    commands.GetEventsByBookByScopes(
         start_timestamp=START_TIME, end_timestamp=END_TIME, book_id="case3", scopes=["th2-scope"]
     )
 )
@@ -82,7 +82,7 @@ END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, m
 example_stream = []
 
 messages_by_stream: Data = data_source.command(
-    commands.GetMessagesByStreams(
+    commands.GetMessagesByBookByStreams(
         start_timestamp=START_TIME,
         streams=Streams(["arfq02fix30"]),
         end_timestamp=END_TIME,
@@ -93,7 +93,7 @@ messages_by_stream: Data = data_source.command(
 # Other way is getting them by matching groups via GetMessagesByGroup:
 
 messages_by_group: Data = data_source.command(
-    commands.GetMessagesByGroups(
+    commands.GetMessagesByBookByGroups(
         start_timestamp=START_TIME, groups=["arfq02dc30"], end_timestamp=END_TIME, book_id="case3"
     )
 )
