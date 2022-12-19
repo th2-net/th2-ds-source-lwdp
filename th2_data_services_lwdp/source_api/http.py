@@ -181,6 +181,7 @@ class HTTPAPI(IHTTPSourceAPI):
             book_id: str,
             groups: List[str],
             sort: bool = None,
+            raw_only: bool = False,
             response_formats: List[str] = None,
             keep_open: bool = None,
             max_url_length=2048,
@@ -192,11 +193,13 @@ class HTTPAPI(IHTTPSourceAPI):
                 or 'resume_from_id' must not absent.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
                 Expected in nanoseconds.
-            book_id: book ID for requested groups
+            book_id: book ID for requested groups.
             groups: List of groups to search messages by
             sort: Enables message sorting in the request
             raw_only: If true, only raw message will be returned in the response
+            response_formats: Response format
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range
+            max_url_length: API request url max length.
 
         Returns:
             Iterable object which return messages as parts of streaming response or message stream pointers.
