@@ -78,7 +78,7 @@ page = ds.command(
 )
 print(page)
 
-# page = list(page)[0]
+page = list(page)[0]
 # s = time.time()
 # messages = ds.command(
 #     commands.GetMessagesByPageByStreams(
@@ -120,3 +120,11 @@ http://10.100.66.105:32681/search/sse/messages?startTimestamp=1668182473000&sear
 # )
 # print(messages)
 # print(time.time() - s)
+
+messages = ds.command(
+    commands.GetEventsByPageByScopes(
+        page,
+        ["scope1", "scope2"]
+    )
+)
+print(messages)

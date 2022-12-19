@@ -566,13 +566,13 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = _datetime2ms(start_timestamp)
-        self._end_timestamp = _datetime2ms(end_timestamp)
+        self._start_timestamp = page.start_timestamp
+        self._end_timestamp = page.end_timestamp or _datetime2ms(datetime.now())
+        self._book_id = page.book_id
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
         self._filters = filters
-        self._book_id = book_id
         self._scopes = scopes
         if isinstance(filters, LwDPEventFilter):
             self._filters = filters.url()
@@ -600,7 +600,6 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
 
         # LOG         logger.info(url)
         for url in urls:
-            print(url)
             yield from api.execute_sse_request(url)
 
 
