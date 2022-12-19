@@ -308,11 +308,12 @@ class GetPages(SSEHandlerClassBase):
         """GetPages Constructor.
 
         Args:
-            book_id (str): Book ID
-            start_timestamp (datetime): Start Timestamp
-            end_timestamp (datetime): End Timestamp
-            sse_handler (Optional, IAdapter): SSE Events Handler. Defaults To `SSEAdapter`
-            cache (Optional, bool): Cache Status. Defaults To `False`
+            book_id (str): Book ID.
+            start_timestamp (datetime): Start Timestamp.
+            end_timestamp (datetime): End Timestamp.
+            sse_handler (Optional, IAdapter): SSE Events Handler. Defaults To `SSEAdapter`.
+            cache (Optional, bool): Cache Status. Defaults To `False`.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(self._sse_handler, cache)
@@ -509,7 +510,6 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
 
         # LOG         logger.info(url)
         for url in urls:
-            print(url)
             yield from api.execute_sse_request(url)
 
 
@@ -957,7 +957,6 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         )
 
         for url in urls:
-            print(url)
             yield from api.execute_sse_request(url)
 
 

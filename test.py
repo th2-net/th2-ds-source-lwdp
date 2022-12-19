@@ -69,16 +69,16 @@ streams = [
 # {'id': 'case3:arfq02dc30:2:20221111165020871966000:1668182270286678628', 'error': "Operation hasn't done during timeout 60000 MILLISECONDS"}
 # print(message)
 
-page = ds.command(
+pages = ds.command(
     commands.GetPages(
         "case3",
-        datetime.fromtimestamp(1669990000),
-        datetime.fromtimestamp(1669990000+100)
+        datetime.fromtimestamp(1668013240),
+        datetime.now()
     )
 )
-print(page)
+# print(pages)
 
-page = list(page)[0]
+page = list(pages)[0]
 # s = time.time()
 # messages = ds.command(
 #     commands.GetMessagesByPageByStreams(
@@ -124,7 +124,7 @@ http://10.100.66.105:32681/search/sse/messages?startTimestamp=1668182473000&sear
 messages = ds.command(
     commands.GetEventsByPageByScopes(
         page,
-        ["scope1", "scope2"]
+        ["th2-scope"]
     )
 )
 print(messages)
