@@ -252,7 +252,7 @@ class GetBooks(IHTTPCommand):
         return api.execute_request(url).json()
 
 
-class Page():
+class Page:
     def __init__(self, id: int, data: Dict, event: str = 'page_info'):
         """Page Constructor.
 
@@ -264,6 +264,19 @@ class Page():
         self.id = id
         self.data = data
         self.event = event
+
+    @property
+    def start_timestamp(self) -> int:  # noqa
+        return _seconds2ms(self.data["started"]["epochSecond"])
+
+    @property
+    def end_timestamp(self) -> Union[None, int]:  # noqa
+        return None if self.data["ended"] is None \
+            else _seconds2ms(self.data["ended"]["epochSecond"])
+
+    @property
+    def book_id(self):  # noqa
+        return self.data["id"]["book"]
 
     def __str__(self):
         s = ""
@@ -279,6 +292,9 @@ class Page():
             s += "data: no data\n"
 
         return s
+
+    def __repr__(self):
+        return self.__str__()
 
 
 class GetPages(SSEHandlerClassBase):
@@ -498,8 +514,94 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
 
 
 class GetEventsByPageByScopes(SSEHandlerClassBase):
-    # TODO - implement https://exactpro.atlassian.net/browse/TH2-4535
-    pass
+    """A Class-Command for request to lw-data-provider.
+
+        It searches events stream by options.
+
+        Returns:
+            Iterable[dict]: Stream of Th2 events.
+        """
+
+    def __init__(
+            self,
+            page: Page,
+            scopes: List[str],
+            parent_event: str = None,
+            search_direction: str = "next",
+            result_count_limit: int = None,
+            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+            # Non-data source args.
+            # +TODO - add `max_url_length: int = 2048,`
+            #   It'll be required when you implement `__split_requests` in source_api/http.py
+            cache: bool = False,
+            sse_handler: Optional[IAdapter] = None,
+            char_enc: str = "utf-8",
+            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+            buffer_limit=250,
+    ):
+        """GetEventsByPageByScopes constructor.
+
+        Args:
+            page: Page to search with.
+            scopes: Scope names for events.
+            parent_event: Match events to the specified parent.
+            search_direction: Search direction.
+            result_count_limit: Result count limit.
+            filters: Filters using in search for messages.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+        """
+        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
+        super().__init__(
+            sse_handler=self._sse_handler,
+            cache=cache,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
+
+        self._cache = cache
+        # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
+
+        self._start_timestamp = _datetime2ms(start_timestamp)
+        self._end_timestamp = _datetime2ms(end_timestamp)
+        self._parent_event = parent_event
+        self._search_direction = search_direction
+        self._result_count_limit = result_count_limit
+        self._filters = filters
+        self._book_id = book_id
+        self._scopes = scopes
+        if isinstance(filters, LwDPEventFilter):
+            self._filters = filters.url()
+        elif isinstance(filters, (tuple, list)):
+            self._filters = "".join([filter_.url() for filter_ in filters])
+
+        _check_list_or_tuple(self._scopes, var_name="scopes")
+
+    def _sse_bytes_stream(self, data_source):
+        """Returns SSE Event stream in bytes."""
+        api: HTTPAPI = data_source.source_api
+        urls = [
+            api.get_url_search_sse_events(
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                parent_event=self._parent_event,
+                search_direction=self._search_direction,
+                result_count_limit=self._result_count_limit,
+                filters=self._filters,
+                book_id=self._book_id,
+                scope=scope,
+            )
+            for scope in self._scopes
+        ]
+
+        # LOG         logger.info(url)
+        for url in urls:
+            print(url)
+            yield from api.execute_sse_request(url)
 
 
 class GetMessageById(IHTTPCommand):
@@ -829,11 +931,9 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._page_data = page.data
-        self._start_timestamp = _seconds2ms(self._page_data["started"]["epochSecond"])
-        self._end_timestamp = _datetime2ms(datetime.now()) if self._page_data["ended"] is None \
-            else _seconds2ms(self._page_data["ended"]["epochSecond"])
-        self._book_id = self._page_data["id"]["book"]
+        self._start_timestamp = page.start_timestamp
+        self._end_timestamp = page.end_timestamp or _datetime2ms(datetime.now())
+        self._book_id = page.book_id
         self._result_count_limit = result_count_limit
         self._search_direction = search_direction
         self._response_formats = response_formats
@@ -914,10 +1014,9 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._page_data = page.data
-        self._start_timestamp = _seconds2ms(self._page_data["started"]["epochSecond"])
-        self._end_timestamp = _datetime2ms(datetime.now()) if self._page_data["ended"] is None \
-            else _seconds2ms(self._page_data["ended"]["epochSecond"])
-        self._book_id = self._page_data["id"]["book"]
+        self._start_timestamp = page.start_timestamp
+        self._end_timestamp = page.end_timestamp or _datetime2ms(datetime.now())
+        self._book_id = page.book_id
         self._groups = groups
         self._sort = sort
         self._response_formats = response_formats

@@ -76,7 +76,7 @@ page = ds.command(
         datetime.fromtimestamp(1669990000+100)
     )
 )
-# print(page)
+print(page)
 
 # page = list(page)[0]
 # s = time.time()
@@ -111,12 +111,12 @@ http://10.100.66.105:32681/search/sse/messages?startTimestamp=1668182473000&sear
 60.05070209503174
 '''
 
-page = list(page)[0]
-s = time.time()
-messages = ds.command(
-    commands.GetMessagesByPageByGroups(
-        page, ["group1", "group2"]
-    )
-)
-print(messages)
-print(time.time() - s)
+# page = list(page)[0]
+# s = time.time()
+# messages = ds.command(
+#     commands.GetMessagesByPageByGroups(
+#         page, ["group1", "group2"]
+#     )
+# )
+# print(messages)
+# print(time.time() - s)
