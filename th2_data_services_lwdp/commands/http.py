@@ -12,11 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from abc import abstractmethod
-from typing import List, Optional, Union, Dict, Generator, Any
-from datetime import datetime, timezone
+from typing import List, Optional, Union, Generator, Any
+from datetime import datetime
 from functools import partial
 
-from sseclient import Event
 from th2_data_services import Data
 from th2_data_services.interfaces import IAdapter
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
@@ -28,26 +27,13 @@ from th2_data_services.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
+from th2_data_services_lwdp.utils import datetime2ms, check_list_or_tuple, Page
+from th2_grpc_common.common_pb2 import Event
 
 
 # LOG import logging
 
 # LOG logger = logging.getLogger(__name__)
-
-
-def _check_list_or_tuple(variable, var_name):
-    if not (isinstance(variable, tuple) or isinstance(variable, list)):
-        raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
-
-
-def _datetime2ms(dt_timestamp: datetime):
-    """Epoch time in milliseconds."""
-    return int(1000 * dt_timestamp.replace(tzinfo=timezone.utc).timestamp())
-
-
-def _seconds2ms(timestamp: int):
-    """Epoch time in milliseconds."""
-    return int(1000 * timestamp)
 
 
 class SSEHandlerClassBase(IHTTPCommand):
@@ -252,51 +238,6 @@ class GetBooks(IHTTPCommand):
         return api.execute_request(url).json()
 
 
-class Page:
-    def __init__(self, id: int, data: Dict, event: str = 'page_info'):
-        """Page Constructor.
-
-        Args:
-            id (int): Page ID
-            data (Dict): Page Data
-            event (str): Event Name
-        """
-        self.id = id
-        self.data = data
-        self.event = event
-
-    @property
-    def start_timestamp(self) -> int:  # noqa
-        return _seconds2ms(self.data["started"]["epochSecond"])
-
-    @property
-    def end_timestamp(self) -> Union[None, int]:  # noqa
-        return None if self.data["ended"] is None \
-            else _seconds2ms(self.data["ended"]["epochSecond"])
-
-    @property
-    def book_id(self):  # noqa
-        return self.data["id"]["book"]
-
-    def __str__(self):
-        s = ""
-
-        if self.id:
-            s += f"id: {self.id}\n"
-
-        s += f"event: {self.event}\n"
-
-        if self.data:
-            s += f"data: {self.data}\n"
-        else:
-            s += "data: no data\n"
-
-        return s
-
-    def __repr__(self):
-        return self.__str__()
-
-
 class GetPages(SSEHandlerClassBase):
     def __init__(self,
                  book_id: str,
@@ -325,20 +266,29 @@ class GetPages(SSEHandlerClassBase):
         api: HTTPAPI = data_source.source_api
         url = api.get_url_get_pages_info(
             self._book_id,
-            _datetime2ms(self._start_timestamp),
-            _datetime2ms(self._end_timestamp),
+            datetime2ms(self._start_timestamp),
+            datetime2ms(self._end_timestamp),
         )
         # LOG             logger.info(url)
         yield from api.execute_sse_request(url)
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
         source = partial(self._sse_handler.handle_stream, self._sse_events_stream(data_source))
-        for index, event in enumerate(source()):
-            yield Page(id=index + 1, data=event)
+        for event_data in source():
+            yield Page(event_data)
 
-    def handle(self, data_source: HTTPDataSource) -> "Data[Page]":  # noqa
+    def _data_object(self, data_source: HTTPDataSource) -> Data:
+        """Parses SSEEvents Into Data Object.
+
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Data
+        """
         source = partial(self._sse_events_to_pages, data_source)
-        return Data(source)
+
+        return Data(source, cache=self._cache)
 
 
 class GetEventById(IHTTPCommand):
@@ -476,8 +426,8 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = _datetime2ms(start_timestamp)
-        self._end_timestamp = _datetime2ms(end_timestamp)
+        self._start_timestamp = datetime2ms(start_timestamp)
+        self._end_timestamp = datetime2ms(end_timestamp)
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -489,7 +439,7 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
-        _check_list_or_tuple(self._scopes, var_name="scopes")
+        check_list_or_tuple(self._scopes, var_name="scopes")
 
     def _sse_bytes_stream(self, data_source):
         """Returns SSE Event stream in bytes."""
@@ -567,7 +517,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
         self._start_timestamp = page.start_timestamp
-        self._end_timestamp = page.end_timestamp or _datetime2ms(datetime.now())
+        self._end_timestamp = page.end_timestamp or datetime2ms(datetime.now())
         self._book_id = page.book_id
         self._parent_event = parent_event
         self._search_direction = search_direction
@@ -579,7 +529,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
-        _check_list_or_tuple(self._scopes, var_name="scopes")
+        check_list_or_tuple(self._scopes, var_name="scopes")
 
     def _sse_bytes_stream(self, data_source):
         """Returns SSE Event stream in bytes."""
@@ -753,9 +703,9 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         self._cache = cache
 
         # + TODO - we can make timestamps optional datetime or int
-        self._start_timestamp = _datetime2ms(start_timestamp)
+        self._start_timestamp = datetime2ms(start_timestamp)
         self._end_timestamp = (
-            end_timestamp if end_timestamp is None else _datetime2ms(end_timestamp)
+            end_timestamp if end_timestamp is None else datetime2ms(end_timestamp)
         )
 
         if isinstance(streams, Streams):
@@ -853,9 +803,9 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
-        self._start_timestamp = _datetime2ms(start_timestamp)
+        self._start_timestamp = datetime2ms(start_timestamp)
         self._end_timestamp = (
-            end_timestamp if end_timestamp is None else _datetime2ms(end_timestamp)
+            end_timestamp if end_timestamp is None else datetime2ms(end_timestamp)
         )
         self._groups = groups
         self._sort = sort
@@ -864,7 +814,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._book_id = book_id
         self._max_url_length = max_url_length
 
-        _check_list_or_tuple(self._groups, var_name="groups")
+        check_list_or_tuple(self._groups, var_name="groups")
 
     def _sse_bytes_stream(self, data_source: HTTPDataSource):
         api: HTTPAPI = data_source.source_api
@@ -931,7 +881,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._start_timestamp = page.start_timestamp
-        self._end_timestamp = page.end_timestamp or _datetime2ms(datetime.now())
+        self._end_timestamp = page.end_timestamp or datetime2ms(datetime.now())
         self._book_id = page.book_id
         self._result_count_limit = result_count_limit
         self._search_direction = search_direction
@@ -1013,7 +963,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._page = page
         self._page_data = page.data
         self._start_timestamp = page.start_timestamp
-        self._end_timestamp = page.end_timestamp or _datetime2ms(datetime.now())
+        self._end_timestamp = page.end_timestamp or datetime2ms(datetime.now())
         self._book_id = page.book_id
         self._groups = groups
         self._sort = sort
@@ -1021,7 +971,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._keep_open = keep_open
         self._max_url_length = max_url_length
 
-        _check_list_or_tuple(self._groups, var_name="groups")
+        check_list_or_tuple(self._groups, var_name="groups")
 
     def _sse_bytes_stream(self, data_source: HTTPDataSource):
         api: HTTPAPI = data_source.source_api
