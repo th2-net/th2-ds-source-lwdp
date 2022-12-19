@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from abc import abstractmethod
-from typing import List, Optional, Union, Dict
+from typing import List, Optional, Union, Dict, Generator, Any
 from datetime import datetime, timezone
 from functools import partial
 
@@ -53,33 +53,60 @@ class SSEHandlerClassBase(IHTTPCommand):
             char_enc: str = "utf-8",
             decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
-        """TODO - add description."""
+        """SSEHandlerClassBase Constructor.
+
+        Args:
+            sse_handler (IAdapter): SSEEvents Handler
+            cache (bool): Cache Status
+            char_enc (Optional, str): Encoder, Defaults To 'UTF-8'
+            decode_error_handler (Optional, str): Decode Error Handler, Defaults To 'UNICODE_REPLACE_HANDLER'
+        """
         self._current_handle_function = self._data_object
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._sse_handler = sse_handler
         self._cache = cache
 
-    def return_sse_bytes_stream(self):
-        """TODO - add description."""
+    def return_sse_bytes_stream(self) -> Generator[Event, Any, None]:
+        """Returns SSEBytes Stream.
+
+        Returns:
+           Generator[bytes, None, None]
+        """
         self._current_handle_function = self._sse_bytes_stream
         return self
 
     def return_sse_events_stream(self):
-        """TODO - add description."""
+        """Returns SSEEvents Stream.
+
+        Returns:
+            Generator[Event, Any, None]
+        """
         self._current_handle_function = self._sse_events_stream
         return self
 
-    def return_data_object(self):
-        """TODO - add description."""
+    def return_data_object(self) -> Data:
+        """Returns Parsed 'Data' Object.
+
+        Returns:
+            Data
+        """
         self._current_handle_function = self._data_object
         return self
 
     @abstractmethod
-    def _sse_bytes_stream(self, data_source: HTTPDataSource):
+    def _sse_bytes_stream(self, data_source: HTTPDataSource) -> Generator[bytes, None, None]:  # noqa
         pass
 
-    def _sse_events_stream(self, data_source: HTTPDataSource):
+    def _sse_events_stream(self, data_source: HTTPDataSource) -> Generator[Event, Any, None]:
+        """Turns SSEByte Stream Into SSEEvent Stream.
+
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Generator[Event, Any, None]
+        """
         sse_bytes_stream = partial(self._sse_bytes_stream, data_source)
 
         client = SSEClient(
@@ -90,14 +117,30 @@ class SSEHandlerClassBase(IHTTPCommand):
 
         yield from client.events()
 
-    def _data_object(self, data_source: HTTPDataSource):
+    def _data_object(self, data_source: HTTPDataSource) -> Data:
+        """Parses SSEEvents Into Data Object.
+
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Data
+        """
         sse_events_stream = partial(self._sse_events_stream, data_source)
         source = partial(self._sse_handler.handle_stream, sse_events_stream)
 
         return Data(source, cache=self._cache)
 
-    def handle(self, data_source: HTTPDataSource):
-        """TODO - add description."""
+    def handle(self, data_source: HTTPDataSource) -> \
+            Union[Generator[bytes, None, None], Generator[Event, None, None], Data]:
+        """Handles Stream By Handle Function, Defaults To `Data`.
+
+        Args:
+            data_source: data_source
+
+        Returns:
+            Union[Generator[bytes, None, None], Generator[Event, None, None], Data]
+        """
         return self._current_handle_function(data_source)
 
 
@@ -204,7 +247,7 @@ class GetBooks(IHTTPCommand):
         return api.execute_request(url).json()
 
 
-class Page(Event):
+class Page():
     def __init__(self, id: int, data: Dict, event: str = 'page_info'):
         """Page Constructor.
 
@@ -213,7 +256,9 @@ class Page(Event):
             data (Dict): Page Data
             event (str): Event Name
         """
-        super().__init__(id, event, data)
+        self.id = id
+        self.data = data
+        self.event = event
 
     def __str__(self):
         s = ""
@@ -260,22 +305,15 @@ class GetPages(SSEHandlerClassBase):
             _datetime2ms(self._end_timestamp),
         )
         # LOG             logger.info(url)
-        print(url)
         yield from api.execute_sse_request(url)
 
-    def _sse_bytes_stream_to_pages(self, data_source: HTTPDataSource):  # noqa
-        source = partial(self._sse_bytes_stream, data_source)
-        client = SSEClient(
-            source(),
-            char_enc=self._char_enc,
-            decode_errors_handler=self._decode_error_handler
-        )
-        for event in client.events():
-            print(event)
-            yield Page(event.id, event.data)
+    def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
+        source = partial(self._sse_handler.handle_stream, self._sse_events_stream(data_source))
+        for i, event in enumerate(source()):
+            yield Page(i, event)
 
-    def handle(self, data_source: HTTPDataSource) -> "Data[Page]": # noqa
-        source = partial(self._sse_bytes_stream_to_pages, data_source)
+    def handle(self, data_source: HTTPDataSource) -> "Data[Page]":  # noqa
+        source = partial(self._sse_events_to_pages, data_source)
         return Data(source)
 
 
@@ -398,10 +436,10 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             filters: Filters using in search for messages.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
-            char_enc: TODO - add description
-            decode_error_handler: TODO - add description
-            max_url_length: TODO - add description
-            buffer_limit: TODO - add description
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
@@ -583,8 +621,8 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
-            max_url_length: TODO - add description
-            buffer_limit: TODO - add description
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
@@ -693,8 +731,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
-            max_url_length: TODO - add description
-            buffer_limit: TODO - add description
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
