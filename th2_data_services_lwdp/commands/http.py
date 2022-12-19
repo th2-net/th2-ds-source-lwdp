@@ -832,7 +832,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._page_data = page.data
         self._start_timestamp = _seconds2ms(self._page_data["started"]["epochSecond"])
         self._end_timestamp = _datetime2ms(datetime.now()) if self._page_data["ended"] is None \
-            else _seconds2ms(self._end_timestamp["epochSecond"])
+            else _seconds2ms(self._page_data["ended"]["epochSecond"])
         self._book_id = self._page_data["id"]["book"]
         self._result_count_limit = result_count_limit
         self._search_direction = search_direction
@@ -916,7 +916,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._page_data = page.data
         self._start_timestamp = _seconds2ms(self._page_data["started"]["epochSecond"])
         self._end_timestamp = _datetime2ms(datetime.now()) if self._page_data["ended"] is None \
-            else _seconds2ms(self._end_timestamp["epochSecond"])
+            else _seconds2ms(self._page_data["ended"]["epochSecond"])
         self._book_id = self._page_data["id"]["book"]
         self._groups = groups
         self._sort = sort
