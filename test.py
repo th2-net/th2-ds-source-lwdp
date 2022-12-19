@@ -1,4 +1,3 @@
-import time
 from datetime import datetime, timezone
 
 from th2_data_services_lwdp.data_source import HTTPDataSource
@@ -69,13 +68,8 @@ streams = [
 # {'id': 'case3:arfq02dc30:2:20221111165020871966000:1668182270286678628', 'error': "Operation hasn't done during timeout 60000 MILLISECONDS"}
 # print(message)
 
-pages = ds.command(
-    commands.GetPages(
-        "case3",
-        datetime.fromtimestamp(1668013240),
-        datetime.now()
-    )
-)
+
+pages = ds.command(commands.GetPages("case3", datetime.fromtimestamp(1668013240), datetime.now()))
 print(pages)
 
 # page = list(pages)[0]
@@ -88,7 +82,7 @@ print(pages)
 # print(messages)
 # print(time.time() - s)
 
-'''
+"""
 http://10.100.66.105:32681/search/sse/messages?startTimestamp=1668182473000&searchDirection=next&endTimestamp=1668182483000&bookId=case3&stream=arfq02dc30
 ------------- Printed first 5 records -------------
 {'attachedEventIds': [],
@@ -109,7 +103,7 @@ http://10.100.66.105:32681/search/sse/messages?startTimestamp=1668182473000&sear
  'timestamp': {'epochSecond': 1668182473, 'nano': 879497000}}
 
 60.05070209503174
-'''
+"""
 
 # page = list(pages)[0]
 # s = time.time()
