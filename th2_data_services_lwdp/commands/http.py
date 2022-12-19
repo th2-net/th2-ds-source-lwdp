@@ -38,11 +38,11 @@ from th2_grpc_common.common_pb2 import Event
 
 class SSEHandlerClassBase(IHTTPCommand):
     def __init__(
-            self,
-            sse_handler: IAdapter,
-            cache: bool,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        self,
+        sse_handler: IAdapter,
+        cache: bool,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """SSEHandlerClassBase Constructor.
 
@@ -86,7 +86,9 @@ class SSEHandlerClassBase(IHTTPCommand):
         return self
 
     @abstractmethod
-    def _sse_bytes_stream(self, data_source: HTTPDataSource) -> Generator[bytes, None, None]:  # noqa
+    def _sse_bytes_stream(
+        self, data_source: HTTPDataSource
+    ) -> Generator[bytes, None, None]:  # noqa
         pass
 
     def _sse_events_stream(self, data_source: HTTPDataSource) -> Generator[Event, Any, None]:
@@ -122,8 +124,9 @@ class SSEHandlerClassBase(IHTTPCommand):
 
         return Data(source, cache=self._cache)
 
-    def handle(self, data_source: HTTPDataSource) -> \
-            Union[Generator[bytes, None, None], Generator[Event, None, None], Data]:
+    def handle(
+        self, data_source: HTTPDataSource
+    ) -> Union[Generator[bytes, None, None], Generator[Event, None, None], Data]:
         """Handles Stream By Handle Function, Defaults To `Data`.
 
         Args:
@@ -239,13 +242,15 @@ class GetBooks(IHTTPCommand):
 
 
 class GetPages(SSEHandlerClassBase):
-    def __init__(self,
-                 book_id: str,
-                 start_timestamp: datetime,
-                 end_timestamp: datetime,
-                 sse_handler: IAdapter = None,
-                 buffer_limit: int = 250,
-                 cache: bool = False) -> None:
+    def __init__(
+        self,
+        book_id: str,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        sse_handler: IAdapter = None,
+        buffer_limit: int = 250,
+        cache: bool = False,
+    ) -> None:
         """GetPages Constructor.
 
         Args:
@@ -379,23 +384,23 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            scopes: List[str],
-            end_timestamp: Optional[datetime] = None,
-            parent_event: str = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-            # Non-data source args.
-            # +TODO - add `max_url_length: int = 2048,`
-            #   It'll be required when you implement `__split_requests` in source_api/http.py
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            buffer_limit=250,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        scopes: List[str],
+        end_timestamp: Optional[datetime] = None,
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        # Non-data source args.
+        # +TODO - add `max_url_length: int = 2048,`
+        #   It'll be required when you implement `__split_requests` in source_api/http.py
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit=250,
     ):
         """GetEvents constructor.
 
@@ -466,28 +471,28 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
 class GetEventsByPageByScopes(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
-        It searches events stream by options.
+    It searches events stream by options.
 
-        Returns:
-            Iterable[dict]: Stream of Th2 events.
-        """
+    Returns:
+        Iterable[dict]: Stream of Th2 events.
+    """
 
     def __init__(
-            self,
-            page: Page,
-            scopes: List[str],
-            parent_event: str = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
-            # Non-data source args.
-            # +TODO - add `max_url_length: int = 2048,`
-            #   It'll be required when you implement `__split_requests` in source_api/http.py
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            buffer_limit=250,
+        self,
+        page: Page,
+        scopes: List[str],
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        # Non-data source args.
+        # +TODO - add `max_url_length: int = 2048,`
+        #   It'll be required when you implement `__split_requests` in source_api/http.py
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit=250,
     ):
         """GetEventsByPageByScopes constructor.
 
@@ -642,24 +647,24 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            book_id: str,
-            streams: Union[List[Union[str, Streams, Stream]], Streams],
-            message_ids: List[str] = None,
-            search_direction: str = "next",
-            result_count_limit: int = None,
-            end_timestamp: datetime = None,
-            response_formats: List[str] = None,
-            keep_open: bool = False,
-            # Non-data source args.
-            # +TODO - we often repeat these args. Perhaps it's better to move them to some class.
-            max_url_length: int = 2048,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
-            buffer_limit=250,
+        self,
+        start_timestamp: datetime,
+        book_id: str,
+        streams: Union[List[Union[str, Streams, Stream]], Streams],
+        message_ids: List[str] = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        end_timestamp: datetime = None,
+        response_formats: List[str] = None,
+        keep_open: bool = False,
+        # Non-data source args.
+        # +TODO - we often repeat these args. Perhaps it's better to move them to some class.
+        max_url_length: int = 2048,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
+        buffer_limit=250,
     ):
         """GetMessages constructor.
 
@@ -704,9 +709,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
 
         # + TODO - we can make timestamps optional datetime or int
         self._start_timestamp = datetime2ms(start_timestamp)
-        self._end_timestamp = (
-            end_timestamp if end_timestamp is None else datetime2ms(end_timestamp)
-        )
+        self._end_timestamp = end_timestamp if end_timestamp is None else datetime2ms(end_timestamp)
 
         if isinstance(streams, Streams):
             self._streams = streams.as_list()
@@ -758,21 +761,21 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
     """
 
     def __init__(
-            self,
-            start_timestamp: datetime,
-            end_timestamp: datetime,
-            book_id: str,
-            groups: List[str],
-            sort: bool = None,
-            response_formats: List[str] = None,
-            keep_open: bool = None,
-            # Non-data source args.
-            max_url_length: int = 2048,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
-            buffer_limit=250,
+        self,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        # Non-data source args.
+        max_url_length: int = 2048,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
+        buffer_limit=250,
     ):
         """GetMessagesByGroups Constructor.
 
@@ -804,9 +807,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._start_timestamp = datetime2ms(start_timestamp)
-        self._end_timestamp = (
-            end_timestamp if end_timestamp is None else datetime2ms(end_timestamp)
-        )
+        self._end_timestamp = end_timestamp if end_timestamp is None else datetime2ms(end_timestamp)
         self._groups = groups
         self._sort = sort
         self._response_formats = response_formats
@@ -836,20 +837,20 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
 class GetMessagesByPageByStreams(SSEHandlerClassBase):
     def __init__(
-            self,
-            page: Page,
-            stream: List[str],
-            message_ids: List[None] = None,
-            search_direction: Optional[str] = "next",
-            result_count_limit: int = None,
-            response_formats: List[str] = None,
-            keep_open: bool = None,
-            max_url_length: int = 2048,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
-            buffer_limit: int = 250,
+        self,
+        page: Page,
+        stream: List[str],
+        message_ids: List[None] = None,
+        search_direction: Optional[str] = "next",
+        result_count_limit: int = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        max_url_length: int = 2048,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
+        buffer_limit: int = 250,
     ):
         """GetMessagesByPageByStreams Constructor.
 
@@ -903,7 +904,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             end_timestamp=self._end_timestamp,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
-            max_url_length=self._max_url_length
+            max_url_length=self._max_url_length,
         )
 
         for url in urls:
@@ -920,19 +921,19 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
     """
 
     def __init__(
-            self,
-            page: Page,
-            groups: List[str],
-            sort: bool = None,
-            response_formats: List[str] = None,
-            keep_open: bool = None,
-            # Non-data source args.
-            max_url_length: int = 2048,
-            char_enc: str = "utf-8",
-            decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-            cache: bool = False,
-            sse_handler: Optional[IAdapter] = None,
-            buffer_limit=250,
+        self,
+        page: Page,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        # Non-data source args.
+        max_url_length: int = 2048,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        sse_handler: Optional[IAdapter] = None,
+        buffer_limit=250,
     ):
         """GetMessagesByPageByGroups Constructor.
 

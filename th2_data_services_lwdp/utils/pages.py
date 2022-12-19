@@ -9,7 +9,7 @@ class Page:
         Args:
             data (Dict): Page Data
         """
-        id_ = data.pop('id')
+        id_ = data.pop("id")
         data["book"] = id_["book"]
         data["name"] = id_["name"]
         self.__data = data
@@ -39,8 +39,7 @@ class Page:
         Returns:
             Union[int, None]
         """
-        return None if self.data["ended"] is None \
-            else seconds2ms(self.data["ended"]["epochSecond"])
+        return None if self.data["ended"] is None else seconds2ms(self.data["ended"]["epochSecond"])
 
     @property
     def book_id(self) -> str:
@@ -76,8 +75,11 @@ class Page:
         Returns:
             Union[int, None]
         """
-        return None if self.data["updated"] is None \
+        return (
+            None
+            if self.data["updated"] is None
             else seconds2ms(self.data["updated"]["epochSecond"])
+        )
 
     @property
     def removed(self) -> Union[int, None]:
@@ -86,8 +88,11 @@ class Page:
         Returns:
             Union[int, None]
         """
-        return None if self.data["removed"] is None \
+        return (
+            None
+            if self.data["removed"] is None
             else seconds2ms(self.data["removed"]["epochSecond"])
+        )
 
     def __str__(self):  # noqa
         return str(self.data)

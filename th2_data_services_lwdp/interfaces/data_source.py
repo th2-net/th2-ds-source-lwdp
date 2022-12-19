@@ -22,16 +22,19 @@ if TYPE_CHECKING:
     from th2_data_services_lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
 
 from th2_data_services.interfaces import IDataSource
-from th2_data_services_lwdp.interfaces.source_api import IGRPCSourceAPI, ILwDPSourceAPI, \
-    IHTTPSourceAPI
+from th2_data_services_lwdp.interfaces.source_api import (
+    IGRPCSourceAPI,
+    ILwDPSourceAPI,
+    IHTTPSourceAPI,
+)
 from th2_data_services_lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services_lwdp.stub_builder import IEventStub, IMessageStub
 
-CommandT = TypeVar('CommandT', bound='ILwDPCommand')
-EventStructT = TypeVar('EventStructT', bound='IEventStruct')
-MessageStructT = TypeVar('MessageStructT', bound='IMessageStruct')
-EventStubBuilderT = TypeVar('EventStubBuilderT', bound='IEventStub')
-MessageStubBuilderT = TypeVar('MessageStubBuilderT', bound='IMessageStub')
+CommandT = TypeVar("CommandT", bound="ILwDPCommand")
+EventStructT = TypeVar("EventStructT", bound="IEventStruct")
+MessageStructT = TypeVar("MessageStructT", bound="IMessageStruct")
+EventStubBuilderT = TypeVar("EventStubBuilderT", bound="IEventStub")
+MessageStubBuilderT = TypeVar("MessageStubBuilderT", bound="IMessageStub")
 
 
 # LOG import logging
@@ -39,19 +42,19 @@ MessageStubBuilderT = TypeVar('MessageStubBuilderT', bound='IMessageStub')
 # LOG logger = logging.getLogger(__name__)
 
 
-class ILwDPDataSource(IDataSource, Generic[EventStructT,
-                                           MessageStructT,
-                                           EventStubBuilderT,
-                                           MessageStubBuilderT]):
+class ILwDPDataSource(
+    IDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
+):
     def __init__(
-            self,
-            url: str,
-            event_struct: IEventStruct,
-            message_struct: IMessageStruct,
-            event_stub_builder: IEventStub,
-            message_stub_builder: IMessageStub,
+        self,
+        url: str,
+        event_struct: IEventStruct,
+        message_struct: IMessageStruct,
+        event_stub_builder: IEventStub,
+        message_stub_builder: IMessageStub,
     ):
         """Interface of DataSource that provides work with lwdp-data-provider.
+
         Args:
             url: Url address to data provider.
             event_struct: Event struct class.
@@ -102,14 +105,13 @@ class ILwDPDataSource(IDataSource, Generic[EventStructT,
         """Returns Provider API."""
 
 
-class IGRPCDataSource(ILwDPDataSource, Generic[EventStructT,
-                                               MessageStructT,
-                                               EventStubBuilderT,
-                                               MessageStubBuilderT]):
+class IGRPCDataSource(
+    ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
+):
     """Interface of DataSource that provides work with lwdp-data-provider via GRPC."""
 
     @abstractmethod
-    def command(self, cmd: 'IGRPCCommand'):
+    def command(self, cmd: "IGRPCCommand"):
         """Execute the transmitted GRPC command."""
 
     @property
@@ -118,11 +120,10 @@ class IGRPCDataSource(ILwDPDataSource, Generic[EventStructT,
         """Returns GRPC Provider API."""
 
 
-class IHTTPDataSource(ILwDPDataSource, Generic[EventStructT,
-                                               MessageStructT,
-                                               EventStubBuilderT,
-                                               MessageStubBuilderT]):
-    """Interface of DataSource that provides work with lwdp-data-provider via HTTP"""
+class IHTTPDataSource(
+    ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
+):
+    """Interface of DataSource that provides work with lwdp-data-provider via HTTP."""
 
     @abstractmethod
     def command(self, cmd):
@@ -142,7 +143,8 @@ class IHTTPDataSource(ILwDPDataSource, Generic[EventStructT,
             requests.get(self.url, timeout=timeout, verify=certification)
         except ConnectionError as error:
             raise urllib3.exceptions.HTTPError(
-                f"Unable to connect to host '{self.url}'\nReason: {error}")
+                f"Unable to connect to host '{self.url}'\nReason: {error}"
+            )
 
     @property
     @abstractmethod

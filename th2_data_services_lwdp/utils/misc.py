@@ -1,7 +1,7 @@
 from datetime import datetime, timezone
 
 
-def check_list_or_tuple(variable, var_name):
+def check_list_or_tuple(variable, var_name):  # noqa
     if not (isinstance(variable, tuple) or isinstance(variable, list)):
         raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 

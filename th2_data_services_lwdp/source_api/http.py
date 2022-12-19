@@ -76,7 +76,9 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `message` call returns a single message with the specified id."""
         return self.__encode_url(f"{self._url}/message/{message_id}")
 
-    def get_url_get_pages_info(self, book_id: str, start_timestamp: int, end_timestamp: int, limit=None):
+    def get_url_get_pages_info(
+        self, book_id: str, start_timestamp: int, end_timestamp: int, limit=None
+    ):
         """REST-API `message` call returns a single message with the specified id."""
         url = f"{self._url}/search/sse/page-infos?"
         params = {
@@ -88,15 +90,15 @@ class HTTPAPI(IHTTPSourceAPI):
         return self.__encode_url(url)
 
     def get_url_search_sse_events(
-            self,
-            start_timestamp: int,
-            book_id: str,
-            scope: str,
-            end_timestamp: Optional[int] = None,
-            parent_event: Optional[str] = None,
-            search_direction: Optional[str] = "next",
-            result_count_limit: Union[int, float] = None,
-            filters: Optional[str] = None,
+        self,
+        start_timestamp: int,
+        book_id: str,
+        scope: str,
+        end_timestamp: Optional[int] = None,
+        parent_event: Optional[str] = None,
+        search_direction: Optional[str] = "next",
+        result_count_limit: Union[int, float] = None,
+        filters: Optional[str] = None,
     ) -> str:
         """REST-API `search/sse/events` call create a sse channel of event metadata that matches the filter.
 
@@ -126,17 +128,17 @@ class HTTPAPI(IHTTPSourceAPI):
         return self.__encode_url(url)
 
     def get_url_search_sse_messages(
-            self,
-            start_timestamp: int,
-            book_id: str,
-            message_ids: List[str] = None,
-            stream: List[str] = None,
-            search_direction: Optional[str] = "next",
-            result_count_limit: Union[int, float] = None,
-            end_timestamp: Optional[int] = None,
-            response_formats: List[str] = None,
-            keep_open: bool = False,
-            max_url_length=2048,
+        self,
+        start_timestamp: int,
+        book_id: str,
+        message_ids: List[str] = None,
+        stream: List[str] = None,
+        search_direction: Optional[str] = "next",
+        result_count_limit: Union[int, float] = None,
+        end_timestamp: Optional[int] = None,
+        response_formats: List[str] = None,
+        keep_open: bool = False,
+        max_url_length=2048,
     ) -> List[str]:
         """REST-API `search/sse/messages` call create a sse channel of messages that matches the filter.
 
@@ -175,16 +177,16 @@ class HTTPAPI(IHTTPSourceAPI):
         return [self.__encode_url(url) for url in urls]
 
     def get_url_search_messages_by_groups(
-            self,
-            start_timestamp: int,
-            end_timestamp: int,
-            book_id: str,
-            groups: List[str],
-            sort: bool = None,
-            raw_only: bool = False,
-            response_formats: List[str] = None,
-            keep_open: bool = None,
-            max_url_length=2048,
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        raw_only: bool = False,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        max_url_length=2048,
     ) -> List[str]:
         """REST-API `search/sse/messages/group` call creates a sse channel of messages groups in specified time range.
 
