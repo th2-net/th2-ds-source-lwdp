@@ -58,59 +58,47 @@ print(books)
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 put("GetEventById")
-try:
-    event = ds.command(
-        commands.GetEventById(
-            "case3:th2-scope:20221110122124000000000:f41a8510-3904-4eeb-baa5-9870eae242ea"
-        )
+event = ds.command(
+    commands.GetEventById(
+        "case3:th2-scope:20221110122124000000000:f41a8510-3904-4eeb-baa5-9870eae242ea"
     )
-    print(event)
-except Exception as err:
-    print(err)
+)
+print(event)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 put("GetEventsById")
-try:
-    events = ds.command(
-        commands.GetEventsById(
-            [
-                "case3:th2-scope:20221110122124000000000:f41a8510-3904-4eeb-baa5-9870eae242ea",
-                "case3:th2-scope:20221110122224000000000:def0e516-cc13-4fa6-8be6-2b0873297c9c",
-                "case3:th2-scope:20221110122324000000000:c3c5f7d5-e06d-4e23-98c9-7f36220d26db",
-            ]
-        )
+events = ds.command(
+    commands.GetEventsById(
+        [
+            "case3:th2-scope:20221110122124000000000:f41a8510-3904-4eeb-baa5-9870eae242ea",
+            "case3:th2-scope:20221110122224000000000:def0e516-cc13-4fa6-8be6-2b0873297c9c",
+            "case3:th2-scope:20221110122324000000000:c3c5f7d5-e06d-4e23-98c9-7f36220d26db",
+        ]
     )
-    print(events)
-except Exception as err:
-    print(err)
+)
+print(events)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 put("GetEventsByBookByScopes")
-try:
-    events = ds.command(
-        commands.GetEventsByBookByScopes(
-            book_id=book_id, scopes=scope, start_timestamp=START_TIME, end_timestamp=END_TIME
-        )
+events = ds.command(
+    commands.GetEventsByBookByScopes(
+        book_id=book_id, scopes=scope, start_timestamp=START_TIME, end_timestamp=END_TIME
     )
-    print(events)
-except Exception as err:
-    print(err)
+)
+print(events)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
 put("GetEventsByPageByScopes")
-try:
-    events = ds.command(
-        commands.GetEventsByPageByScopes(
-            page,
-            scopes=scope,
-        )
+events = ds.command(
+    commands.GetEventsByPageByScopes(
+        page,
+        scopes=scope,
     )
-    print(events)
-except Exception as err:
-    print(err)
+)
+print(events)
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
