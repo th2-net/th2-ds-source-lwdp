@@ -58,11 +58,13 @@ streams = [
 # )
 # for i in url:
 #     print(i)
+
 # # Will Return `408 Status Code` And MessageNotFound Will Be Raised
 message = ds.command(
     commands.GetMessageById("case3:arfq02dc30:2:20221111165020871966000:1668182270286678628")
 )
 print(message)
+
 
 pages = ds.command(commands.GetPages("case3", datetime.fromtimestamp(1668013240), datetime.now()))
 print(pages)
@@ -78,6 +80,7 @@ page = list(pages)[0]
 # print(messages)
 # print(time.time() - s)
 
+# page = list(pages)[0] 
 # s = time.time()
 # messages = ds.command(
 #     commands.GetMessagesByPageByGroups(
@@ -86,6 +89,7 @@ page = list(pages)[0]
 # )
 # print(messages)
 # print(time.time() - s)
+
 
 # messages = ds.command(commands.GetEventsByPageByScopes(page, ["th2-scope"]))
 # print(messages)

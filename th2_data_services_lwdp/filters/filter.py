@@ -15,7 +15,10 @@
 from th2_data_services_lwdp.interfaces.filter import ILwDPFilter
 from typing import Sequence, Any, Union
 
-from th2_grpc_lw_data_provider.lw_data_provider_pb2 import Filter as grpc_Filter, FilterName as grpc_FilterName
+from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
+    Filter as grpc_Filter,
+    FilterName as grpc_FilterName,
+)
 import google.protobuf.wrappers_pb2
 
 
@@ -30,6 +33,7 @@ class LwDPFilter(ILwDPFilter):
         conjunct: bool = False,
     ):
         """Filter constructor.
+
         Args:
             name (str): Filter name.
             values (Union[str, int, float, Sequence[Union[str, int, float]]]): One string with filter value or list of filter values.
@@ -60,8 +64,10 @@ class LwDPFilter(ILwDPFilter):
 
     def url(self) -> str:
         """Generates the filter part of the HTTP protocol API.
+
         For help use this readme:
         https://github.com/th2-net/th2-rpt-data-provider#filters-api.
+
         Returns:
             str: Generated filter.
         """

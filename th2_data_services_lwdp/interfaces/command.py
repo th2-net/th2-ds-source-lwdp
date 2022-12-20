@@ -13,8 +13,11 @@
 #  limitations under the License.
 
 from abc import abstractmethod
-from th2_data_services_lwdp.interfaces.data_source import ILwDPDataSource, IGRPCDataSource, \
-    IHTTPDataSource
+from th2_data_services_lwdp.interfaces.data_source import (
+    ILwDPDataSource,
+    IGRPCDataSource,
+    IHTTPDataSource,
+)
 from th2_data_services.interfaces import ICommand
 
 
