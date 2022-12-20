@@ -16,9 +16,8 @@ import logging
 from collections import namedtuple
 from typing import Iterable, List, Optional, Union
 
-from google.protobuf.empty_pb2 import Empty
 from google.protobuf.timestamp_pb2 import Timestamp
-from google.protobuf.wrappers_pb2 import Int32Value, Int64Value, BoolValue
+from google.protobuf.wrappers_pb2 import BoolValue, Int32Value
 from th2_grpc_common.common_pb2 import MessageID, EventID, ConnectionID, Direction
 from th2_grpc_lw_data_provider.lw_data_provider_pb2_grpc import DataProviderStub
 from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
@@ -48,7 +47,14 @@ logger = logging.getLogger(__name__)
 
 BasicRequest = namedtuple(
     "BasicRequest",
-    ["start_timestamp", "end_timestamp", "result_count_limit", "search_direction", "keep_open", "filters"],
+    [
+        "start_timestamp",
+        "end_timestamp",
+        "result_count_limit",
+        "search_direction",
+        "keep_open",
+        "filters",
+    ],
 )
 
 
@@ -70,24 +76,24 @@ class GRPCAPI(IGRPCSourceAPI):
         channel: Channel = insecure_channel(url)
         self.__stub: DataProviderStub = DataProviderStub(channel)
 
-    def get_message_streams(self, book_id:str = None) -> MessageStreamsResponse:
+    def get_message_streams(self, book_id: str = None) -> MessageStreamsResponse:
         """GRPC-API `GetMessageStreams` call returns a list of message stream names."""
         book_id = BookId(name=book_id)
         message_streams_request = MessageStreamsRequest(book_id=book_id)
         return self.__stub.GetMessageStreams(message_streams_request)
 
     def search_message_groups(
-        self, 
-        start_timestamp: int = None, 
-        end_timestamp: int = None, 
-        book_id:str = None, 
-        message_groups: List[str]=None, 
-        sort:bool = None, 
-        raw_only:bool=None,
-        keep_open:bool=None
-        ) -> MessageSearchResponse:
+        self,
+        start_timestamp: int = None,
+        end_timestamp: int = None,
+        book_id: str = None,
+        message_groups: List[str] = None,
+        sort: bool = None,
+        raw_only: bool = None,
+        keep_open: bool = None,
+    ) -> MessageSearchResponse:
         """GRPC-API `SearchMessageGroups` call returns a list of message groups in specified time range.
-        
+
         Args:
             start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
                 or 'resume_from_id' must not absent.
@@ -102,7 +108,7 @@ class GRPCAPI(IGRPCSourceAPI):
         Returns:
             Iterable object which return messages as parts of streaming response or message stream pointers.
         """
-        self.__search_basic_checks(start_timestamp=start_timestamp,end_timestamp=end_timestamp)
+        self.__search_basic_checks(start_timestamp=start_timestamp, end_timestamp=end_timestamp)
         basic_request = self.__build_basic_request_object(
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
@@ -122,19 +128,19 @@ class GRPCAPI(IGRPCSourceAPI):
         return self.__stub.SearchMessageGroups(message_group_search_request)
 
     def get_books(self) -> BooksResponse:
-        """GRPC-API `GetBooks` call returns a list of book names"""
+        """GRPC-API `GetBooks` call returns a list of book names."""
         return self.__stub.GetBooks(BooksRequest())
 
     def search_events(
         self,
         start_timestamp: int,
         end_timestamp: int,
-        parent_event: str=None,
-        search_direction: str="NEXT",
-        result_count_limit: int=None,
-        filter: List[LwDPEventFilter]=None,
-        book_id:str=None,
-        scope:str=None,
+        parent_event: str = None,
+        search_direction: str = "NEXT",
+        result_count_limit: int = None,
+        filter: List[LwDPEventFilter] = None,
+        book_id: str = None,
+        scope: str = None,
     ) -> Iterable[EventSearchResponse]:
         """GRPC-API `searchEvents` call creates an event or an event metadata stream that matches the filter.
 
@@ -220,7 +226,7 @@ class GRPCAPI(IGRPCSourceAPI):
             start_timestamp=start_timestamp,
             end_timestamp=end_timestamp,
             search_direction=search_direction,
-            result_count_limit=result_count_limit
+            result_count_limit=result_count_limit,
         )
 
         basic_request = self.__build_basic_request_object(
@@ -242,7 +248,7 @@ class GRPCAPI(IGRPCSourceAPI):
             stream_pointer=stream_pointer,
             stream=stream,
             response_formats=response_formats,
-            book_id=book_id
+            book_id=book_id,
         )
 
         return self.__stub.SearchMessages(message_search_request)
@@ -266,7 +272,9 @@ class GRPCAPI(IGRPCSourceAPI):
             or end_timestamp is not None
             and len(str(end_timestamp)) != 19
         ):
-            raise ValueError("Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds.")
+            raise ValueError(
+                "Arguments 'start_timestamp' and 'end_timestamp' are expected in nanoseconds."
+            )
 
         if search_direction is not None:
             search_direction = search_direction.upper()
@@ -277,8 +285,10 @@ class GRPCAPI(IGRPCSourceAPI):
 
     def __transform_streams(self, streams: List[str]) -> List[MessageStream]:
         """Transforms streams to MessagesStream of 'protobuf' entity.
+
         Args:
             streams: Streams.
+
         Returns:
             List of MessageStream.
         """
@@ -343,7 +353,7 @@ class GRPCAPI(IGRPCSourceAPI):
         """
         if filters is None:
             filters = []
-        
+
         start_timestamp = (
             self.__build_timestamp_object(start_timestamp) if start_timestamp else None
         )

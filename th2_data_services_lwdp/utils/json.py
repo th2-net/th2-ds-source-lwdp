@@ -28,7 +28,9 @@ class BufferedJSONProcessor:
             for i in json.loads("[" + ",".join(self.buffer) + "]"):
                 yield i
         except JSONDecodeError as e:
-            raise ValueError(f"json.decoder.JSONDecodeError: Invalid json received.\n" f"{e}\n" f"{self.buffer}")
+            raise ValueError(
+                f"json.decoder.JSONDecodeError: Invalid json received.\n" f"{e}\n" f"{self.buffer}"
+            )
         finally:
             # Prevents StopIteration issues
             self.buffer = []

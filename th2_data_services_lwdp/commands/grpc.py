@@ -23,7 +23,6 @@ from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
     MessageStreamPointer,
 )
 
-
 from th2_data_services import Data
 from th2_data_services.interfaces.command import IAdaptableCommand
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
@@ -163,12 +162,12 @@ class GetEventsGRPCObjects(IGRPCCommand, IAdaptableCommand):
         self,
         start_timestamp: int,
         end_timestamp: int,
-        parent_event: str=None,
-        search_direction: str="NEXT",
-        result_count_limit: int=None,
-        filters: List[LwDPEventFilter]=None,
-        book_id:str=None,
-        scope:str=None,
+        parent_event: str = None,
+        search_direction: str = "NEXT",
+        result_count_limit: int = None,
+        filters: List[LwDPEventFilter] = None,
+        book_id: str = None,
+        scope: str = None,
     ):
         """GetEventsGRPCObjects constructor.
 
@@ -176,7 +175,11 @@ class GetEventsGRPCObjects(IGRPCCommand, IAdaptableCommand):
             start_timestamp: Start timestamp of search.
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
-
+            search_direction: Sets the lookup direction. Can be 'NEXT' or 'PREVIOUS'.
+            result_count_limit: Sets the maximum amount of messages to return.
+            filters: Filters using in search for messages.
+            book_id: book ID for messages
+            scope: scope for events
         """
         super().__init__()
         self._start_timestamp = start_timestamp
@@ -225,13 +228,13 @@ class GetEvents(IGRPCCommand, IAdaptableCommand):
         self,
         start_timestamp: int,
         end_timestamp: int,
-        parent_event: str=None,
-        search_direction: str="NEXT",
-        result_count_limit: int=None,
-        filters: List[LwDPEventFilter]=None,
-        book_id:str=None,
-        scope:str=None,
-        cache:bool=False,
+        parent_event: str = None,
+        search_direction: str = "NEXT",
+        result_count_limit: int = None,
+        filters: List[LwDPEventFilter] = None,
+        book_id: str = None,
+        scope: str = None,
+        cache: bool = False,
     ):
         """GetEvents constructor.
 
@@ -240,7 +243,11 @@ class GetEvents(IGRPCCommand, IAdaptableCommand):
             end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-
+            search_direction: Sets the lookup direction. Can be 'NEXT' or 'PREVIOUS'.
+            result_count_limit: Sets the maximum amount of messages to return.
+            filters: Filters using in search for messages.
+            book_id: book ID for messages
+            scope: scope for events
         """
         super().__init__()
         self._start_timestamp = start_timestamp
