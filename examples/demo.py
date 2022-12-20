@@ -97,3 +97,19 @@ messages_by_group: Data = data_source.command(
         start_timestamp=START_TIME, groups=["arfq02dc30"], end_timestamp=END_TIME, book_id="case3"
     )
 )
+
+pages: Data = data_source.command(commands.GetPages("case3", START_TIME, END_TIME))
+
+page = list(pages)[0]
+
+messages_by_page_by_streams = data_source.command(
+    commands.GetMessagesByPageByStreams(page, Streams(["arfq02fix30"]))
+)
+
+messages_by_page_by_groups = data_source.command(
+    commands.GetMessagesByPageByGroups(page, ["group1", "group2"])
+)
+
+events_by_page_by_scopes = data_source.command(
+    commands.GetEventsByPageByScopes(page, scopes=["th2-scope"])
+)
