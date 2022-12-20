@@ -59,14 +59,11 @@ streams = [
 # for i in url:
 #     print(i)
 
-# message = ds.command(
-#     commands.GetMessageById(
-#         "case3:arfq02dc30:2:20221111165020871966000:1668182270286678628"
-#     )
-# )
-# {"timestamp":{"epochSecond":1668185420,"nano":871966000},"direction":"OUT","sessionId":"arfq02dc30","messageType":"","attachedEventIds":[],"body":{},"bodyBase64":"OD1GSVhULjEuMQE5PTkxATM1PUEBMzQ9MQE0OT1BUkZRMDJEQzMwATUyPTIwMjIxMTExLTE2OjUwOjIwLjg2NwE1Nj1GR1cBOTg9MAExMDg9NQExNDE9WQE1NTQ9bWl0MTIzATExMzc9OQExMD0xNjMB","messageId":"case3:arfq02dc30:2:20221111165020871966000:1668182270286678628"}
-# {'id': 'case3:arfq02dc30:2:20221111165020871966000:1668182270286678628', 'error': "Operation hasn't done during timeout 60000 MILLISECONDS"}
-# print(message)
+# # Will Return `408 Status Code` And MessageNotFound Will Be Raised
+message = ds.command(
+    commands.GetMessageById("case3:arfq02dc30:2:20221111165020871966000:1668182270286678628")
+)
+print(message)
 
 
 pages = ds.command(commands.GetPages("case3", datetime.fromtimestamp(1668013240), datetime.now()))
@@ -74,6 +71,7 @@ print(pages)
 
 page = list(pages)[0]
 # s = time.time()
+# # Will Return `error` Event
 # messages = ds.command(
 #     commands.GetMessagesByPageByStreams(
 #         page, ["arfq02dc30"]
@@ -82,30 +80,7 @@ page = list(pages)[0]
 # print(messages)
 # print(time.time() - s)
 
-"""
-http://10.100.66.105:32681/search/sse/messages?startTimestamp=1668182473000&searchDirection=next&endTimestamp=1668182483000&bookId=case3&stream=arfq02dc30
-------------- Printed first 5 records -------------
-{'attachedEventIds': [],
- 'body': {},
- 'bodyBase64': 'OD1GSVhULjEuMQE5PTkxATM1PUEBMzQ9MQE0OT1BUkZRMDJEQzMwATUyPTIwMjIxMTExLTE2OjAxOjE4Ljg2OAE1Nj1GR1cBOTg9MAExMDg9NQExNDE9WQE1NTQ9bWl0MTIzATExMzc9OQExMD0xNjcB',
- 'direction': 'OUT',
- 'messageId': 'case3:arfq02dc30:2:20221111160118883679000:1668182270286678040',
- 'messageType': '',
- 'sessionId': 'arfq02dc30',
- 'timestamp': {'epochSecond': 1668182478, 'nano': 883679000}}
-{'attachedEventIds': [],
- 'body': {},
- 'bodyBase64': 'OD1GSVhULjEuMQE5PTkxATM1PUEBMzQ9MQE0OT1BUkZRMDJEQzMwATUyPTIwMjIxMTExLTE2OjAxOjEzLjg2OAE1Nj1GR1cBOTg9MAExMDg9NQExNDE9WQE1NTQ9bWl0MTIzATExMzc9OQExMD0xNjIB',
- 'direction': 'OUT',
- 'messageId': 'case3:arfq02dc30:2:20221111160113879497000:1668182270286678039',
- 'messageType': '',
- 'sessionId': 'arfq02dc30',
- 'timestamp': {'epochSecond': 1668182473, 'nano': 879497000}}
-
-60.05070209503174
-"""
-
-# page = list(pages)[0]
+# page = list(pages)[0] 
 # s = time.time()
 # messages = ds.command(
 #     commands.GetMessagesByPageByGroups(
@@ -115,5 +90,6 @@ http://10.100.66.105:32681/search/sse/messages?startTimestamp=1668182473000&sear
 # print(messages)
 # print(time.time() - s)
 
-messages = ds.command(commands.GetEventsByPageByScopes(page, ["th2-scope"]))
-print(messages)
+
+# messages = ds.command(commands.GetEventsByPageByScopes(page, ["th2-scope"]))
+# print(messages)
