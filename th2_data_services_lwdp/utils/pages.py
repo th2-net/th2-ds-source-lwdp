@@ -15,10 +15,10 @@ class Page:
         self.book = data["book"]
         self.name = data["name"]
         self.comment = data["comment"]
-        self.start_timestamp = data["started"]["epochSecond"]
-        self.end_timestamp = None if self.data["ended"] is None else data["ended"]
-        self.updated = None if self.data["updated"] is None else data["updated"]
-        self.removed = None if self.data["removed"] is None else data["removed"]
+        self.start_timestamp = data["started"]
+        self.end_timestamp = data["ended"]
+        self.updated = data["updated"]
+        self.removed = data["removed"]
 
     def __str__(self):  # noqa
         return str(self.data)

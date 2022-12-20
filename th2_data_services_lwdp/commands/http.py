@@ -521,13 +521,13 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = page.start_timestamp
+        self._start_timestamp = page.start_timestamp["epochSecond"]
         self._end_timestamp = (
             _datetime2ms(datetime.now())
             if page.end_timestamp is None
             else _seconds2ms(page.end_timestamp["epochSecond"])
         )
-        self._book_id = page.book_id
+        self._book_id = page.book
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -889,13 +889,13 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._start_timestamp = page.start_timestamp
+        self._start_timestamp = page.start_timestamp["epochSecond"]
         self._end_timestamp = (
             _datetime2ms(datetime.now())
             if page.end_timestamp is None
             else _seconds2ms(page.end_timestamp["epochSecond"])
         )
-        self._book_id = page.book_id
+        self._book_id = page.book
         self._result_count_limit = result_count_limit
         self._search_direction = search_direction
         self._response_formats = response_formats
@@ -975,13 +975,13 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._page_data = page.data
-        self._start_timestamp = page.start_timestamp
+        self._start_timestamp = page.start_timestamp["epochSecond"]
         self._end_timestamp = (
             _datetime2ms(datetime.now())
             if page.end_timestamp is None
             else _seconds2ms(page.end_timestamp["epochSecond"])
         )
-        self._book_id = page.book_id
+        self._book_id = page.book
         self._groups = groups
         self._sort = sort
         self._response_formats = response_formats
