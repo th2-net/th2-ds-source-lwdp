@@ -1,5 +1,4 @@
-from typing import Dict, Union
-from . import seconds2ms
+from typing import Dict
 
 
 class Page:
@@ -12,87 +11,14 @@ class Page:
         id_ = data.pop("id")
         data["book"] = id_["book"]
         data["name"] = id_["name"]
-        self.__data = data
-
-    @property
-    def data(self) -> Dict:
-        """Object As Dict.
-
-        Returns:
-            Dict
-        """
-        return self.__data
-
-    @property
-    def start_timestamp(self) -> int:
-        """Get Start Timestamp In ms.
-
-        Returns:
-            int
-        """
-        return seconds2ms(self.data["started"]["epochSecond"])
-
-    @property
-    def end_timestamp(self) -> Union[int, None]:
-        """Get End Timestamp In ms.
-
-        Returns:
-            Union[int, None]
-        """
-        return None if self.data["ended"] is None else seconds2ms(self.data["ended"]["epochSecond"])
-
-    @property
-    def book_id(self) -> str:
-        """Get Book ID.
-
-        Returns:
-            str
-        """
-        return self.data["book"]
-
-    @property
-    def book_name(self) -> str:
-        """Get Book Name.
-
-        Returns:
-            str
-        """
-        return self.data["name"]
-
-    @property
-    def comment(self) -> Union[None, str]:
-        """Get Book Comment.
-
-        Returns:
-            Union[None, str]
-        """
-        return self.data["comment"]
-
-    @property
-    def updated(self) -> Union[int, None]:
-        """Get Update Timestamp In ms.
-
-        Returns:
-            Union[int, None]
-        """
-        return (
-            None
-            if self.data["updated"] is None
-            else seconds2ms(self.data["updated"]["epochSecond"])
-        )
-
-    @property
-    def removed(self) -> Union[int, None]:
-        """Get Remove Timestamp In ms.
-
-        Returns:
-            Union[int, None]
-        """
-        return (
-            None
-            if self.data["removed"] is None
-            else seconds2ms(self.data["removed"]["epochSecond"])
-        )
+        self.data = data
+        self.book = data["book"]
+        self.name = data["name"]
+        self.comment = data["comment"]
+        self.start_timestamp = data["started"]["epochSecond"]
+        self.end_timestamp = None if self.data["ended"] is None else data["ended"]
+        self.updated = None if self.data["updated"] is None else data["updated"]
+        self.removed = None if self.data["removed"] is None else data["removed"]
 
     def __str__(self):  # noqa
         return str(self.data)
