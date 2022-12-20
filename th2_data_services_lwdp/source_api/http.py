@@ -183,7 +183,8 @@ class HTTPAPI(IHTTPSourceAPI):
         book_id: str,
         groups: List[str],
         sort: bool = None,
-        raw_only: bool = False,
+        # TODO - current API has `onlyRaw` parameter. It will have `responseFormat` instead in the future like getMsgsByStreams.
+        # raw_only: bool = False,  
         response_formats: List[str] = None,
         keep_open: bool = None,
         max_url_length=2048,
@@ -198,7 +199,6 @@ class HTTPAPI(IHTTPSourceAPI):
             book_id: book ID for requested groups.
             groups: List of groups to search messages by
             sort: Enables message sorting in the request
-            raw_only: If true, only raw message will be returned in the response
             response_formats: Response format
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range
             max_url_length: API request url max length.
