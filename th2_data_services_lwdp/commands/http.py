@@ -328,12 +328,12 @@ class GetEventById(IHTTPCommand):
 
         response = api.execute_request(url)
 
-        if response.status_code == 404 and self._stub_status:
+        if response.status_code in (404, 408) and self._stub_status:
             stub = data_source.event_stub_builder.build(
                 {data_source.event_struct.EVENT_ID: self._id}
             )
             return stub
-        elif response.status_code == 404:
+        elif response.status_code in (404, 408):
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
             raise EventNotFound(self._id)
         else:
