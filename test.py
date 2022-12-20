@@ -1,6 +1,5 @@
 from datetime import datetime, timezone
 
-
 from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.commands import http as commands
@@ -52,10 +51,41 @@ streams = [
     "arfq02fix30",
 ]
 
-url = ds.command(
-    commands.GetMessagesByBookByStreams(
-        start_timestamp=st, end_timestamp=et, streams=streams, book_id="case3"
-    )
+# url = ds.command(
+#     commands.GetMessagesByBookByStreams(
+#         start_timestamp=st, end_timestamp=et, streams=streams, book_id="case3"
+#     )
+# )
+# for i in url:
+#     print(i)
+# # Will Return `408 Status Code` And MessageNotFound Will Be Raised
+message = ds.command(
+    commands.GetMessageById("case3:arfq02dc30:2:20221111165020871966000:1668182270286678628")
 )
-for i in url:
-    print(i)
+print(message)
+
+pages = ds.command(commands.GetPages("case3", datetime.fromtimestamp(1668013240), datetime.now()))
+print(pages)
+
+page = list(pages)[0]
+# s = time.time()
+# # Will Return `error` Event
+# messages = ds.command(
+#     commands.GetMessagesByPageByStreams(
+#         page, ["arfq02dc30"]
+#     )
+# )
+# print(messages)
+# print(time.time() - s)
+
+# s = time.time()
+# messages = ds.command(
+#     commands.GetMessagesByPageByGroups(
+#         page, ["group1", "group2"]
+#     )
+# )
+# print(messages)
+# print(time.time() - s)
+
+# messages = ds.command(commands.GetEventsByPageByScopes(page, ["th2-scope"]))
+# print(messages)
