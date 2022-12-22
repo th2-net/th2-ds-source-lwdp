@@ -10,7 +10,7 @@ def _check_millisecond(timestamp: int):
     # Epoch Second => 10 Digits
     # MilliSeconds => +3 Digits
     if len(str(int(timestamp))) <= 13:
-        return True
+        return timestamp
     else:
         raise Exception("Provided Timestamp Is Not In Milliseconds!")
 

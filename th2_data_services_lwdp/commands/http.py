@@ -27,7 +27,13 @@ from th2_data_services.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
-from th2_data_services_lwdp.utils import _datetime2ms, _seconds2ms, _check_list_or_tuple, Page
+from th2_data_services_lwdp.utils import (
+    _datetime2ms,
+    _seconds2ms,
+    _check_list_or_tuple,
+    _check_millisecond,
+    Page,
+)
 from th2_grpc_common.common_pb2 import Event
 
 
@@ -271,8 +277,8 @@ class GetPages(SSEHandlerClassBase):
         api: HTTPAPI = data_source.source_api
         url = api.get_url_get_pages_info(
             self._book_id,
-            _datetime2ms(self._start_timestamp),
-            _datetime2ms(self._end_timestamp),
+            _check_millisecond(_datetime2ms(self._start_timestamp)),
+            _check_millisecond(_datetime2ms(self._end_timestamp)),
         )
         # LOG             logger.info(url)
         yield from api.execute_sse_request(url)
@@ -431,8 +437,8 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = _datetime2ms(start_timestamp)
-        self._end_timestamp = _datetime2ms(end_timestamp)
+        self._start_timestamp = _check_millisecond(_datetime2ms(start_timestamp))
+        self._end_timestamp = _check_millisecond(_datetime2ms(end_timestamp))
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -521,11 +527,11 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = page.start_timestamp["epochSecond"]
+        self._start_timestamp = _check_millisecond(_seconds2ms(page.start_timestamp["epochSecond"]))
         self._end_timestamp = (
-            _datetime2ms(datetime.now())
+            _check_millisecond(_datetime2ms(datetime.now()))
             if page.end_timestamp is None
-            else _seconds2ms(page.end_timestamp["epochSecond"])
+            else _check_millisecond(_seconds2ms(page.end_timestamp["epochSecond"]))
         )
         self._book_id = page.book
         self._parent_event = parent_event
@@ -711,9 +717,11 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         self._cache = cache
 
         # + TODO - we can make timestamps optional datetime or int
-        self._start_timestamp = _datetime2ms(start_timestamp)
+        self._start_timestamp = _check_millisecond(_datetime2ms(start_timestamp))
         self._end_timestamp = (
-            end_timestamp if end_timestamp is None else _datetime2ms(end_timestamp)
+            end_timestamp
+            if end_timestamp is None
+            else _check_millisecond(_datetime2ms(end_timestamp))
         )
 
         if isinstance(streams, Streams):
@@ -811,9 +819,11 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
-        self._start_timestamp = _datetime2ms(start_timestamp)
+        self._start_timestamp = _check_millisecond(_datetime2ms(start_timestamp))
         self._end_timestamp = (
-            end_timestamp if end_timestamp is None else _datetime2ms(end_timestamp)
+            end_timestamp
+            if end_timestamp is None
+            else _check_millisecond(_datetime2ms(end_timestamp))
         )
         self._groups = groups
         self._sort = sort
@@ -888,11 +898,11 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._start_timestamp = page.start_timestamp["epochSecond"]
+        self._start_timestamp = _check_millisecond(_seconds2ms(page.start_timestamp["epochSecond"]))
         self._end_timestamp = (
-            _datetime2ms(datetime.now())
+            _check_millisecond(_datetime2ms(datetime.now()))
             if page.end_timestamp is None
-            else _seconds2ms(page.end_timestamp["epochSecond"])
+            else _check_millisecond(_seconds2ms(page.end_timestamp["epochSecond"]))
         )
         self._book_id = page.book
         self._result_count_limit = result_count_limit
@@ -976,9 +986,9 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._page_data = page.data
         self._start_timestamp = page.start_timestamp["epochSecond"]
         self._end_timestamp = (
-            _datetime2ms(datetime.now())
+            _check_millisecond(_datetime2ms(datetime.now()))
             if page.end_timestamp is None
-            else _seconds2ms(page.end_timestamp["epochSecond"])
+            else _check_millisecond(_seconds2ms(page.end_timestamp["epochSecond"]))
         )
         self._book_id = page.book
         self._groups = groups
