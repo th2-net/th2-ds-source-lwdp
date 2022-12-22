@@ -9,7 +9,10 @@ def _check_list_or_tuple(variable, var_name):  # noqa
 def _check_millisecond(timestamp: int):
     # Epoch Second => 10 Digits
     # MilliSeconds => +3 Digits
-    return len(str(int(timestamp))) <= 13
+    if len(str(int(timestamp))) <= 13:
+        return True
+    else:
+        raise Exception("Provided Timestamp Is Not In Milliseconds!")
 
 
 # TODO - move to DS core
