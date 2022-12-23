@@ -69,7 +69,7 @@ streams = [
 pages = ds.command(
     commands.GetPages(
         "case3",
-        datetime.fromtimestamp(166813240),
+        166813240,
         datetime.now().replace(microsecond=0)
         # "case3", datetime.fromtimestamp(166813240), datetime.now()
     )
