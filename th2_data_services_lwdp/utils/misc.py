@@ -6,13 +6,9 @@ def _check_list_or_tuple(variable, var_name):  # noqa
         raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
 
-def _check_millisecond(timestamp: int):
-    # Epoch Second => 10 Digits
-    # MilliSeconds => +3 Digits
-    if len(str(int(timestamp))) <= 13:
-        return timestamp
-    else:
-        raise Exception("Provided Timestamp Is Not In Milliseconds!")
+def _check_microseconds(dt: datetime):
+    if dt.microsecond != 0:
+        raise Exception("Provided datetime Shouldn't Contain Microseconds")
 
 
 # TODO - move to DS core
