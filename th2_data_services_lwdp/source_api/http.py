@@ -79,7 +79,7 @@ class HTTPAPI(IHTTPSourceAPI):
     def get_url_get_pages_info(
         self, book_id: str, start_timestamp: int, end_timestamp: int, limit=None
     ):
-        """REST-API `message` call returns a single message with the specified id."""
+        """REST-API `search/see/page-infos` call returns page information with the specified timeframe."""
         url = f"{self._url}/search/sse/page-infos?"
         params = {
             "bookId": book_id,
