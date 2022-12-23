@@ -30,7 +30,7 @@ from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 from th2_data_services_lwdp.utils import (
     DatetimeConverter,
     _check_list_or_tuple,
-    _check_microseconds,
+    _check_milliseconds,
     Page,
 )
 from th2_grpc_common.common_pb2 import Event
@@ -266,8 +266,8 @@ class GetPages(SSEHandlerClassBase):
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_microseconds(start_timestamp)
-        _check_microseconds(end_timestamp)
+        _check_milliseconds(start_timestamp)
+        _check_milliseconds(end_timestamp)
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(self._sse_handler, cache)
         self._book_id = book_id
@@ -423,8 +423,8 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_microseconds(start_timestamp)
-        _check_microseconds(end_timestamp)
+        _check_milliseconds(start_timestamp)
+        _check_milliseconds(end_timestamp)
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
             sse_handler=self._sse_handler,
@@ -697,8 +697,8 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_microseconds(start_timestamp)
-        _check_microseconds(end_timestamp)
+        _check_milliseconds(start_timestamp)
+        _check_milliseconds(end_timestamp)
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
             sse_handler=self._sse_handler,

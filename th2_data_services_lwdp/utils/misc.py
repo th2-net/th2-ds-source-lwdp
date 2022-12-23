@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-
 from th2_data_services.interfaces.utils.converter import ITimestampConverter, TimestampType
 
 
@@ -36,6 +35,6 @@ def _check_list_or_tuple(variable, var_name):  # noqa
         raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
 
-def _check_microseconds(dt: datetime):
+def _check_milliseconds(dt: datetime):
     if dt.microsecond != 0:
-        raise Exception("Provided datetime Shouldn't Contain Microseconds")
+        raise Exception("Provided datetime shouldn't contain microseconds")
