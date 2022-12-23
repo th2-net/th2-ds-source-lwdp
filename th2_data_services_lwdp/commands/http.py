@@ -980,7 +980,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._page_data = page.data
-        self._start_timestamp = page.start_timestamp["epochSecond"]
+        self._start_timestamp = _seconds2ms(page.start_timestamp["epochSecond"])
         self._end_timestamp = (
             _datetime2ms(datetime.now())
             if page.end_timestamp is None
