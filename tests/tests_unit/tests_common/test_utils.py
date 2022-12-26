@@ -1,13 +1,19 @@
 import pytest
 from datetime import datetime
-from th2_data_services_lwdp.utils import _check_millisecond
+from th2_data_services_lwdp.utils import _check_milliseconds
 
 
 def test_milliseconds():
-    assert _check_millisecond(datetime.now().timestamp() * 1_000)
+    assert _check_milliseconds(datetime.now().replace(microsecond=0)) is None
 
 
-def test_invalid_milliseconds():
+def test_milliseconds_invalid_type():
     with pytest.raises(Exception) as err:
-        _check_millisecond(datetime.now().timestamp() * 10_000)
-    assert "Provided Timestamp Is Not In Milliseconds" in str(err)
+        _check_milliseconds(datetime.now().timestamp())
+    assert "Provided timestamp should be `datetime` object" in str(err)
+
+
+def test_milliseconds_invalid_time():
+    with pytest.raises(Exception) as err:
+        _check_milliseconds(datetime.now())
+    assert "Provided datetime shouldn't contain microseconds" in str(err)
