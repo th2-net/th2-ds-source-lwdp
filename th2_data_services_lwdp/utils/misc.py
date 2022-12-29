@@ -24,9 +24,14 @@ class DatetimeConverter(ITimestampConverter):
         Returns:
             int: Timestamp in microseconds format.
         """
-        seconds, nanoseconds = cls.parse_timestamp(timestamp)
+        if isinstance(timestamp, tuple):
+            seconds, nanoseconds = timestamp
+        else:
+            seconds, nanoseconds = cls.parse_timestamp(timestamp)
+
         if len(nanoseconds) < 9:
             return int(seconds) * 1000
+
         return int(f"{seconds}{nanoseconds[:-6]}")
 
 

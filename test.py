@@ -1,4 +1,4 @@
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 
 from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
@@ -68,15 +68,14 @@ streams = [
 
 pages = ds.command(
     commands.GetPages(
-        "case3",
-        166813240,
-        datetime.now().replace(microsecond=0)
-        # "case3", datetime.fromtimestamp(166813240), datetime.now()
+        "testbook",
+        (datetime.now() - timedelta(days=3)).replace(microsecond=0),
+        datetime.now().replace(microsecond=0),
     )
 )
 print(pages)
 
-page = list(pages)[0]
+# page = list(pages)[0]
 # s = time.time()
 # # Will Return `error` Event
 # messages = ds.command(

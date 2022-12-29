@@ -526,13 +526,11 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = DatetimeConverter.to_milliseconds(
-            page.start_timestamp["epochSecond"]
-        )
+        self._start_timestamp = DatetimeConverter.to_milliseconds(page.start_timestamp_tuple)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else DatetimeConverter.to_milliseconds(page.end_timestamp["epochSecond"])
+            else DatetimeConverter.to_milliseconds(page.end_timestamp_tuple)
         )
         self._book_id = page.book
         self._parent_event = parent_event
@@ -901,13 +899,11 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._start_timestamp = DatetimeConverter.to_milliseconds(
-            page.start_timestamp["epochSecond"]
-        )
+        self._start_timestamp = DatetimeConverter.to_milliseconds(page.start_timestamp_tuple)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else DatetimeConverter.to_milliseconds(page.end_timestamp["epochSecond"])
+            else DatetimeConverter.to_milliseconds(page.end_timestamp_tuple)
         )
         self._book_id = page.book
         self._result_count_limit = result_count_limit
@@ -989,13 +985,11 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._page_data = page.data
-        self._start_timestamp = DatetimeConverter.to_milliseconds(
-            page.start_timestamp["epochSecond"]
-        )
+        self._start_timestamp = DatetimeConverter.to_milliseconds(page.start_timestamp_tuple)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else DatetimeConverter.to_milliseconds(page.end_timestamp["epochSecond"])
+            else DatetimeConverter.to_milliseconds(page.end_timestamp_tuple)
         )
         self._book_id = page.book
         self._groups = groups
