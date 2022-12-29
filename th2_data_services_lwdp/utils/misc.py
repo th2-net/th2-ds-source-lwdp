@@ -29,7 +29,7 @@ class DatetimeConverter(ITimestampConverter):
         else:
             seconds, nanoseconds = cls.parse_timestamp(timestamp)
 
-        if len(nanoseconds) < 9:
+        if len(str(nanoseconds)) < 9:
             return int(seconds) * 1000
 
         return int(f"{seconds}{nanoseconds[:-6]}")
