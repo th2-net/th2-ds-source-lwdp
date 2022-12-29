@@ -108,6 +108,10 @@ END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, m
 #     )
 # )
 
+
+START_TIME = datetime(year=2022, month=11, day=29, hour=11, minute=12, second=12)
+END_TIME = datetime(year=2022, month=12, day=29, hour=12, minute=12, second=12)
+
 pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
 
 page = list(pages)[0]
