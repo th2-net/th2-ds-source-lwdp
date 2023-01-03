@@ -13,11 +13,11 @@
 #  limitations under the License.
 from typing import Optional, Iterable
 
-from th2_data_services.interfaces.adapter import IEventAdapter
+from th2_data_services.interfaces.adapter import IRecordAdapter
 from th2_data_services_lwdp.struct import grpc_event_struct, EventStruct
 
 
-class DeleteEventWrappersAdapter(IEventAdapter):
+class DeleteEventWrappersAdapter(IRecordAdapter):
     """Adapter that deletes unnecessary wrappers in events.
 
     It used for events to which an AdaptorGRPCObjectToDict has been applied.
@@ -57,9 +57,6 @@ class DeleteEventWrappersAdapter(IEventAdapter):
 
         return event
 
-    def handle_stream(self, stream: Iterable):
-        pass
-
     @staticmethod
     def __get_id_from_wrapper(event: dict, field: str):
         """Opens the wrapper and getting the id."""
@@ -69,7 +66,7 @@ class DeleteEventWrappersAdapter(IEventAdapter):
         return None
 
 
-class DeleteSystemEvents(IEventAdapter):
+class DeleteSystemEvents(IRecordAdapter):
     """Adapter that deletes unnecessary system events."""
 
     def handle(self, event: dict) -> Optional[dict]:
