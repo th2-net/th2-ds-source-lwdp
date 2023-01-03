@@ -18,6 +18,7 @@ from functools import partial
 
 from th2_data_services import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
+from th2_data_services.interfaces import IStreamAdapter
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
