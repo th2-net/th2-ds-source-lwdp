@@ -18,11 +18,11 @@ from sseclient import Event as SSEEvent
 from urllib3.exceptions import HTTPError
 import orjson as json
 
-from th2_data_services.interfaces import IAdapter
+from th2_data_services.interfaces import IStreamAdapter
 from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
 
 
-class SSEAdapter(IAdapter):
+class SSEAdapter(IStreamAdapter):
     def __init__(self, json_processor: BufferedJSONProcessor):
         """SSE adapter. Convert SSE events to dicts.
 

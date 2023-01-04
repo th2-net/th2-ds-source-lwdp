@@ -13,11 +13,11 @@
 #  limitations under the License.
 from typing import Iterable
 
-from th2_data_services.interfaces.adapter import IMessageAdapter
+from th2_data_services.interfaces.adapter import IRecordAdapter
 from th2_data_services_lwdp.struct import grpc_message_struct, MessageStruct
 
 
-class DeleteMessageWrappersAdapter(IMessageAdapter):
+class DeleteMessageWrappersAdapter(IRecordAdapter):
     """Adapter that deletes unnecessary wrappers in messages.
 
     It used for the message to which an AdaptorGRPCObjectToDict has been applied.
