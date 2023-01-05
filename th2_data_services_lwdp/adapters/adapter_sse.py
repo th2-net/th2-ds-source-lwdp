@@ -31,11 +31,6 @@ class SSEAdapter(IStreamAdapter):
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
     def handle(self, stream: Iterable):
-        # We need this block because we put generator function in the commands.
-        # TODO this hack will be removed when we add Data.map_stream
-        if callable(stream):
-            stream = stream()
-
         for event in stream:
             if event.event == "error":
                 raise HTTPError(event.data)

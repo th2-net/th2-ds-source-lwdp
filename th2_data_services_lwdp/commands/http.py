@@ -120,9 +120,7 @@ class SSEHandlerClassBase(IHTTPCommand):
              Data
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
-        source = partial(self._sse_handler.handle, sse_events_stream)
-
-        return Data(source, cache=self._cache)
+        return Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
 
     def handle(
         self, data_source: HTTPDataSource
