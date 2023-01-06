@@ -90,7 +90,6 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._current_handle_function = self._data_object
         return self
 
-    @abstractmethod
     def _sse_bytes_stream(
         self, data_source: HTTPDataSource
     ) -> Generator[bytes, None, None]:  # noqa
