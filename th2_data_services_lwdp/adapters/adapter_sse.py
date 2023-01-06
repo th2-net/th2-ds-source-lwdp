@@ -14,9 +14,7 @@
 
 from typing import Iterable
 
-from sseclient import Event as SSEEvent
 from urllib3.exceptions import HTTPError
-import orjson as json
 
 from th2_data_services.interfaces import IStreamAdapter
 from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
@@ -32,33 +30,7 @@ class SSEAdapter(IStreamAdapter):
         self.json_processor = json_processor
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
-    def handle(self, record: SSEEvent) -> dict:
-        """Adapter handler.
-
-        Args:
-            record: SSE Event.
-
-        Returns:
-            Dict object.
-        """
-        if record.event == "error":
-            raise HTTPError(record.data)
-        if record.event not in ["close", "keep_alive", "message_ids"]:
-            try:
-                return json.loads(record.data)
-            except json.JSONDecodeError as e:
-                raise ValueError(
-                    f"json.decoder.JSONDecodeError: Invalid json received.\n"
-                    f"{e}\n"
-                    f"{record.data}"
-                )
-
-    def handle_stream(self, stream: Iterable):
-        # We need this block because we put generator function in the commands.
-        # TODO this hack will be removed when we add Data.map_stream
-        if callable(stream):
-            stream = stream()
-
+    def handle(self, stream: Iterable):
         for event in stream:
             if event.event == "error":
                 raise HTTPError(event.data)

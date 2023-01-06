@@ -17,8 +17,8 @@ from datetime import datetime
 from functools import partial
 
 from th2_data_services import Data
-from th2_data_services.interfaces import IStreamAdapter
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
+from th2_data_services.interfaces import IStreamAdapter
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
@@ -57,7 +57,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._decode_error_handler = decode_error_handler
         self._sse_handler = sse_handler
         self._cache = cache
-        self._urls = ["Urls..."]
+        self._urls = []
 
     def return_sse_bytes_stream(self) -> Generator[Event, Any, None]:
         """Returns SSEBytes Stream.
@@ -123,14 +123,13 @@ class SSEHandlerClassBase(IHTTPCommand):
              Data
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
-        source = partial(self._sse_handler.handle_stream, sse_events_stream)
-        data = Data(source, cache=self._cache)
+        data = Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
         data.metadata["urls"] = self._urls
         return data
 
     @abstractmethod
     def _store_urls(self, api) -> None:
-        ...
+        pass
 
     def handle(
         self, data_source: HTTPDataSource
@@ -287,7 +286,7 @@ class GetPages(SSEHandlerClassBase):
         ]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
-        source = partial(self._sse_handler.handle_stream, self._sse_events_stream(data_source))
+        source = partial(self._sse_handler.handle, self._sse_events_stream(data_source))
         for event_data in source():
             yield Page(event_data)
 
@@ -337,7 +336,7 @@ class GetEventById(IHTTPCommand):
         # LOG         logger.info(url)
 
         response = api.execute_request(url)
-
+        # +TODO - perhaps we have to move it to api.execute_request
         if response.status_code == 404 and self._stub_status:
             stub = data_source.event_stub_builder.build(
                 {data_source.event_struct.EVENT_ID: self._id}

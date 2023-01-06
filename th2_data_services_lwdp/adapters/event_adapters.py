@@ -57,9 +57,6 @@ class DeleteEventWrappersAdapter(IRecordAdapter):
 
         return event
 
-    def handle_stream(self, stream: Iterable):
-        pass
-
     @staticmethod
     def __get_id_from_wrapper(event: dict, field: str):
         """Opens the wrapper and getting the id."""
