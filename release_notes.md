@@ -10,7 +10,8 @@
     - GetMessageAliases
     - GetMessageGroups
     - GetEventScopes
-5. Added new `Stream` and `Streams` class.
+4. Added new `Stream` and `Streams` class.
+5. [TH2-4615] Data class now contains api request urls in metadata.
 
 ## Improvements
 
