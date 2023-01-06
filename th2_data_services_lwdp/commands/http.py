@@ -58,7 +58,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._sse_handler = sse_handler
         self._cache = cache
 
-    def return_sse_bytes_stream(self) -> Generator[Event, Any, None]:
+    def return_sse_bytes_stream(self):
         """Returns SSEBytes Stream.
 
         Returns:
@@ -76,7 +76,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._current_handle_function = self._sse_events_stream
         return self
 
-    def return_data_object(self) -> Data:
+    def return_data_object(self):
         """Returns Parsed 'Data' Object.
 
         Returns:
@@ -325,7 +325,7 @@ class GetEventById(IHTTPCommand):
         # LOG         logger.info(url)
 
         response = api.execute_request(url)
-
+        # +TODO - perhaps we have to move it to api.execute_request
         if response.status_code == 404 and self._stub_status:
             stub = data_source.event_stub_builder.build(
                 {data_source.event_struct.EVENT_ID: self._id}
