@@ -10,7 +10,7 @@
     - GetMessageAliases
     - GetMessageGroups
     - GetEventScopes
-5. Added new `Stream` and `Streams` class.
+4. Added new `Stream` and `Streams` class.
 
 ## Improvements
 
@@ -18,3 +18,7 @@
 2. All the arguments that are List types are now in plural forms, e.g., stream -> streams,
    message_id -> message_ids.
 3. Renamed GetMessages to GetMessagesByStreams.
+
+## Fixes
+
+1. Command start & end time shouldn't contain microseconds.

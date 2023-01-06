@@ -29,9 +29,9 @@ from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 from th2_data_services_lwdp.utils import (
     DatetimeConverter,
-    _check_list_or_tuple,
-    _check_milliseconds,
     Page,
+    _check_milliseconds,
+    _check_list_or_tuple,
 )
 from th2_grpc_common.common_pb2 import Event
 
@@ -276,8 +276,8 @@ class GetPages(SSEHandlerClassBase):
         api: HTTPAPI = data_source.source_api
         url = api.get_url_get_pages_info(
             self._book_id,
-            _datetime2ms(self._start_timestamp),
-            _datetime2ms(self._end_timestamp),
+            DatetimeConverter.to_milliseconds(self._start_timestamp),
+            DatetimeConverter.to_milliseconds(self._end_timestamp),
         )
         # LOG             logger.info(url)
         yield from api.execute_sse_request(url)
