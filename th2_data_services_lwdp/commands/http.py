@@ -63,7 +63,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._sse_handler = sse_handler
         self._cache = cache
 
-    def return_sse_bytes_stream(self) -> Generator[Event, Any, None]:
+    def return_sse_bytes_stream(self):
         """Returns SSEBytes Stream.
 
         Returns:
@@ -81,7 +81,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._current_handle_function = self._sse_events_stream
         return self
 
-    def return_data_object(self) -> Data:
+    def return_data_object(self):
         """Returns Parsed 'Data' Object.
 
         Returns:
@@ -94,7 +94,11 @@ class SSEHandlerClassBase(IHTTPCommand):
     def _sse_bytes_stream(
         self, data_source: HTTPDataSource
     ) -> Generator[bytes, None, None]:  # noqa
-        pass
+        api: HTTPAPI = data_source.source_api
+        urls: List[str] = self._get_urls(data_source.source_api)
+        for url in urls:
+            # LOG             logger.info(url)
+            yield from api.execute_sse_request(url)
 
     def _sse_events_stream(self, data_source: HTTPDataSource) -> Generator[Event, Any, None]:
         """Turns SSEByte Stream Into SSEEvent Stream.
@@ -125,7 +129,13 @@ class SSEHandlerClassBase(IHTTPCommand):
              Data
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
-        return Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
+        data = Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
+        data.metadata["urls"] = self._get_urls(data_source.source_api)
+        return data
+
+    @abstractmethod
+    def _get_urls(self, api: HTTPAPI) -> List[str]:
+        pass
 
     def handle(
         self, data_source: HTTPDataSource
@@ -272,15 +282,14 @@ class GetPages(SSEHandlerClassBase):
         self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
         self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
 
-    def _sse_bytes_stream(self, data_source: HTTPDataSource):  # noqa
-        api: HTTPAPI = data_source.source_api
-        url = api.get_url_get_pages_info(
-            self._book_id,
-            DatetimeConverter.to_milliseconds(self._start_timestamp),
-            DatetimeConverter.to_milliseconds(self._end_timestamp),
-        )
-        # LOG             logger.info(url)
-        yield from api.execute_sse_request(url)
+    def _get_urls(self, api: HTTPAPI):
+        return [
+            api.get_url_get_pages_info(
+                self._book_id,
+                DatetimeConverter.to_milliseconds(self._start_timestamp),
+                DatetimeConverter.to_milliseconds(self._end_timestamp),
+            )
+        ]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
         source = partial(self._sse_handler.handle, self._sse_events_stream(data_source))
@@ -297,8 +306,9 @@ class GetPages(SSEHandlerClassBase):
              Data
         """
         source = partial(self._sse_events_to_pages, data_source)
-
-        return Data(source, cache=self._cache)
+        data = Data(source, cache=self._cache)
+        data.metadata["urls"] = self._get_urls(data_source.source_api)
+        return data
 
 
 class GetEventById(IHTTPCommand):
@@ -453,10 +463,8 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._scopes, var_name="scopes")
 
-    def _sse_bytes_stream(self, data_source):
-        """Returns SSE Event stream in bytes."""
-        api: HTTPAPI = data_source.source_api
-        urls = [
+    def _get_urls(self, api: HTTPAPI):
+        return [
             api.get_url_search_sse_events(
                 start_timestamp=self._start_timestamp,
                 end_timestamp=self._end_timestamp,
@@ -469,10 +477,6 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             )
             for scope in self._scopes
         ]
-
-        # LOG         logger.info(url)
-        for url in urls:
-            yield from api.execute_sse_request(url)
 
 
 class GetEventsByPageByScopes(SSEHandlerClassBase):
@@ -547,10 +551,8 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._scopes, var_name="scopes")
 
-    def _sse_bytes_stream(self, data_source):
-        """Returns SSE Event stream in bytes."""
-        api: HTTPAPI = data_source.source_api
-        urls = [
+    def _get_urls(self, api: HTTPAPI):
+        return [
             api.get_url_search_sse_events(
                 start_timestamp=self._start_timestamp,
                 end_timestamp=self._end_timestamp,
@@ -563,10 +565,6 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
             )
             for scope in self._scopes
         ]
-
-        # LOG         logger.info(url)
-        for url in urls:
-            yield from api.execute_sse_request(url)
 
 
 class GetMessageById(IHTTPCommand):
@@ -727,6 +725,9 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             else DatetimeConverter.to_milliseconds(end_timestamp)
         )
 
+        if self._start_timestamp is None and not self._message_ids:
+            raise TypeError("One of start_timestamp or message_id arguments must not be empty")
+
         if isinstance(streams, Streams):
             self._streams = streams.as_list()
         elif isinstance(streams, (tuple, list, Streams)):
@@ -744,9 +745,8 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
                 f"Got {type(self._streams)}"
             )
 
-    def _sse_bytes_stream(self, data_source: HTTPDataSource):
-        api: HTTPAPI = data_source.source_api
-        urls = api.get_url_search_sse_messages(
+    def _get_urls(self, api: HTTPAPI):
+        return api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             message_ids=self._message_ids,
             stream=self._streams,
@@ -758,13 +758,6 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
-
-        if self._start_timestamp is None and not self._message_ids:
-            raise TypeError("One of start_timestamp or message_id arguments must not be empty")
-
-        for url in urls:
-            # LOG             logger.info(url)
-            yield from api.execute_sse_request(url)
 
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
@@ -837,9 +830,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def _sse_bytes_stream(self, data_source: HTTPDataSource):
-        api: HTTPAPI = data_source.source_api
-        urls = api.get_url_search_messages_by_groups(
+    def _get_urls(self, api: HTTPAPI):
+        return api.get_url_search_messages_by_groups(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             groups=self._groups,
@@ -849,10 +841,6 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
-
-        for url in urls:
-            # LOG             logger.info(url)
-            yield from api.execute_sse_request(url)
 
 
 class GetMessagesByPageByStreams(SSEHandlerClassBase):
@@ -916,9 +904,8 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._max_url_length = max_url_length
         self._stream = stream
 
-    def _sse_bytes_stream(self, data_source: HTTPDataSource) -> Generator[bytes, None, None]:
-        api: HTTPAPI = data_source.source_api
-        urls = api.get_url_search_sse_messages(
+    def _get_urls(self, api: HTTPAPI):
+        return api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             book_id=self._book_id,
             message_ids=self._message_ids,
@@ -930,9 +917,6 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
         )
-
-        for url in urls:
-            yield from api.execute_sse_request(url)
 
 
 class GetMessagesByPageByGroups(SSEHandlerClassBase):
@@ -1002,9 +986,8 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def _sse_bytes_stream(self, data_source: HTTPDataSource):
-        api: HTTPAPI = data_source.source_api
-        urls = api.get_url_search_messages_by_groups(
+    def _get_urls(self, api: HTTPAPI):
+        return api.get_url_search_messages_by_groups(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             groups=self._groups,
@@ -1014,7 +997,3 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
-
-        for url in urls:
-            # LOG             logger.info(url)
-            yield from api.execute_sse_request(url)
