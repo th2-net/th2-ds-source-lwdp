@@ -2,7 +2,7 @@
 
 ## Features
 
-1. Updated all components so they are compatible with LwDP v2.
+1. Updated all components so that they are compatible with LwDP v2.
 2. Added methods in source_api for generating all requests that exist on provider.
 3. [TH2-4529] Added new commands:
     - GetMessagesByGroups
@@ -11,7 +11,15 @@
     - GetMessageGroups
     - GetEventScopes
 4. Added new `Stream` and `Streams` class.
-5. [TH2-4615] Data class now contains api request urls in metadata.
+5. [TH2-4535] Added new http commands:
+   - GetPages
+   - GetEventsByPageByScopes
+   - GetMessagesByPageByStreams
+   - GetMessagesByPageByGroups
+6. HTTP Commands changed:
+   - GetEvents -> GetEventsByBookByScopes
+   - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
+7. [TH2-4615] Data class now contains api request urls in metadata.
 
 ## Improvements
 
