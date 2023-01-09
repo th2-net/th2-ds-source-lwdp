@@ -6,6 +6,7 @@ import requests
 from th2_data_services.data import Data
 from th2_data_services.exceptions import CommandError
 from ..conftest import http, HTTPDataSource
+from urllib3.exceptions import HTTPError
 
 """
 Slava Ermakov 2022.10.31
@@ -103,3 +104,18 @@ def test_attached_messages(demo_data_source: HTTPDataSource):
     )
 
     assert events.filter(lambda event: event.get("attachedMessageIds")).len
+
+
+def test_invalid_optional_timestamp(data_source: HTTPDataSource):
+    with pytest.raises(HTTPError) as err:
+        events = data_source.command(
+            http.GetEventsByBookByScopes(
+                book_id="demo_book_1",
+                scopes=["th2-scope"],
+                start_timestamp=datetime(
+                    year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0
+                ),
+            )
+        )
+        assert events.len
+    assert "either end timestamp or count limit should be set" in str(err)
