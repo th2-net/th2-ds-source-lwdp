@@ -86,6 +86,8 @@ class HTTPAPI(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
         }
+        if limit:
+            params["resultCountLimit"] = limit
         url += "&".join(f"{k}={v}" for k, v in params.items())
         return self.__encode_url(url)
 
