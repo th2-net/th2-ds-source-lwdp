@@ -283,11 +283,7 @@ class GetPages(SSEHandlerClassBase):
 
     def _get_urls(self, api: HTTPAPI):
         return [
-            api.get_url_get_pages_info(
-                self._book_id,
-                DatetimeConverter.to_milliseconds(self._start_timestamp),
-                DatetimeConverter.to_milliseconds(self._end_timestamp),
-            )
+            api.get_url_get_pages_info(self._book_id, self._start_timestamp, self._end_timestamp)
         ]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
