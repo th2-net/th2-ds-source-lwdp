@@ -16,11 +16,7 @@ class Page:
         self.name = data["name"]
         self.comment = data["comment"]
         self.start_timestamp = data["started"]
-        self.start_timestamp_tuple = tuple(self.start_timestamp.values())
         self.end_timestamp = data["ended"]
-        self.end_timestamp_tuple = (
-            tuple(self.end_timestamp.values()) if self.end_timestamp else None
-        )
         self.updated = data["updated"]
         self.removed = data["removed"]
 

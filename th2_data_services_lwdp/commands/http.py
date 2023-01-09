@@ -19,6 +19,7 @@ from functools import partial
 from th2_data_services import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.interfaces import IStreamAdapter
+from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
@@ -28,7 +29,6 @@ from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 from th2_data_services_lwdp.utils import (
-    DatetimeConverter,
     Page,
     _check_milliseconds,
     _check_list_or_tuple,
@@ -527,11 +527,11 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = DatetimeConverter.to_milliseconds(page.start_timestamp_tuple)
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else DatetimeConverter.to_milliseconds(page.end_timestamp_tuple)
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
         )
         self._book_id = page.book
         self._parent_event = parent_event
@@ -884,11 +884,11 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._start_timestamp = DatetimeConverter.to_milliseconds(page.start_timestamp_tuple)
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else DatetimeConverter.to_milliseconds(page.end_timestamp_tuple)
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
         )
         self._book_id = page.book
         self._result_count_limit = result_count_limit
@@ -966,11 +966,11 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._page_data = page.data
-        self._start_timestamp = DatetimeConverter.to_milliseconds(page.start_timestamp_tuple)
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else DatetimeConverter.to_milliseconds(page.end_timestamp_tuple)
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
         )
         self._book_id = page.book
         self._groups = groups
