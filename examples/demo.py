@@ -4,6 +4,8 @@ from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services import Data
 from datetime import datetime
 
+from th2_data_services_lwdp.streams import Streams
+
 # Create grpc data source object to connect to lightweight data provider.
 DEMO_HOST = "10.100.66.105"  # Note that this host is only accessible from exactpro domain
 DEMO_PORT = "32681"
@@ -62,18 +64,17 @@ multipleEvents = data_source.command(
     )
 )
 
-# # # Because namespace was taken down temporary lw-provider can't return messages.
-# single_message = data_source.command(
-#     commands.GetMessageById("case3:arfq02fix30:2:20221111165012889502000:1668182272676097251")
-# )
-# multiple_messages = data_source.command(
-#     commands.GetMessagesById(
-#         [
-#             "case3:arfq02fix30:2:20221111165012889502000:1668182272676097251",
-#             "case3:arfq02fix30:2:20221111165252889876000:1668182272676097315",
-#         ]
-#     )
-# )
+single_message = data_source.command(
+    commands.GetMessageById("case3:arfq02fix30:2:20221111165012889502000:1668182272676097251")
+)
+multiple_messages = data_source.command(
+    commands.GetMessagesById(
+        [
+            "case3:arfq02fix30:2:20221111165012889502000:1668182272676097251",
+            "case3:arfq02fix30:2:20221111165252889876000:1668182272676097315",
+        ]
+    )
+)
 
 # We can get events without knowing their ids beforehand, using SSE requests from the server with GetEvents command:
 
@@ -89,38 +90,32 @@ END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, m
 # Similarly, to get messages we have two commands.
 # First is GetMessagesByStream which returns messages witch matching aliases:
 
-# # # Because namespace was taken down temporary lw-provider can't return messages.
-# messages_by_stream: Data = data_source.command(
-#     commands.GetMessagesByBookByStreams(
-#         start_timestamp=START_TIME,
-#         streams=Streams(streams),
-#         end_timestamp=END_TIME,
-#         book_id=book_id,
-#     )
-# )
+messages_by_stream: Data = data_source.command(
+    commands.GetMessagesByBookByStreams(
+        start_timestamp=START_TIME,
+        streams=Streams(streams),
+        end_timestamp=END_TIME,
+        book_id=book_id,
+    )
+)
 
 # Other way is getting them by matching groups via GetMessagesByGroup:
 
-# # # Because namespace was taken down temporary lw-provider can't return messages.
-# messages_by_group: Data = data_source.command(
-#     commands.GetMessagesByBookByGroups(
-#         start_timestamp=START_TIME, groups=st, end_timestamp=END_TIME, book_id="case3"
-#     )
-# )
+messages_by_group: Data = data_source.command(
+    commands.GetMessagesByBookByGroups(
+        start_timestamp=START_TIME, groups=groups, end_timestamp=END_TIME, book_id=book_id
+    )
+)
 
 pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
 
 page = list(pages)[0]
 
-# # # Because namespace was taken down temporary lw-provider can't return messages.
-# messages_by_page_by_streams = data_source.command(
-#     commands.GetMessagesByPageByStreams(page, streams)
-# )
+messages_by_page_by_streams = data_source.command(
+    commands.GetMessagesByPageByStreams(page, streams)
+)
 
-# # # Because namespace was taken down temporary lw-provider can't return messages.
-# messages_by_page_by_groups = data_source.command(
-#     commands.GetMessagesByPageByGroups(page, groups)
-# )
+messages_by_page_by_groups = data_source.command(commands.GetMessagesByPageByGroups(page, groups))
 
 events_by_page_by_scopes = data_source.command(
     commands.GetEventsByPageByScopes(page, scopes=["th2-scope"])
