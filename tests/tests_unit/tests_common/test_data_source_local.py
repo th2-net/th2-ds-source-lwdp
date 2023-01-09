@@ -2,7 +2,6 @@ from datetime import datetime
 
 import pytest
 import requests
-from requests import ConnectTimeout
 
 from th2_data_services.data import Data
 from th2_data_services.exceptions import CommandError
@@ -107,8 +106,9 @@ def test_attached_messages(demo_data_source: HTTPDataSource):
     assert events.filter(lambda event: event.get("attachedMessageIds")).len
 
 
+@pytest.mark.skip(reason="data_source should be changed to mock")
 def test_invalid_optional_timestamp(data_source: HTTPDataSource):
-    with pytest.raises((HTTPError, ConnectTimeout)):
+    with pytest.raises(HTTPError):
         events = data_source.command(
             http.GetEventsByBookByScopes(
                 book_id="demo_book_1",
