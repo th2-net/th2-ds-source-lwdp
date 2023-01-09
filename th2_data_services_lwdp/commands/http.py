@@ -253,6 +253,38 @@ class GetBooks(IHTTPCommand):
         return api.execute_request(url).json()
 
 
+class GetPage(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It retrieves the page by page name from all available pages.
+
+    Returns:
+        Page: page.
+
+    Raises:
+        EventNotFound: If event by Id wasn't found.
+    """
+
+    def __init__(self, book_id: str, page_name: str):
+        """GetEventById constructor.
+
+        Args:
+            book_id: Book to search inside.
+            page_name: Page name to search for.
+        """
+        super().__init__()
+        self._book_id = book_id
+        self._page_name = page_name
+
+    def handle(self, data_source: HTTPDataSource) -> Union[Page, None]:  # noqa: D102
+        pages = data_source.command(GetPagesAll(self._book_id))
+        page = list(pages.filter(lambda page_: page_.name == self._page_name))
+        if len(page):
+            return page[0]
+        else:
+            return None
+
+
 class GetPages(SSEHandlerClassBase):
     def __init__(
         self,
@@ -290,6 +322,49 @@ class GetPages(SSEHandlerClassBase):
                 self._book_id, self._start_timestamp, self._end_timestamp, self._result_limit
             )
         ]
+
+    def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
+        source = partial(self._sse_handler.handle, self._sse_events_stream(data_source))
+        for event_data in source():
+            yield Page(event_data)
+
+    def _data_object(self, data_source: HTTPDataSource) -> Data:
+        """Parses SSEEvents Into Data Object.
+
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Data
+        """
+        source = partial(self._sse_events_to_pages, data_source)
+        data = Data(source, cache=self._cache)
+        data.metadata["urls"] = self._get_urls(data_source.source_api)
+        return data
+
+
+class GetPagesAll(SSEHandlerClassBase):
+    def __init__(
+        self,
+        book_id: str,
+        sse_handler: IStreamAdapter = None,
+        buffer_limit: int = 250,
+        cache: bool = False,
+    ) -> None:
+        """GetPages Constructor.
+
+        Args:
+            book_id (str): Book ID.
+            sse_handler (Optional, IStreamAdapter): SSE Events Handler. Defaults To `SSEAdapter`.
+            cache (Optional, bool): Cache Status. Defaults To `False`.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+        """
+        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
+        super().__init__(self._sse_handler, cache)
+        self._book_id = book_id
+
+    def _get_urls(self, api: HTTPAPI):
+        return [api.get_url_get_pages_info_all(self._book_id)]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
         source = partial(self._sse_handler.handle, self._sse_events_stream(data_source))

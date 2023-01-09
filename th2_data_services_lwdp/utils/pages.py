@@ -25,3 +25,17 @@ class Page:
 
     def __repr__(self):  # noqa
         return self.__str__()
+
+
+# class PageNotFound(Exception):
+#     def __init__(self, book_id):
+#         """Exception for the case when the page was not found in data source.
+#
+#         Args:
+#             book_id: Book id.
+#
+#         """
+#         self._book_id = book_id
+#
+#     def __str__(self):
+#         return f"Unable to find the page with book id '{self.book_id}'"
