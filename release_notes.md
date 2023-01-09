@@ -26,4 +26,5 @@
 1. Updated required arguments for some commands and methods.
 2. All the arguments that are List types are now in plural forms, e.g., stream -> streams,
    message_id -> message_ids.
-3. Renamed GetMessages to GetMessagesByStreams.
+3. Renamed GetMessages to GetMessagesByBookByStreams.
+4. [TH2-4581] Added a check that commands start & end time parameters are milliseconds.

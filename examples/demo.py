@@ -2,34 +2,43 @@
 from th2_data_services_lwdp.commands import http as commands
 from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services import Data
-from th2_data_services_lwdp.streams import Streams
 from datetime import datetime
+
+from th2_data_services_lwdp.streams import Streams
 
 # Create grpc data source object to connect to lightweight data provider.
 DEMO_HOST = "10.100.66.105"  # Note that this host is only accessible from exactpro domain
 DEMO_PORT = "32681"
 data_source = HTTPDataSource(f"http://{DEMO_HOST}:{DEMO_PORT}")
 
-# On database data is segregated with books, such as they never interesct.
+# On database data is segregated with books, such as they never intersect.
 # To get the names of the books we have a command GetBooks which takes no argument:
 
 books = data_source.command(commands.GetBooks())
+book_id = "demo_book_1"  # demo_book_1 is an example book from host namespace
+scopes = ["th2-scope"]
+streams = [
+    "default-message-producer-alias",
+    "fix-demo-server1",
+    "fix-demo-server2",
+    "fix-client2",
+    "fix-client1",
+]
+groups = streams  # In this namespace groups and streams have same name.
 
-# In books data is parititioned even more.
+# In books data is partitioned even more.
 # Events are grouped by scopes, which we can get using GetScopes command:
 
-scopes = data_source.command(
-    commands.GetEventScopes("case3")
-)  # case3 is an example book from host namespace
+book_scopes = data_source.command(commands.GetEventScopes(book_id))
 
 # Messages are separated by groups and aliases.
 # To get groups we use GetMessageGroups from commands:
 
-groups = data_source.command(commands.GetMessageGroups("case3"))
+book_groups = data_source.command(commands.GetMessageGroups(book_id))
 
 # For aliases, GetMessageAliases
 
-aliases = data_source.command(commands.GetMessageAliases("case3"))
+aliases = data_source.command(commands.GetMessageAliases(book_id))
 
 # Date has to be in utc timezone.
 START_TIME = datetime(year=2022, month=11, day=10, hour=10, minute=50, second=0, microsecond=0)
@@ -42,14 +51,15 @@ END_TIME = datetime(year=2022, month=11, day=10, hour=13, minute=53, second=8, m
 
 singleEvent = data_source.command(
     commands.GetEventById(
-        "case3:th2-scope:20221110122224000000000:def0e516-cc13-4fa6-8be6-2b0873297c9c"
+        "demo_book_1:th2-scope:20221226140719671764000:9c59694b-8526-11ed-8311-df33e1b504e4"
     )
 )
 multipleEvents = data_source.command(
     commands.GetEventsById(
         [
-            "case3:th2-scope:20221110122224000000000:def0e516-cc13-4fa6-8be6-2b0873297c9c",
-            "case3:th2-scope:20221110122324000000000:c3c5f7d5-e06d-4e23-98c9-7f36220d26db",
+            "demo_book_1:th2-scope:20221226140719671764000:9c59694b-8526-11ed-8311-df33e1b504e4",
+            "demo_book_1:th2-scope:20221226140723967243000:9ee8edcc-8526-11ed-8311-df33e1b504e4",
+            "demo_book_1:th2-scope:20221226140724065522000:9ef7e1ed-8526-11ed-8311-df33e1b504e4",
         ]
     )
 )
@@ -66,11 +76,11 @@ multiple_messages = data_source.command(
     )
 )
 
-# We can get events without knowing their ids beforehands, using SSE requests from the server with GetEvents command:
+# We can get events without knowing their ids beforehand, using SSE requests from the server with GetEvents command:
 
 events: Data = data_source.command(
     commands.GetEventsByBookByScopes(
-        start_timestamp=START_TIME, end_timestamp=END_TIME, book_id="case3", scopes=["th2-scope"]
+        start_timestamp=START_TIME, end_timestamp=END_TIME, book_id=book_id, scopes=scopes
     )
 )
 
@@ -79,14 +89,13 @@ END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, m
 
 # Similarly, to get messages we have two commands.
 # First is GetMessagesByStream which returns messages witch matching aliases:
-example_stream = []
 
 messages_by_stream: Data = data_source.command(
     commands.GetMessagesByBookByStreams(
         start_timestamp=START_TIME,
-        streams=Streams(["arfq02fix30"]),
+        streams=Streams(streams),
         end_timestamp=END_TIME,
-        book_id="case3",
+        book_id=book_id,
     )
 )
 
@@ -94,21 +103,19 @@ messages_by_stream: Data = data_source.command(
 
 messages_by_group: Data = data_source.command(
     commands.GetMessagesByBookByGroups(
-        start_timestamp=START_TIME, groups=["arfq02dc30"], end_timestamp=END_TIME, book_id="case3"
+        start_timestamp=START_TIME, groups=groups, end_timestamp=END_TIME, book_id=book_id
     )
 )
 
-pages: Data = data_source.command(commands.GetPages("case3", START_TIME, END_TIME))
+pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
 
 page = list(pages)[0]
 
 messages_by_page_by_streams = data_source.command(
-    commands.GetMessagesByPageByStreams(page, Streams(["arfq02fix30"]))
+    commands.GetMessagesByPageByStreams(page, streams)
 )
 
-messages_by_page_by_groups = data_source.command(
-    commands.GetMessagesByPageByGroups(page, ["group1", "group2"])
-)
+messages_by_page_by_groups = data_source.command(commands.GetMessagesByPageByGroups(page, groups))
 
 events_by_page_by_scopes = data_source.command(
     commands.GetEventsByPageByScopes(page, scopes=["th2-scope"])

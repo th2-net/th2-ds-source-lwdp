@@ -19,6 +19,7 @@ from functools import partial
 from th2_data_services import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.interfaces import IStreamAdapter
+from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
@@ -27,7 +28,11 @@ from th2_data_services.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
-from th2_data_services_lwdp.utils import _datetime2ms, _seconds2ms, _check_list_or_tuple, Page
+from th2_data_services_lwdp.utils import (
+    Page,
+    _check_milliseconds,
+    _check_list_or_tuple,
+)
 from th2_grpc_common.common_pb2 import Event
 
 
@@ -262,26 +267,23 @@ class GetPages(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. API expects timestamp in milliseconds.
+            end_timestamp (datetime): End Timestamp. API expects timestamp in milliseconds.
             sse_handler (Optional, IStreamAdapter): SSE Events Handler. Defaults To `SSEAdapter`.
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        _check_milliseconds(start_timestamp)
+        _check_milliseconds(end_timestamp)
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(self._sse_handler, cache)
         self._book_id = book_id
-        self._start_timestamp = start_timestamp
-        self._end_timestamp = end_timestamp
+        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
+        self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
 
     def _get_urls(self, api: HTTPAPI):
-        # Single URL, But Parent Class Attribute Needs List
         return [
-            api.get_url_get_pages_info(
-                self._book_id,
-                _datetime2ms(self._start_timestamp),
-                _datetime2ms(self._end_timestamp),
-            )
+            api.get_url_get_pages_info(self._book_id, self._start_timestamp, self._end_timestamp)
         ]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
@@ -410,13 +412,13 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         buffer_limit=250,
     ):
-        """GetEvents constructor.
+        """GetEventsByBookByScopes constructor.
 
         Args:
-            start_timestamp: Start timestamp of search.
+            start_timestamp: Start timestamp of search. API expects timestamp in milliseconds.
             book_id: Book ID for messages.
             scopes: Scope names for events.
-            end_timestamp: End timestamp of search.
+            end_timestamp: End timestamp of search. API expects timestamp in milliseconds.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
             result_count_limit: Result count limit.
@@ -428,6 +430,8 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        _check_milliseconds(start_timestamp)
+        _check_milliseconds(end_timestamp)
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
             sse_handler=self._sse_handler,
@@ -439,8 +443,8 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = _datetime2ms(start_timestamp)
-        self._end_timestamp = _datetime2ms(end_timestamp)
+        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
+        self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -523,11 +527,11 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = page.start_timestamp["epochSecond"]
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
-            _datetime2ms(datetime.now())
+            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else _seconds2ms(page.end_timestamp["epochSecond"])
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
         )
         self._book_id = page.book
         self._parent_event = parent_event
@@ -668,14 +672,14 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         """GetMessages constructor.
 
         Args:
-            start_timestamp: Start timestamp of search.
+            start_timestamp: Start timestamp of search. API expects timestamp in milliseconds.
             book_id: Book ID for messages
             streams: List of aliases to request. If direction is not specified all directions will be requested for stream.
             message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             search_direction: Search direction.
             result_count_limit: Result count limit.
-            end_timestamp: End timestamp of search.
+            end_timestamp: End timestamp of search. API expects timestamp in milliseconds.
             response_formats: The format of the response
             keep_open: If the search has reached the current moment.
                 It needs to wait further for the appearance of new data.
@@ -686,6 +690,8 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        _check_milliseconds(start_timestamp)
+        _check_milliseconds(end_timestamp)
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
             sse_handler=self._sse_handler,
@@ -707,9 +713,11 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         self._cache = cache
 
         # + TODO - we can make timestamps optional datetime or int
-        self._start_timestamp = _datetime2ms(start_timestamp)
+        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
         self._end_timestamp = (
-            end_timestamp if end_timestamp is None else _datetime2ms(end_timestamp)
+            end_timestamp
+            if end_timestamp is None
+            else DatetimeConverter.to_milliseconds(end_timestamp)
         )
 
         if self._start_timestamp is None and not self._message_ids:
@@ -776,13 +784,13 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         """GetMessagesByGroups Constructor.
 
         Args:
-            start_timestamp: Sets the search starting point. Expected in nanoseconds.
+            start_timestamp: Sets the search starting point. API expects timestamp in milliseconds.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
-                Expected in nanoseconds.
+                 API expects timestamp in milliseconds.
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
-            response_formats: ???
+            response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -802,9 +810,11 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
-        self._start_timestamp = _datetime2ms(start_timestamp)
+        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
         self._end_timestamp = (
-            end_timestamp if end_timestamp is None else _datetime2ms(end_timestamp)
+            end_timestamp
+            if end_timestamp is None
+            else DatetimeConverter.to_milliseconds(end_timestamp)
         )
         self._groups = groups
         self._sort = sort
@@ -853,7 +863,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             message_ids: Search for message ids.
             result_count_limit: Max results to get.
             search_direction: Search direction.
-            response_formats: Response formats.
+            response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             max_url_length: API request url max length.
             char_enc: Encoding for the byte stream.
@@ -874,11 +884,11 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._start_timestamp = page.start_timestamp["epochSecond"]
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
-            _datetime2ms(datetime.now())
+            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else _seconds2ms(page.end_timestamp["epochSecond"])
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
         )
         self._book_id = page.book
         self._result_count_limit = result_count_limit
@@ -934,7 +944,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             page: Page to search with.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
-            response_formats: Response formats
+            response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -956,11 +966,11 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._page_data = page.data
-        self._start_timestamp = page.start_timestamp["epochSecond"]
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
-            _datetime2ms(datetime.now())
+            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else _seconds2ms(page.end_timestamp["epochSecond"])
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
         )
         self._book_id = page.book
         self._groups = groups

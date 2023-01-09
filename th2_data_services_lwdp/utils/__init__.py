@@ -12,5 +12,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .misc import _datetime2ms, _seconds2ms, _check_list_or_tuple
+from .misc import _check_list_or_tuple, _check_milliseconds
 from .pages import Page
