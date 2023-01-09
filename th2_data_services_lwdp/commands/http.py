@@ -259,6 +259,7 @@ class GetPages(SSEHandlerClassBase):
         book_id: str,
         start_timestamp: datetime,
         end_timestamp: datetime,
+        result_limit: int = None,
         sse_handler: IStreamAdapter = None,
         buffer_limit: int = 250,
         cache: bool = False,
@@ -269,6 +270,7 @@ class GetPages(SSEHandlerClassBase):
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp. API expects timestamp in milliseconds.
             end_timestamp (datetime): End Timestamp. API expects timestamp in milliseconds.
+            result_limit (Optional, int): Return Result Limit.
             sse_handler (Optional, IStreamAdapter): SSE Events Handler. Defaults To `SSEAdapter`.
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
@@ -280,10 +282,13 @@ class GetPages(SSEHandlerClassBase):
         self._book_id = book_id
         self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
         self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
+        self._result_limit = result_limit
 
     def _get_urls(self, api: HTTPAPI):
         return [
-            api.get_url_get_pages_info(self._book_id, self._start_timestamp, self._end_timestamp)
+            api.get_url_get_pages_info(
+                self._book_id, self._start_timestamp, self._end_timestamp, self._result_limit
+            )
         ]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
