@@ -3,53 +3,18 @@ from datetime import datetime, timezone
 from th2_data_services_lwdp.data_source import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.commands import http as commands
+from th2_data_services_lwdp.filters.filter import LwDPFilter
 
 ds_api = HTTPAPI("http://th2-kuber-test03:32681")
-ds = HTTPDataSource("http://10.100.66.105:32681")
+ds = HTTPDataSource("http://th2-kuber-test03:32681")
 
 START_TIME = datetime(year=2022, month=11, day=10, hour=10, minute=50, second=0, microsecond=0)
 END_TIME = datetime(year=2022, month=11, day=11, hour=16, minute=53, second=8, microsecond=0)
 st = int(START_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 et = int(END_TIME.replace(tzinfo=timezone.utc).timestamp() * 1000)
 
-streams = [
-    "Test-1234",
-    "Test-1234",
-    "Test-12345",
-    "Test-123456",
-    "Test-1234567",
-    "Test-12345678",
-    "Test-123456789",
-    "Test-1234567810",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest1",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest2",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest3",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest4",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest5",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest6",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest7",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest8",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest9",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest10",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest11",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest12",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest13",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest14",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest15",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest16",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest17",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest18",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest19",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest20",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest21",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest22",
-    "TestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTestTest23",
-    "arfq01fix07",
-    "arfq01dc03",
-    "arfq02dc10",
-    "arfq02fix30",
-]
+START_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=5, microsecond=0) 
+END_TIME   = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=6, microsecond=0)  
 
 # url = ds.command(
 #     commands.GetMessagesByBookByStreams(
@@ -60,16 +25,25 @@ streams = [
 #     print(i)
 
 # # Will Return `408 Status Code` And MessageNotFound Will Be Raised
-message = ds.command(
-    commands.GetMessageById("case3:arfq02dc30:2:20221111165020871966000:1668182270286678628")
+#message = ds.command(
+#    commands.GetEventById("demo_book_1:th2-scope:20230105135705560873000:d61e930a-8d00-11ed-aa1a-d34a6155152d_1")
+#)
+#print(message)
+
+events = ds.command(
+    commands.GetMessagesByBookByStreams(book_id='demo_book_1',streams=['ds-lib-session1','ds-lib-session2'],start_timestamp=START_TIME,end_timestamp=END_TIME)
 )
-print(message)
 
+for _ in range(3):
+    for _ in events:
+        pass
 
-pages = ds.command(commands.GetPages("case3", datetime.fromtimestamp(1668013240), datetime.now()))
-print(pages)
+print(list(events))
 
-page = list(pages)[0]
+#pages = ds.command(commands.GetPages("case3", datetime.fromtimestamp(1668013240), datetime.now()))
+#print(pages)
+
+#page = list(pages)[0]
 # s = time.time()
 # # Will Return `error` Event
 # messages = ds.command(
