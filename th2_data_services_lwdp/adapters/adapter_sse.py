@@ -14,6 +14,7 @@
 
 from typing import Iterable
 
+import th2_data_services
 from urllib3.exceptions import HTTPError
 
 from th2_data_services.interfaces import IStreamAdapter
@@ -29,11 +30,15 @@ class SSEAdapter(IStreamAdapter):
         """
         self.json_processor = json_processor
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
+        self._errors_during_interactive = []
 
     def handle(self, stream: Iterable):
         for event in stream:
             if event.event == "error":
-                raise HTTPError(event.data)
+                if th2_data_services.INTERACTIVE_MODE:
+                    self._errors_during_interactive.append(event.data)
+                else:
+                    raise HTTPError(event.data)
             if event.event not in self.events_types_blacklist:
                 yield from self.json_processor.decode(event.data)
         yield from self.json_processor.fin()

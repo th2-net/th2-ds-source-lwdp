@@ -16,6 +16,7 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 
+import th2_data_services
 from th2_data_services import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.interfaces import IStreamAdapter
@@ -130,6 +131,8 @@ class SSEHandlerClassBase(IHTTPCommand):
         sse_events_stream = partial(self._sse_events_stream, data_source)
         data = Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
+        if th2_data_services.INTERACTIVE_MODE:
+            data.metadata["errors"] = self._sse_handler._errors_during_interactive
         return data
 
     @abstractmethod
@@ -308,6 +311,8 @@ class GetPages(SSEHandlerClassBase):
         source = partial(self._sse_events_to_pages, data_source)
         data = Data(source, cache=self._cache)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
+        if th2_data_services.INTERACTIVE_MODE:
+            data.metadata["errors"] = self._sse_handler._errors_during_interactive
         return data
 
 
