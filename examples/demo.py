@@ -107,6 +107,8 @@ messages_by_group: Data = data_source.command(
     )
 )
 
+pages_all: Data = data_source.command(commands.GetPagesAll(book_id))
+
 pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
 
 page = list(pages)[0]
@@ -120,3 +122,8 @@ messages_by_page_by_groups = data_source.command(commands.GetMessagesByPageByGro
 events_by_page_by_scopes = data_source.command(
     commands.GetEventsByPageByScopes(page, scopes=["th2-scope"])
 )
+
+# TODO - add info that user can collect data by page-name or page-object
+#   e.g.
+#   GetMessagesByPageByStreams(page='123', book_id='book_id', streams=[a, b])
+#   GetMessagesByPageByStreams(page=Page_obj, streams=[a, b])
