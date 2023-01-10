@@ -6,7 +6,6 @@ import requests
 from th2_data_services.data import Data
 from th2_data_services.exceptions import CommandError
 from ..conftest import http, HTTPDataSource
-from urllib3.exceptions import HTTPError
 
 """
 Slava Ermakov 2022.10.31
@@ -106,16 +105,38 @@ def test_attached_messages(demo_data_source: HTTPDataSource):
     assert events.filter(lambda event: event.get("attachedMessageIds")).len
 
 
-@pytest.mark.skip(reason="data_source should be changed to mock")
-def test_invalid_optional_timestamp(data_source: HTTPDataSource):
-    with pytest.raises(HTTPError):
-        events = data_source.command(
-            http.GetEventsByBookByScopes(
-                book_id="demo_book_1",
-                scopes=["th2-scope"],
-                start_timestamp=datetime(
-                    year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0
-                ),
-            )
+# @pytest.mark.skip(reason="data_source should be changed to mock")
+def test_invalid_timestamp_for_command():
+    with pytest.raises(Exception, match="Provided datetime shouldn't contain microseconds"):
+        command = http.GetEventsByBookByScopes(
+            book_id="demo_book_1",
+            scopes=["th2-scope"],
+            start_timestamp=datetime(
+                year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0
+            ),
+            end_timestamp=datetime.now(),
         )
-        assert events.len
+
+
+def test_command_without_end_timestamp():
+    try:
+        command = http.GetEventsByBookByScopes(
+            book_id="demo_book_1",
+            scopes=["th2-scope"],
+            start_timestamp=datetime(
+                year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0
+            ),
+        )
+    except TypeError as te:
+        assert False
+    except Exception as e:
+        if "Provided datetime shouldn't contain microseconds" in str(e):
+            assert False
+
+
+def test_command_without_timestamps():
+    with pytest.raises(TypeError):
+        command = http.GetEventsByBookByScopes(
+            book_id="demo_book_1",
+            scopes=["th2-scope"],
+        )
