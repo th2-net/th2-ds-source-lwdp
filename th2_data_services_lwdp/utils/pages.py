@@ -28,12 +28,12 @@ class Page:
         return self.__str__()
 
 
-def _check_page_or_name(book_id, page, data_source):  # noqa
+def _get_page_object(book_id, page, data_source) -> Page:  # noqa
     if isinstance(page, str):
         if book_id is None:
             raise Exception("If page name is passed then book_id should be passed too!")
         else:
-            return data_source.command(http.GetPage(book_id, page))
+            return data_source.command(http.GetPageByName(book_id, page))
     elif isinstance(page, Page):
         return page
     else:

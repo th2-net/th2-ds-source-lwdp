@@ -35,7 +35,7 @@ from th2_data_services_lwdp.utils import (
 )
 from th2_grpc_common.common_pb2 import Event
 
-from th2_data_services_lwdp.utils.pages import _check_page_or_name
+from th2_data_services_lwdp.utils.pages import _get_page_object
 
 
 # LOG import logging
@@ -255,20 +255,20 @@ class GetBooks(IHTTPCommand):
         return api.execute_request(url).json()
 
 
-class GetPage(IHTTPCommand):
+class GetPageByName(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
-    It retrieves the page by page name from all available pages.
+    It retrieves the page by page name from the book.
 
     Returns:
-        Page: page.
+        Page: page object.
 
     Raises:
-        EventNotFound: If event by Id wasn't found.
+        TODO ???
     """
 
     def __init__(self, book_id: str, page_name: str):
-        """GetEventById constructor.
+        """GetPageByName constructor.
 
         Args:
             book_id: Book to search inside.
@@ -279,6 +279,7 @@ class GetPage(IHTTPCommand):
         self._page_name = page_name
 
     def handle(self, data_source: HTTPDataSource) -> Union[Page, None]:  # noqa: D102
+        # TODO - raise exception if not found.
         pages = data_source.command(GetPagesAll(self._book_id)).filter(
             lambda page: page.name == self._page_name
         )
@@ -628,7 +629,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         _check_list_or_tuple(self._scopes, var_name="scopes")
 
     def _get_urls(self, data_source: HTTPDataSource):
-        page = _check_page_or_name(self._book_id, self._page, data_source)
+        page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
@@ -988,7 +989,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._stream = stream
 
     def _get_urls(self, data_source: HTTPDataSource):
-        page = _check_page_or_name(self._book_id, self._page, data_source)
+        page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
@@ -1074,7 +1075,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         _check_list_or_tuple(self._groups, var_name="groups")
 
     def _get_urls(self, data_source: HTTPDataSource):
-        page = _check_page_or_name(self._book_id, self._page, data_source)
+        page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
         self._end_timestamp = (
             DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
