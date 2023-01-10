@@ -64,17 +64,17 @@ multipleEvents = data_source.command(
     )
 )
 
-# single_message = data_source.command(
-#     commands.GetMessageById("case3:arfq02fix30:2:20221111165012889502000:1668182272676097251")
-# )
-# multiple_messages = data_source.command(
-#     commands.GetMessagesById(
-#         [
-#             "case3:arfq02fix30:2:20221111165012889502000:1668182272676097251",
-#             "case3:arfq02fix30:2:20221111165252889876000:1668182272676097315",
-#         ]
-#     )
-# )
+single_message = data_source.command(
+    commands.GetMessageById("case3:arfq02fix30:2:20221111165012889502000:1668182272676097251")
+)
+multiple_messages = data_source.command(
+    commands.GetMessagesById(
+        [
+            "case3:arfq02fix30:2:20221111165012889502000:1668182272676097251",
+            "case3:arfq02fix30:2:20221111165252889876000:1668182272676097315",
+        ]
+    )
+)
 
 # We can get events without knowing their ids beforehand, using SSE requests from the server with GetEvents command:
 
