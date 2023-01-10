@@ -105,7 +105,6 @@ def test_attached_messages(demo_data_source: HTTPDataSource):
     assert events.filter(lambda event: event.get("attachedMessageIds")).len
 
 
-# @pytest.mark.skip(reason="data_source should be changed to mock")
 def test_invalid_timestamp_for_command():
     with pytest.raises(Exception, match="Provided datetime shouldn't contain microseconds"):
         command = http.GetEventsByBookByScopes(
