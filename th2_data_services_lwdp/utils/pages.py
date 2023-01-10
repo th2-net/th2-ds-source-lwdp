@@ -38,17 +38,3 @@ def _check_page_or_name(book_id, page, data_source):  # noqa
         return page
     else:
         raise Exception("Wrong type. page should be Page object or string (page name)!")
-
-
-# class PageNotFound(Exception):
-#     def __init__(self, book_id):
-#         """Exception for the case when the page was not found in data source.
-#
-#         Args:
-#             book_id: Book id.
-#
-#         """
-#         self._book_id = book_id
-#
-#     def __str__(self):
-#         return f"Unable to find the page with book id '{self.book_id}'"
