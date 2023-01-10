@@ -1,4 +1,5 @@
 from typing import Dict
+from th2_data_services_lwdp.commands import http
 
 
 class Page:
@@ -25,6 +26,18 @@ class Page:
 
     def __repr__(self):  # noqa
         return self.__str__()
+
+
+def _check_page_or_name(book_id, page, data_source):  # noqa
+    if isinstance(page, str):
+        if book_id is None:
+            raise Exception("If page name is passed then book_id should be passed too!")
+        else:
+            return data_source.command(http.GetPage(book_id, page))
+    elif isinstance(page, Page):
+        return page
+    else:
+        raise Exception("Wrong type. page should be Page object or string (page name)!")
 
 
 # class PageNotFound(Exception):

@@ -64,17 +64,17 @@ multipleEvents = data_source.command(
     )
 )
 
-single_message = data_source.command(
-    commands.GetMessageById("case3:arfq02fix30:2:20221111165012889502000:1668182272676097251")
-)
-multiple_messages = data_source.command(
-    commands.GetMessagesById(
-        [
-            "case3:arfq02fix30:2:20221111165012889502000:1668182272676097251",
-            "case3:arfq02fix30:2:20221111165252889876000:1668182272676097315",
-        ]
-    )
-)
+# single_message = data_source.command(
+#     commands.GetMessageById("case3:arfq02fix30:2:20221111165012889502000:1668182272676097251")
+# )
+# multiple_messages = data_source.command(
+#     commands.GetMessagesById(
+#         [
+#             "case3:arfq02fix30:2:20221111165012889502000:1668182272676097251",
+#             "case3:arfq02fix30:2:20221111165252889876000:1668182272676097315",
+#         ]
+#     )
+# )
 
 # We can get events without knowing their ids beforehand, using SSE requests from the server with GetEvents command:
 
@@ -106,6 +106,8 @@ messages_by_group: Data = data_source.command(
         start_timestamp=START_TIME, groups=groups, end_timestamp=END_TIME, book_id=book_id
     )
 )
+
+pages_all: Data = data_source.command(commands.GetPagesAll(book_id))
 
 pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
 

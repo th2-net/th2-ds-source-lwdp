@@ -35,6 +35,8 @@ from th2_data_services_lwdp.utils import (
 )
 from th2_grpc_common.common_pb2 import Event
 
+from th2_data_services_lwdp.utils.pages import _check_page_or_name
+
 
 # LOG import logging
 
@@ -94,7 +96,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         self, data_source: HTTPDataSource
     ) -> Generator[bytes, None, None]:  # noqa
         api: HTTPAPI = data_source.source_api
-        urls: List[str] = self._get_urls(data_source.source_api)
+        urls: List[str] = self._get_urls(data_source)
         for url in urls:
             # LOG             logger.info(url)
             yield from api.execute_sse_request(url)
@@ -129,11 +131,11 @@ class SSEHandlerClassBase(IHTTPCommand):
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
         data = Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
-        data.metadata["urls"] = self._get_urls(data_source.source_api)
+        data.metadata["urls"] = self._get_urls(data_source)
         return data
 
     @abstractmethod
-    def _get_urls(self, api: HTTPAPI) -> List[str]:
+    def _get_urls(self, data_source: HTTPDataSource) -> List[str]:
         pass
 
     def handle(
@@ -277,12 +279,11 @@ class GetPage(IHTTPCommand):
         self._page_name = page_name
 
     def handle(self, data_source: HTTPDataSource) -> Union[Page, None]:  # noqa: D102
-        pages = data_source.command(GetPagesAll(self._book_id))
-        page = list(pages.filter(lambda page_: page_.name == self._page_name))
-        if len(page):
-            return page[0]
-        else:
-            return None
+        pages = data_source.command(GetPagesAll(self._book_id)).filter(
+            lambda page: page.name == self._page_name
+        )
+        for page in pages:
+            return page
 
 
 class GetPages(SSEHandlerClassBase):
@@ -316,7 +317,8 @@ class GetPages(SSEHandlerClassBase):
         self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
         self._result_limit = result_limit
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
         return [
             api.get_url_get_pages_info(
                 self._book_id, self._start_timestamp, self._end_timestamp, self._result_limit
@@ -339,7 +341,7 @@ class GetPages(SSEHandlerClassBase):
         """
         source = partial(self._sse_events_to_pages, data_source)
         data = Data(source, cache=self._cache)
-        data.metadata["urls"] = self._get_urls(data_source.source_api)
+        data.metadata["urls"] = self._get_urls(data_source)
         return data
 
 
@@ -363,7 +365,8 @@ class GetPagesAll(SSEHandlerClassBase):
         super().__init__(self._sse_handler, cache)
         self._book_id = book_id
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
         return [api.get_url_get_pages_info_all(self._book_id)]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
@@ -382,7 +385,7 @@ class GetPagesAll(SSEHandlerClassBase):
         """
         source = partial(self._sse_events_to_pages, data_source)
         data = Data(source, cache=self._cache)
-        data.metadata["urls"] = self._get_urls(data_source.source_api)
+        data.metadata["urls"] = self._get_urls(data_source)
         return data
 
 
@@ -538,7 +541,8 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._scopes, var_name="scopes")
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
         return [
             api.get_url_search_sse_events(
                 start_timestamp=self._start_timestamp,
@@ -565,8 +569,9 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
 
     def __init__(
         self,
-        page: Page,
+        page: Union[Page, str],
         scopes: List[str],
+        book_id: str = None,
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -585,6 +590,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         Args:
             page: Page to search with.
             scopes: Scope names for events.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
             result_count_limit: Result count limit.
@@ -607,13 +613,8 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
-            if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
-        )
-        self._book_id = page.book
+        self._page = page
+        self._book_id = book_id
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -626,7 +627,16 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._scopes, var_name="scopes")
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        page = _check_page_or_name(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
+        self._end_timestamp = (
+            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
+        )
+        self._book_id = page.book
+        api = data_source.source_api
         return [
             api.get_url_search_sse_events(
                 start_timestamp=self._start_timestamp,
@@ -820,7 +830,8 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
                 f"Got {type(self._streams)}"
             )
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
         return api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             message_ids=self._message_ids,
@@ -905,7 +916,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
         return api.get_url_search_messages_by_groups(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -921,8 +933,9 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 class GetMessagesByPageByStreams(SSEHandlerClassBase):
     def __init__(
         self,
-        page: Page,
+        page: Union[Page, str],
         stream: List[str],
+        book_id: str = None,
         message_ids: List[None] = None,
         search_direction: Optional[str] = "next",
         result_count_limit: int = None,
@@ -940,6 +953,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         Args:
             page: Page to search with.
             stream: In which streams to search.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
             message_ids: Search for message ids.
             result_count_limit: Max results to get.
             search_direction: Search direction.
@@ -964,13 +978,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
-            if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
-        )
-        self._book_id = page.book
+        self._book_id = book_id
         self._result_count_limit = result_count_limit
         self._search_direction = search_direction
         self._response_formats = response_formats
@@ -979,7 +987,16 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._max_url_length = max_url_length
         self._stream = stream
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        page = _check_page_or_name(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
+        self._end_timestamp = (
+            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
+        )
+        self._book_id = page.book
+        api = data_source.source_api
         return api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
             book_id=self._book_id,
@@ -1005,8 +1022,9 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
 
     def __init__(
         self,
-        page: Page,
+        page: Union[Page, str],
         groups: List[str],
+        book_id: str = None,
         sort: bool = None,
         response_formats: List[str] = None,
         keep_open: bool = None,
@@ -1022,6 +1040,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
 
         Args:
             page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
@@ -1045,14 +1064,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._page = page
-        self._page_data = page.data
-        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
-            if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
-        )
-        self._book_id = page.book
+        self._book_id = book_id
         self._groups = groups
         self._sort = sort
         self._response_formats = response_formats
@@ -1061,7 +1073,16 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def _get_urls(self, api: HTTPAPI):
+    def _get_urls(self, data_source: HTTPDataSource):
+        page = _check_page_or_name(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
+        self._end_timestamp = (
+            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
+        )
+        self._book_id = page.book
+        api = data_source.source_api
         return api.get_url_search_messages_by_groups(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,

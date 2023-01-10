@@ -28,6 +28,8 @@
    message_id -> message_ids.
 3. Renamed GetMessages to GetMessagesByBookByStreams.
 4. [TH2-4581] Added a check that commands start & end time parameters are milliseconds.
-5. [TH2-4625] Commands added:
-   - GetPage command added to get Page by name with book_id
-   - GetPageAll command added to get all Pages with book_id
+5. [TH2-4625]
+   - Commands added:
+     - GetPage command added to get Page by name with book_id
+     - GetPageAll command added to get all Pages with book_id
+   - GetByPage command can now take page name (with book_id) to use it in command.
