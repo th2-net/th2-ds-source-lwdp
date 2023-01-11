@@ -108,9 +108,10 @@ messages_by_group: Data = data_source.command(
     )
 )
 
-pages_all: Data = data_source.command(commands.GetPagesAll(book_id))
-
 pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
+
+# To get all pages use `all` parameter in GetPages command
+pages_all: Data = data_source.command(commands.GetPages(book_id, all=True))
 
 page = list(pages)[0]
 

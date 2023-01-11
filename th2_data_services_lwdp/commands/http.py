@@ -278,21 +278,25 @@ class GetPageByName(IHTTPCommand):
         self._book_id = book_id
         self._page_name = page_name
 
-    def handle(self, data_source: HTTPDataSource) -> Union[Page, None]:  # noqa: D102
+    def handle(self, data_source: HTTPDataSource) -> Page:  # noqa: D102
         # TODO - raise exception if not found.
-        pages = data_source.command(GetPagesAll(self._book_id)).filter(
+        pages = data_source.command(GetPages(self._book_id, all=True)).filter(
             lambda page: page.name == self._page_name
         )
         for page in pages:
             return page
+        else:
+            # raise PageNotFound(f"Page by name {page.name} was not found.")
+            ...
 
 
 class GetPages(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime,
-        end_timestamp: datetime,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        all: bool = False,
         result_limit: int = None,
         sse_handler: IStreamAdapter = None,
         buffer_limit: int = 250,
@@ -305,70 +309,32 @@ class GetPages(SSEHandlerClassBase):
             start_timestamp (datetime): Start Timestamp. API expects timestamp in milliseconds.
             end_timestamp (datetime): End Timestamp. API expects timestamp in milliseconds.
             result_limit (Optional, int): Return Result Limit.
+            all (Optional, bool): Return all pages if True, defaults to False.
             sse_handler (Optional, IStreamAdapter): SSE Events Handler. Defaults To `SSEAdapter`.
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_milliseconds(start_timestamp)
-        _check_milliseconds(end_timestamp)
+        if not all:
+            _check_milliseconds(start_timestamp)
+            _check_milliseconds(end_timestamp)
+            self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
+            self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
         self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(self._sse_handler, cache)
         self._book_id = book_id
-        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
-        self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
         self._result_limit = result_limit
+        self._all_results = all
 
     def _get_urls(self, data_source: HTTPDataSource):
         api = data_source.source_api
-        return [
-            api.get_url_get_pages_info(
-                self._book_id, self._start_timestamp, self._end_timestamp, self._result_limit
-            )
-        ]
-
-    def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
-        source = partial(self._sse_handler.handle, self._sse_events_stream(data_source))
-        for event_data in source():
-            yield Page(event_data)
-
-    def _data_object(self, data_source: HTTPDataSource) -> Data:
-        """Parses SSEEvents Into Data Object.
-
-        Args:
-            data_source: HTTPDataSource
-
-        Returns:
-             Data
-        """
-        source = partial(self._sse_events_to_pages, data_source)
-        data = Data(source, cache=self._cache)
-        data.metadata["urls"] = self._get_urls(data_source)
-        return data
-
-
-class GetPagesAll(SSEHandlerClassBase):
-    def __init__(
-        self,
-        book_id: str,
-        sse_handler: IStreamAdapter = None,
-        buffer_limit: int = 250,
-        cache: bool = False,
-    ) -> None:
-        """GetPages Constructor.
-
-        Args:
-            book_id (str): Book ID.
-            sse_handler (Optional, IStreamAdapter): SSE Events Handler. Defaults To `SSEAdapter`.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
-            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
-        """
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
-        super().__init__(self._sse_handler, cache)
-        self._book_id = book_id
-
-    def _get_urls(self, data_source: HTTPDataSource):
-        api = data_source.source_api
-        return [api.get_url_get_pages_info_all(self._book_id)]
+        if self._all_results:
+            return [api.get_url_get_pages_info_all(self._book_id)]
+        else:
+            return [
+                api.get_url_get_pages_info(
+                    self._book_id, self._start_timestamp, self._end_timestamp, self._result_limit
+                )
+            ]
 
     def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
         source = partial(self._sse_handler.handle, self._sse_events_stream(data_source))
