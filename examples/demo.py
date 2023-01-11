@@ -16,6 +16,7 @@ data_source = HTTPDataSource(f"http://{DEMO_HOST}:{DEMO_PORT}")
 
 books = data_source.command(commands.GetBooks())
 book_id = "demo_book_1"  # demo_book_1 is an example book from host namespace
+page_name = "1"  # example page name from book demo_book_1
 scopes = ["th2-scope"]
 streams = [
     "default-message-producer-alias",
@@ -107,9 +108,17 @@ messages_by_group: Data = data_source.command(
     )
 )
 
+# GetPages with only book_id will get all pages.
+pages_all: Data = data_source.command(commands.GetPages(book_id))
+
+# GetPages with timestamps will get all pages within that time frame.
 pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
 
+
 page = list(pages)[0]
+
+# GetByPage commands accept Page class objects as argument
+# Alternatively they also accept page name with book id.
 
 messages_by_page_by_streams = data_source.command(
     commands.GetMessagesByPageByStreams(page, streams)
@@ -119,4 +128,16 @@ messages_by_page_by_groups = data_source.command(commands.GetMessagesByPageByGro
 
 events_by_page_by_scopes = data_source.command(
     commands.GetEventsByPageByScopes(page, scopes=["th2-scope"])
+)
+
+messages_by_page_name_by_streams = data_source.command(
+    commands.GetMessagesByPageByStreams(page=page_name, book_id=book_id, stream=streams)
+)
+
+messages_by_page_name_by_groups = data_source.command(
+    commands.GetMessagesByPageByGroups(page=page_name, book_id=book_id, groups=groups)
+)
+
+events_by_page_name_by_scopes = data_source.command(
+    commands.GetEventsByPageByScopes(page=page_name, book_id=book_id, scopes=["th2-scope"])
 )

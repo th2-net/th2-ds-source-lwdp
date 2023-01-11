@@ -16,10 +16,12 @@
    - GetEventsByPageByScopes
    - GetMessagesByPageByStreams
    - GetMessagesByPageByGroups
-6. HTTP Commands changed:
-   - GetEvents -> GetEventsByBookByScopes
-   - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
-7. [TH2-4615] Data class now contains api request urls in metadata.
+6. [TH2-4615] Data class now contains api request urls in metadata.
+7. [TH2-4625]
+   - Commands added:
+     - GetPageByName command added to get Page by name with book_id
+     - GetPages(book_id) can be used get all pages, specifying timestamps will only retrieve pages in given time frame.
+   - GetByPage commands can now take page name (with book_id) to use it in command.
 
 ## Improvements
 
@@ -28,3 +30,6 @@
    message_id -> message_ids.
 3. Renamed GetMessages to GetMessagesByBookByStreams.
 4. [TH2-4581] Added a check that commands start & end time parameters are milliseconds.
+5. HTTP Commands changed:
+   - GetEvents -> GetEventsByBookByScopes
+   - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
