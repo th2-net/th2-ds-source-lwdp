@@ -16,7 +16,6 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 
-import th2_data_services
 from th2_data_services import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.interfaces import IStreamAdapter
@@ -129,10 +128,10 @@ class SSEHandlerClassBase(IHTTPCommand):
              Data
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
-        data = Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
+        data = Data(sse_events_stream)
+        self._sse_handler.data_link = data
+        data = data.map_stream(self._sse_handler).use_cache(self._cache)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
-        if th2_data_services.INTERACTIVE_MODE:
-            data.metadata["errors"] = self._sse_handler._interactive_mode_errors
         return data
 
     @abstractmethod
@@ -294,9 +293,8 @@ class GetPages(SSEHandlerClassBase):
             )
         ]
 
-    def _sse_events_to_pages(self, data_source: HTTPDataSource):  # noqa
-        source = partial(self._sse_handler.handle, self._sse_events_stream(data_source))
-        for event_data in source():
+    def to_pages(self, stream):  # noqa
+        for event_data in stream:
             yield Page(event_data)
 
     def _data_object(self, data_source: HTTPDataSource) -> Data:
@@ -308,11 +306,15 @@ class GetPages(SSEHandlerClassBase):
         Returns:
              Data
         """
-        source = partial(self._sse_events_to_pages, data_source)
-        data = Data(source, cache=self._cache)
+        # source = partial(self._sse_events_to_pages, data_source)
+        # data = Data(source, cache=self._cache)
+        # data.metadata["urls"] = self._get_urls(data_source.source_api)
+        # return data
+        data = Data(partial(self._sse_events_stream, data_source))
+        self._sse_handler.data_link = data
+        data = data.map_stream(self._sse_handler).map_stream(self.to_pages).use_cache()
+        print(">>>", data.metadata)  # Errors Not Added Here...?
         data.metadata["urls"] = self._get_urls(data_source.source_api)
-        if th2_data_services.INTERACTIVE_MODE:
-            data.metadata["errors"] = self._sse_handler._interactive_mode_errors
         return data
 
 
