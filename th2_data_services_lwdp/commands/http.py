@@ -35,7 +35,7 @@ from th2_data_services_lwdp.utils import (
 )
 from th2_grpc_common.common_pb2 import Event
 
-from th2_data_services_lwdp.utils.pages import _get_page_object
+from th2_data_services_lwdp.utils.pages import _get_page_object, PageNotFound
 
 
 # LOG import logging
@@ -264,7 +264,7 @@ class GetPageByName(IHTTPCommand):
         Page: page object.
 
     Raises:
-        TODO ???
+        PageNotFound: If page wasn't found.
     """
 
     def __init__(self, book_id: str, page_name: str):
@@ -279,15 +279,13 @@ class GetPageByName(IHTTPCommand):
         self._page_name = page_name
 
     def handle(self, data_source: HTTPDataSource) -> Page:  # noqa: D102
-        # TODO - raise exception if not found.
         pages = data_source.command(GetPages(self._book_id, all=True)).filter(
             lambda page: page.name == self._page_name
         )
         for page in pages:
             return page
         else:
-            # raise PageNotFound(f"Page by name {page.name} was not found.")
-            ...
+            raise PageNotFound(self._page_name)
 
 
 class GetPages(SSEHandlerClassBase):
