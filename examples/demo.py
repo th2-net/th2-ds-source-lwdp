@@ -108,10 +108,12 @@ messages_by_group: Data = data_source.command(
     )
 )
 
+# GetPages with only book_id will get all pages.
+pages_all: Data = data_source.command(commands.GetPages(book_id))
+
+# GetPages with timestamps will get all pages within that time frame.
 pages: Data = data_source.command(commands.GetPages(book_id, START_TIME, END_TIME))
 
-# To get all pages use `all` parameter in GetPages command
-pages_all: Data = data_source.command(commands.GetPages(book_id, all=True))
 
 page = list(pages)[0]
 

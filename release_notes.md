@@ -20,7 +20,7 @@
 7. [TH2-4625]
    - Commands added:
      - GetPageByName command added to get Page by name with book_id
-     - GetPages(book_id, all=True) can be used get all pages, all defaults to False.
+     - GetPages(book_id) can be used get all pages, specifying timestamps will only retrieve pages in given time frame.
    - GetByPage commands can now take page name (with book_id) to use it in command.
 
 ## Improvements
