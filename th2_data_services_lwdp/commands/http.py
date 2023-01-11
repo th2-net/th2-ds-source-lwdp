@@ -285,7 +285,7 @@ class GetPageByName(IHTTPCommand):
         for page in pages:
             return page
         else:
-            raise PageNotFound(self._page_name)
+            raise PageNotFound(self._page_name, self._book_id)
 
 
 class GetPages(SSEHandlerClassBase):

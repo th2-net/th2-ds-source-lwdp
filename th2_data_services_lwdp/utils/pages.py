@@ -41,13 +41,15 @@ def _get_page_object(book_id, page, data_source) -> Page:  # noqa
 
 
 class PageNotFound(Exception):
-    def __init__(self, name):
+    def __init__(self, name: str, book: str):
         """Exception for the case when the page was not found in data source.
 
         Args:
             name: Page Name
+            book: Book ID
         """
         self._name = name
+        self._book = book
 
     def __str__(self):
-        return f"Unable to find the page with name '{self._name}'"
+        return f"Unable to find the page with name '{self._name}' in book '{self._book}'."
