@@ -132,7 +132,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         data = Data(sse_events_stream).map_stream(self._sse_handler.handle).use_cache(self._cache)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
         if th2_data_services.INTERACTIVE_MODE:
-            data.metadata["errors"] = self._sse_handler._errors_during_interactive
+            data.metadata["errors"] = self._sse_handler._interactive_mode_errors
         return data
 
     @abstractmethod
@@ -312,7 +312,7 @@ class GetPages(SSEHandlerClassBase):
         data = Data(source, cache=self._cache)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
         if th2_data_services.INTERACTIVE_MODE:
-            data.metadata["errors"] = self._sse_handler._errors_during_interactive
+            data.metadata["errors"] = self._sse_handler._interactive_mode_errors
         return data
 
 

@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-
+from json import loads
 from typing import Iterable
 
 import th2_data_services
@@ -30,13 +30,12 @@ class SSEAdapter(IStreamAdapter):
         """
         self.json_processor = json_processor
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
-        self._errors_during_interactive = []
 
     def handle(self, stream: Iterable):
         for event in stream:
             if event.event == "error":
                 if th2_data_services.INTERACTIVE_MODE:
-                    self._errors_during_interactive.append(event.data)
+                    self._interactive_mode_errors.append(loads(event.data))
                 else:
                     raise HTTPError(event.data)
             if event.event not in self.events_types_blacklist:
