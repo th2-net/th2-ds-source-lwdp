@@ -753,7 +753,6 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
 
         for url in urls:
             # LOG             logger.info(url)
-            print(url)
             yield from api.execute_sse_request(url)
 
 
