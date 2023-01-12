@@ -18,14 +18,16 @@ from functools import partial
 
 from th2_data_services import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
-from th2_data_services.interfaces import IStreamAdapter
 from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
 from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.streams import Streams, Stream
 from th2_data_services.sse_client import SSEClient
-from th2_data_services_lwdp.adapters.adapter_sse import get_default_sse_adapter
+from th2_data_services_lwdp.adapters.adapter_sse import (
+    SSEAdapter,
+    DEFAULT_BUFFER_LIMIT,
+)
 from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 from th2_data_services_lwdp.utils import (
@@ -34,6 +36,8 @@ from th2_data_services_lwdp.utils import (
     _check_list_or_tuple,
 )
 from th2_grpc_common.common_pb2 import Event
+
+from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
 
 
 # LOG import logging
@@ -44,23 +48,23 @@ from th2_grpc_common.common_pb2 import Event
 class SSEHandlerClassBase(IHTTPCommand):
     def __init__(
         self,
-        sse_handler: IStreamAdapter,
         cache: bool,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
     ):
         """SSEHandlerClassBase Constructor.
 
         Args:
-            sse_handler (IStreamAdapter): SSEEvents Handler
             cache (bool): Cache Status
+            buffer_limit (int): SSEAdapter BufferedJSONProcessor buffer limit.
             char_enc (Optional, str): Encoder, Defaults To 'UTF-8'
             decode_error_handler (Optional, str): Decode Error Handler, Defaults To 'UNICODE_REPLACE_HANDLER'
         """
         self._current_handle_function = self._data_object
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
-        self._sse_handler = sse_handler
+        self._sse_handler = SSEAdapter(BufferedJSONProcessor(buffer_limit))
         self._cache = cache
 
     def return_sse_bytes_stream(self):
@@ -127,19 +131,12 @@ class SSEHandlerClassBase(IHTTPCommand):
         Returns:
              Data
         """
-        # sse_events_stream = partial(self._sse_events_stream, data_source)
-        # data = Data(sse_events_stream)
-        # self._sse_handler.data_link = data
-        # data = data.map_stream(self._sse_handler).use_cache(self._cache)
-        # data.metadata["urls"] = self._get_urls(data_source.source_api)
-        # return data
         sse_events_stream = partial(self._sse_events_stream, data_source)
         data = Data(sse_events_stream)
         self._sse_handler.data_link = data
         data = data.map_stream(self._sse_handler).use_cache(self._cache)
-        # data.metadata["errors"] isn't added...
-        data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
-        assert data.limit(0)
+        # data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
+        # assert data.limit(0)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
         return data
 
@@ -271,8 +268,7 @@ class GetPages(SSEHandlerClassBase):
         start_timestamp: datetime,
         end_timestamp: datetime,
         result_limit: int = None,
-        sse_handler: IStreamAdapter = None,
-        buffer_limit: int = 250,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
         cache: bool = False,
     ) -> None:
         """GetPages Constructor.
@@ -282,14 +278,12 @@ class GetPages(SSEHandlerClassBase):
             start_timestamp (datetime): Start Timestamp. API expects timestamp in milliseconds.
             end_timestamp (datetime): End Timestamp. API expects timestamp in milliseconds.
             result_limit (Optional, int): Return Result Limit.
-            sse_handler (Optional, IStreamAdapter): SSE Events Handler. Defaults To `SSEAdapter`.
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         _check_milliseconds(start_timestamp)
         _check_milliseconds(end_timestamp)
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
-        super().__init__(self._sse_handler, cache)
+        super().__init__(cache, buffer_limit=buffer_limit)
         self._book_id = book_id
         self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
         self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
@@ -323,7 +317,7 @@ class GetPages(SSEHandlerClassBase):
         data = Data(sse_stream)
         self._sse_handler.data_link = data
         data = data.map_stream(self._sse_handler).map_stream(self.to_pages).use_cache(self._cache)
-        data.metadata["errors"] = self._sse_handler._interactive_mode_errors
+        # data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
         # assert data.limit(0)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
         return data
@@ -430,10 +424,9 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         # +TODO - add `max_url_length: int = 2048,`
         #   It'll be required when you implement `__split_requests` in source_api/http.py
         cache: bool = False,
-        sse_handler: Optional[IStreamAdapter] = None,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-        buffer_limit=250,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ):
         """GetEventsByBookByScopes constructor.
 
@@ -447,7 +440,6 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             result_count_limit: Result count limit.
             filters: Filters using in search for messages.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             max_url_length: API request url max length.
@@ -455,10 +447,9 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         """
         _check_milliseconds(start_timestamp)
         _check_milliseconds(end_timestamp)
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
-            sse_handler=self._sse_handler,
             cache=cache,
+            buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
@@ -518,10 +509,9 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         # +TODO - add `max_url_length: int = 2048,`
         #   It'll be required when you implement `__split_requests` in source_api/http.py
         cache: bool = False,
-        sse_handler: Optional[IStreamAdapter] = None,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
-        buffer_limit=250,
+        buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
         """GetEventsByPageByScopes constructor.
 
@@ -533,16 +523,14 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
             result_count_limit: Result count limit.
             filters: Filters using in search for messages.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
-            sse_handler=self._sse_handler,
             cache=cache,
+            buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
@@ -689,8 +677,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
-        sse_handler: Optional[IStreamAdapter] = None,
-        buffer_limit=250,
+        buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
         """GetMessages constructor.
 
@@ -709,16 +696,14 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         _check_milliseconds(start_timestamp)
         _check_milliseconds(end_timestamp)
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
-            sse_handler=self._sse_handler,
             cache=cache,
+            buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
@@ -801,8 +786,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
-        sse_handler: Optional[IStreamAdapter] = None,
-        buffer_limit=250,
+        buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
         """GetMessagesByGroups Constructor.
 
@@ -818,14 +802,12 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
-            sse_handler=self._sse_handler,
             cache=cache,
+            buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
@@ -875,8 +857,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
-        sse_handler: Optional[IStreamAdapter] = None,
-        buffer_limit: int = 250,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ):
         """GetMessagesByPageByStreams Constructor.
 
@@ -892,13 +873,11 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
-            sse_handler=self._sse_handler,
             cache=cache,
+            buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
@@ -958,8 +937,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
-        sse_handler: Optional[IStreamAdapter] = None,
-        buffer_limit=250,
+        buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
         """GetMessagesByPageByGroups Constructor.
 
@@ -972,14 +950,12 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            sse_handler: SSEEvents handler, by default uses StreamingSSEAdapter
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        self._sse_handler = sse_handler or get_default_sse_adapter(buffer_limit=buffer_limit)
         super().__init__(
-            sse_handler=self._sse_handler,
             cache=cache,
+            buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )

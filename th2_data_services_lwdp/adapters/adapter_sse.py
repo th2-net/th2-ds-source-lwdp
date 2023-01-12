@@ -42,13 +42,11 @@ class SSEAdapter(IStreamAdapter):
         for event in stream:
             if event.event == "error":
                 if th2_data_services.INTERACTIVE_MODE:
-                    # data.metadata Gets Modified
                     self.data_link.metadata["errors"].append(loads(event.data))
                 else:
                     raise HTTPError(event.data)
             if event.event not in self.events_types_blacklist:
-                if i < 6:
-                    # data.metadata Gets Modified
+                if i < 6:  # Generate Dummy Data (Since No Errors..)
                     self.data_link.metadata["errors"].append(i)
                     self._interactive_mode_errors.append(i)
                 i += 1
@@ -56,6 +54,9 @@ class SSEAdapter(IStreamAdapter):
         yield from self.json_processor.fin()
 
 
-def get_default_sse_adapter(buffer_limit=250):
+DEFAULT_BUFFER_LIMIT = 250
+
+
+def get_default_sse_adapter(buffer_limit=DEFAULT_BUFFER_LIMIT):
     """Returns SSEAdapter object."""
     return SSEAdapter(BufferedJSONProcessor(buffer_limit))
