@@ -20,6 +20,7 @@
    - GetEvents -> GetEventsByBookByScopes
    - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
 7. [TH2-4615] Data class now contains api request urls in metadata.
+8. [TH2-4619] sse_handler removed commands constructor. They can accept buffer_limit for special sse_handler.
 
 ## Improvements
 
