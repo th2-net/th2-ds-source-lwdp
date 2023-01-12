@@ -44,6 +44,35 @@ def all_messages(http_data_source: HTTPDataSource) -> DataCase:
         expected_data_values=all_message_bodies_http
     )
 
+@pytest.fixture
+def get_messages_by_page_by_streams(http_data_source: HTTPDataSource) -> Data:
+    pages = http_data_source.command(http.GetPages("demo_book_1", start_timestamp=START_TIME, end_timestamp=END_TIME))
+
+    messages = http_data_source.command(
+        http.GetMessagesByPageByStreams(page=list(pages)[0],stream=['ds-lib-session1','ds-lib-session2'])
+    )
+
+    return messages
+
+@pytest.fixture
+def get_messages_by_book_by_groups(http_data_source: HTTPDataSource) -> Data:
+    messages = http_data_source.command(
+        http.GetMessagesByBookByGroups(start_timestamp=START_TIME,end_timestamp=END_TIME,groups=['ds-lib-session1','ds-lib-session2'],book_id=BOOK_NAME)
+    )
+
+    return messages
+
+@pytest.fixture
+def get_messages_by_page_by_groups(http_data_source: HTTPDataSource) -> Data:
+    pages = http_data_source.command(http.GetPages("demo_book_1", start_timestamp=START_TIME, end_timestamp=END_TIME))
+
+    messages = http_data_source.command(
+        http.GetMessagesByPageByGroups(page=list(pages)[0],groups=['ds-lib-session1','ds-lib-session2'])
+    )
+
+    return messages
+
+
 
 @pytest.fixture
 def get_events_with_one_filter(http_data_source: HTTPDataSource) -> Data:

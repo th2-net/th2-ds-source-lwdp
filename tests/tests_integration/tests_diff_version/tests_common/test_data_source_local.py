@@ -1,5 +1,6 @@
 import pytest
 import requests
+import deepdiff
 
 from th2_data_services.data import Data
 from th2_data_services.exceptions import CommandError
@@ -14,6 +15,17 @@ def test_issue_events(all_events):
 
 def test_issue_messages(all_messages):
     assert list(all_messages.data) == all_messages.expected_data_values
+
+def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups,all_messages):
+    #assert sorted(list(get_messages_by_book_by_groups),key=lambda a: a['messageId']) == sorted(all_messages.expected_data_values,key=lambda a: a['messageId']) 
+    print(get_messages_by_book_by_groups)
+    assert list(get_messages_by_book_by_groups) == all_messages.expected_data_values
+
+def test_find_messages_by_pages_by_groups(get_messages_by_page_by_groups: Data):    
+    assert get_messages_by_page_by_groups.len == 28
+
+def test_find_messages_by_pages_by_streams(get_messages_by_page_by_streams: Data):    
+    assert get_messages_by_page_by_streams.len == 28
 
 def test_find_events_by_id_from_data_provider(http_data_source: HTTPDataSource):
 
@@ -103,7 +115,6 @@ def test_find_messages_by_id_from_data_provider(http_data_source: HTTPDataSource
     assert messages == expected_messages
     assert len(messages) == 2
     assert len(messages_with_one_element) == 1
-
 
 def test_get_x_with_filters(
     get_events_with_one_filter: Data,

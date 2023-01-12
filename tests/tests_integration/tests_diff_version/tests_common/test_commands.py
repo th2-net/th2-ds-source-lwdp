@@ -13,5 +13,5 @@ def test_break_iteration_get_messages(all_messages):
     data = all_messages.data
     for _ in data:
         break
-
+    print(data)
     assert list(data) == all_messages.expected_data_values
