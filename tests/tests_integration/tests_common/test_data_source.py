@@ -13,12 +13,12 @@ from tests.tests_integration.conftest import (
     MESSAGE_ID_1,
     MESSAGE_ID_2,
 )
-from tests.tests_integration.test_bodies.http.event_bodies import (
+from ..test_bodies.http.event_bodies import (
     root_event_body,
     plain_event_1_body,
     filter_event_3_body,
-)
-from tests.tests_integration.test_bodies.http.message_bodies import message_1_body, message_2_body
+) 
+from ..test_bodies.http.message_bodies import message_1_body, message_2_body
 
 
 def test_issue_events(all_events):
@@ -28,11 +28,8 @@ def test_issue_events(all_events):
 def test_issue_messages(all_messages):
     assert list(all_messages.data) == all_messages.expected_data_values
 
-
-def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups, all_messages):
-    # assert sorted(list(get_messages_by_book_by_groups),key=lambda a: a['messageId']) == sorted(all_messages.expected_data_values,key=lambda a: a['messageId'])
-    print(get_messages_by_book_by_groups)
-    assert list(get_messages_by_book_by_groups) == all_messages.expected_data_values
+def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups,all_messages):
+    assert sorted(list(get_messages_by_book_by_groups),key=lambda a: a['messageId']) == sorted(all_messages.expected_data_values,key=lambda a: a['messageId']) 
 
 
 def test_find_messages_by_pages_by_groups(get_messages_by_page_by_groups: Data):
