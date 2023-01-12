@@ -76,6 +76,11 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `message` call returns a single message with the specified id."""
         return self.__encode_url(f"{self._url}/message/{message_id}")
 
+    def get_url_get_pages_info_all(self, book_id: str):
+        """REST-API `search/see/page-infos/{$BOOK_ID}/all` call returns page information with the specified timeframe."""
+        url = f"{self._url}/search/sse/page-infos/{book_id}/all"
+        return self.__encode_url(url)
+
     def get_url_get_pages_info(
         self, book_id: str, start_timestamp: int, end_timestamp: int, limit=None
     ):
