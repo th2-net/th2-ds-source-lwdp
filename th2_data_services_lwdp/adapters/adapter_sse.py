@@ -46,10 +46,11 @@ class SSEAdapter(IStreamAdapter):
                 else:
                     raise HTTPError(event.data)
             if event.event not in self.events_types_blacklist:
-                if i < 6:  # Generate Dummy Data (Since No Errors..)
-                    self.data_link.metadata["errors"].append(i)
-                    self._interactive_mode_errors.append(i)
-                i += 1
+                if th2_data_services.INTERACTIVE_MODE:
+                    if i < 6:  # Generate Dummy Data (Since No Errors..)
+                        self.data_link.metadata["errors"].append(i)
+                        self._interactive_mode_errors.append(i)
+                    i += 1
                 yield from self.json_processor.decode(event.data)
         yield from self.json_processor.fin()
 

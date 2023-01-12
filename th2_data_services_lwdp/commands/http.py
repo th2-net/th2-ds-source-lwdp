@@ -16,6 +16,7 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 
+import th2_data_services
 from th2_data_services import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
@@ -133,10 +134,12 @@ class SSEHandlerClassBase(IHTTPCommand):
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
         data = Data(sse_events_stream)
-        self._sse_handler.data_link = data
+        if th2_data_services.INTERACTIVE_MODE:
+            self._sse_handler.data_link = data
         data = data.map_stream(self._sse_handler).use_cache(self._cache)
-        # data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
-        # assert data.limit(0)
+        # if th2_data_services.INTERACTIVE_MODE:
+        #     data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
+        #     assert data.limit(0)
         data.metadata["urls"] = self._get_urls(data_source)
         return data
 
@@ -352,10 +355,12 @@ class GetPages(SSEHandlerClassBase):
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
         data = Data(sse_events_stream)
-        self._sse_handler.data_link = data
+        if th2_data_services.INTERACTIVE_MODE:
+            self._sse_handler.data_link = data
         data = data.map_stream(self._sse_handler).map_stream(self.to_pages).use_cache(self._cache)
-        # data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
-        # assert data.limit(0)
+        # if th2_data_services.INTERACTIVE_MODE:
+        #     data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
+        #     assert data.limit(0)
         data.metadata["urls"] = self._get_urls(data_source)
         return data
 
