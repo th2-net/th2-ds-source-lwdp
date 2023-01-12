@@ -14,13 +14,13 @@
 import json
 from typing import Union
 
-from th2_data_services.interfaces.adapter import IAdapter
+from th2_data_services.interfaces.adapter import IRecordAdapter
 
 from google.protobuf.json_format import MessageToDict
 from th2_grpc_lw_data_provider.lw_data_provider_pb2 import EventResponse, MessageGroupResponse
 
 
-class GRPCObjectToDictAdapter(IAdapter):
+class GRPCObjectToDictAdapter(IRecordAdapter):
     """GRPC Adapter decodes a GRPC object into a Dict object."""
 
     def handle(self, record: Union[MessageGroupResponse, EventResponse]) -> dict:
