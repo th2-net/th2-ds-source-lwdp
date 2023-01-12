@@ -15,7 +15,6 @@ from json import loads
 from typing import Iterable
 
 import th2_data_services
-from th2_data_services import Data
 from urllib3.exceptions import HTTPError
 
 from th2_data_services.interfaces import IStreamAdapter
@@ -23,7 +22,7 @@ from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
 
 
 class SSEAdapter(IStreamAdapter):
-    def __init__(self, json_processor: BufferedJSONProcessor, data_link: Data = None):
+    def __init__(self, json_processor: BufferedJSONProcessor):
         """SSE adapter. Convert SSE events to dicts.
 
         Args:
@@ -31,7 +30,8 @@ class SSEAdapter(IStreamAdapter):
             data_link: Link to Data object, defaults to None
         """
         self.json_processor = json_processor
-        self.data_link = data_link
+        self.data_link = None
+        self._interactive_mode_errors = []
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
     def handle(self, stream: Iterable):
@@ -50,6 +50,7 @@ class SSEAdapter(IStreamAdapter):
                 if i < 6:
                     # data.metadata Gets Modified
                     self.data_link.metadata["errors"].append(i)
+                    self._interactive_mode_errors.append(i)
                 i += 1
                 yield from self.json_processor.decode(event.data)
         yield from self.json_processor.fin()

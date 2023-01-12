@@ -127,10 +127,19 @@ class SSEHandlerClassBase(IHTTPCommand):
         Returns:
              Data
         """
+        # sse_events_stream = partial(self._sse_events_stream, data_source)
+        # data = Data(sse_events_stream)
+        # self._sse_handler.data_link = data
+        # data = data.map_stream(self._sse_handler).use_cache(self._cache)
+        # data.metadata["urls"] = self._get_urls(data_source.source_api)
+        # return data
         sse_events_stream = partial(self._sse_events_stream, data_source)
         data = Data(sse_events_stream)
         self._sse_handler.data_link = data
         data = data.map_stream(self._sse_handler).use_cache(self._cache)
+        # data.metadata["errors"] isn't added...
+        data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
+        assert data.limit(0)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
         return data
 
@@ -310,10 +319,12 @@ class GetPages(SSEHandlerClassBase):
         # data = Data(source, cache=self._cache)
         # data.metadata["urls"] = self._get_urls(data_source.source_api)
         # return data
-        data = Data(partial(self._sse_events_stream, data_source))
+        sse_stream = partial(self._sse_events_stream, data_source)
+        data = Data(sse_stream)
         self._sse_handler.data_link = data
-        data = data.map_stream(self._sse_handler).map_stream(self.to_pages).use_cache()
-        print(">>>", data.metadata)  # Errors Not Added Here...?
+        data = data.map_stream(self._sse_handler).map_stream(self.to_pages).use_cache(self._cache)
+        data.metadata["errors"] = self._sse_handler._interactive_mode_errors
+        # assert data.limit(0)
         data.metadata["urls"] = self._get_urls(data_source.source_api)
         return data
 
