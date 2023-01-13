@@ -1,13 +1,25 @@
 import pytest
 import requests
-import deepdiff
 
 from th2_data_services.data import Data
 from th2_data_services.exceptions import CommandError
-from ..conftest import STREAM_1, STREAM_2, http, HTTPDataSource
-from .. import EVENT_ID_TEST_DATA_ROOT, EVENT_ID_PLAIN_EVENT_1, MESSAGE_ID_1, MESSAGE_ID_2
-from ..test_bodies.http.event_bodies import root_event_body, plain_event_1_body, filter_event_3_body
-from ..test_bodies.http.message_bodies import message_1_body, message_2_body
+from tests.tests_integration.conftest import (
+    STREAM_1,
+    STREAM_2,
+    http,
+    HTTPDataSource,
+    EVENT_ID_TEST_DATA_ROOT,
+    EVENT_ID_PLAIN_EVENT_1,
+    MESSAGE_ID_1,
+    MESSAGE_ID_2,
+)
+from tests.tests_integration.test_bodies.http.event_bodies import (
+    root_event_body,
+    plain_event_1_body,
+    filter_event_3_body,
+)
+from tests.tests_integration.test_bodies.http.message_bodies import message_1_body, message_2_body
+
 
 def test_issue_events(all_events):
     assert list(all_events.data) == all_events.expected_data_values
@@ -16,19 +28,22 @@ def test_issue_events(all_events):
 def test_issue_messages(all_messages):
     assert list(all_messages.data) == all_messages.expected_data_values
 
-def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups,all_messages):
-    #assert sorted(list(get_messages_by_book_by_groups),key=lambda a: a['messageId']) == sorted(all_messages.expected_data_values,key=lambda a: a['messageId']) 
+
+def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups, all_messages):
+    # assert sorted(list(get_messages_by_book_by_groups),key=lambda a: a['messageId']) == sorted(all_messages.expected_data_values,key=lambda a: a['messageId'])
     print(get_messages_by_book_by_groups)
     assert list(get_messages_by_book_by_groups) == all_messages.expected_data_values
 
-def test_find_messages_by_pages_by_groups(get_messages_by_page_by_groups: Data):    
+
+def test_find_messages_by_pages_by_groups(get_messages_by_page_by_groups: Data):
     assert get_messages_by_page_by_groups.len == 28
 
-def test_find_messages_by_pages_by_streams(get_messages_by_page_by_streams: Data):    
+
+def test_find_messages_by_pages_by_streams(get_messages_by_page_by_streams: Data):
     assert get_messages_by_page_by_streams.len == 28
 
-def test_find_events_by_id_from_data_provider(http_data_source: HTTPDataSource):
 
+def test_find_events_by_id_from_data_provider(http_data_source: HTTPDataSource):
     expected_event = root_event_body
 
     expected_events = [expected_event, plain_event_1_body]
@@ -98,7 +113,6 @@ def test_find_events_by_id_from_data_provider(http_data_source: HTTPDataSource):
 
 
 def test_find_messages_by_id_from_data_provider(http_data_source: HTTPDataSource):
-
     expected_message = message_1_body
 
     expected_messages = [message_1_body, message_2_body]
@@ -116,6 +130,7 @@ def test_find_messages_by_id_from_data_provider(http_data_source: HTTPDataSource
     assert len(messages) == 2
     assert len(messages_with_one_element) == 1
 
+
 def test_get_x_with_filters(
     get_events_with_one_filter: Data,
     get_events_with_filters: Data,
@@ -127,19 +142,32 @@ def test_get_x_with_filters(
 
 def test_find_message_by_id_from_data_provider_with_error(http_data_source: HTTPDataSource):
     with pytest.raises(CommandError) as exc_info:
-        http_data_source.command(http.GetMessageById("demo-conn_not_exist:first:1624005448022245399"))
+        http_data_source.command(
+            http.GetMessageById("demo-conn_not_exist:first:1624005448022245399")
+        )
 
 
 def test_get_events_from_data_provider_with_error(http_data_source: HTTPDataSource):
     with pytest.raises(TypeError) as exc_info:
-        events = http_data_source.command(http.GetEventsByBookByScopes(start_timestamp="test", end_timestamp="test", book_id="test", scopes=["test"]))
+        events = http_data_source.command(
+            http.GetEventsByBookByScopes(
+                start_timestamp="test", end_timestamp="test", book_id="test", scopes=["test"]
+            )
+        )
         list(events)
     assert "replace() takes no keyword arguments" in str(exc_info)
 
 
 def test_get_messages_from_data_provider_with_error(http_data_source: HTTPDataSource):
     with pytest.raises(TypeError) as exc_info:
-        messages = http_data_source.command(http.GetMessagesByBookByStreams(book_id="demo_book_1",start_timestamp="test", end_timestamp="test", streams=["test"]))
+        messages = http_data_source.command(
+            http.GetMessagesByBookByStreams(
+                book_id="demo_book_1",
+                start_timestamp="test",
+                end_timestamp="test",
+                streams=["test"],
+            )
+        )
         list(messages)
     assert "replace() takes no keyword arguments" in str(exc_info)
 
@@ -168,7 +196,9 @@ def test_get_messages_with_multiple_url(
         lambda record: record.get("sessionId") == STREAM_1 or record.get("sessionId") == STREAM_2
     )
 
-    assert len(list(messages)) == 6 and len(list(messages_hand_actual)) == len(list(messages_hand_expected))
+    assert len(list(messages)) == 6 and len(list(messages_hand_actual)) == len(
+        list(messages_hand_expected)
+    )
 
 
 # def test_unprintable_character(http_data_source: HTTPDataSource):
