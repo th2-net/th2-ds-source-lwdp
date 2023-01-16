@@ -26,6 +26,7 @@ def test_issue_events(all_events):
 
 
 def test_issue_messages(all_messages):
+    print(all_messages.data)
     assert list(all_messages.data) == all_messages.expected_data_values
 
 def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups,all_messages):
@@ -152,7 +153,8 @@ def test_get_events_from_data_provider_with_error(http_data_source: HTTPDataSour
             )
         )
         list(events)
-    assert "replace() takes no keyword arguments" in str(exc_info)
+    #assert "replace() takes no keyword arguments" in str(exc_info)
+    assert "Provided timestamp should be `datetime` object" in str(exc_info)
 
 
 def test_get_messages_from_data_provider_with_error(http_data_source: HTTPDataSource):
@@ -166,7 +168,8 @@ def test_get_messages_from_data_provider_with_error(http_data_source: HTTPDataSo
             )
         )
         list(messages)
-    assert "replace() takes no keyword arguments" in str(exc_info)
+    #assert "replace() takes no keyword arguments" in str(exc_info)
+    assert "Provided timestamp should be `datetime` object" in str(exc_info)
 
 
 def test_check_url_for_http_data_source():

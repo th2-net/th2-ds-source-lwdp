@@ -59,17 +59,29 @@ def all_events(http_data_source: HTTPDataSource) -> DataCase:
 
 @pytest.fixture
 def all_messages(http_data_source: HTTPDataSource) -> DataCase:
-    return DataCase(
-        data=http_data_source.command(
-            http.GetMessagesByBookByStreams(
+    comm = http.GetMessagesByBookByStreams(
                 start_timestamp=START_TIME,
                 end_timestamp=END_TIME,
                 streams=[STREAM_1, STREAM_2],
                 book_id=BOOK_NAME,
             )
+    case = DataCase(
+        data=http_data_source.command(
+            comm
         ),
         expected_data_values=all_message_bodies_http,
     )
+    with open("log.txt", mode='a') as f:
+        print(id(case),file=f)
+        print(id(case.data), file=f)
+        print("COMMAND "+str(id(comm)),file=f)
+        print("HANDLER "+str(id(comm._sse_handler)),file=f)
+        print(file=f)
+    print(id(case))
+    print(id(case.data))
+    print("COMMAND "+str(id(comm)))
+    print("HANDLER "+str(id(comm._sse_handler)))
+    return case
 
 
 @pytest.fixture

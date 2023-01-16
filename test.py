@@ -243,22 +243,20 @@ ds = HTTPDataSource("http://th2-kuber-test03:32681")
 
 START_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=5, microsecond=0) 
 END_TIME   = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=6, microsecond=0)  
+
 BOOK_NAME='demo_book_1'
 STREAMS = ['ds-lib-session1','ds-lib-session2']
+SCOPES = ['th2-scope']
+comm = commands.GetMessagesByBookByStreams(
+                start_timestamp=START_TIME,
+                end_timestamp=END_TIME,
+                streams=STREAMS,
+                book_id=BOOK_NAME,
+            )
 
-data=ds.command(
-            commands.GetMessagesByBookByStreams(start_timestamp=START_TIME,
-                                 end_timestamp=END_TIME,
-                                 streams=STREAMS,
-                                 book_id=BOOK_NAME)
-        )
-
-from deepdiff import DeepDiff
-
-for i in range(100):
-    for _ in data:
-        print(len(list(data)))
-        print(list(data)==all_message_bodies_http)
+data = ds.command(comm)
+for i in data:
+	print(i['messageId'])
 
 #page = list(pages)[0]
 # s = time.time()
