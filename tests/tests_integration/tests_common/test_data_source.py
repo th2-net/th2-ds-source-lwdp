@@ -198,7 +198,7 @@ def test_get_messages_with_multiple_url(
 
     assert len(list(messages)) == 6 and len(list(messages_hand_actual)) == len(
         list(messages_hand_expected)
-    )
+    )#I can talk like this :D
 
 
 # def test_unprintable_character(http_data_source: HTTPDataSource):
@@ -239,6 +239,7 @@ def test_messages_for_data_loss(all_messages):
     It might happen if source inside of Data is object of generator instead of
     generator function.
     """
+    
     messages = all_messages.data
     for _ in range(3):
         for _ in messages:
