@@ -11,7 +11,7 @@ def test_interactive_mode_errors_without_command(dummy_error_events):
     events = dummy_error_events.map_stream(adapter)
     assert events.limit(0)  # For 'errors2' To Be Recorded
 
-    # for _ in events: pass # Object will get iterated and metadata['errors2'] gets doubled.
+    # for _ in events: pass # Object will get iterated and metadata['errors2'] *WILL NOT* gets doubled.
 
     events.metadata["errors2"] = adapter.interactive_mode_errors
     assert events.metadata.get("errors") is None
@@ -28,7 +28,7 @@ def test_interactive_mode_errors_without_command_with_different_assert(dummy_err
     assert events.filter(lambda x: x)  # For 'errors2' To Be Recorded
     events.metadata["errors2"] = adapter.interactive_mode_errors
     assert events.metadata.get("errors") is None
-    assert events.metadata["errors2"] != []
+    assert len(events.metadata["errors2"]) == dummy_error_events.len
 
 
 @pytest.mark.skip(reason="Not 100% accurate tests, since errors events arent actually present.")

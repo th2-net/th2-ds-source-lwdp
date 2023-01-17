@@ -32,7 +32,6 @@ class SSEAdapter(IStreamAdapter):
         self.json_processor = json_processor
         self.data_link = None
         self.interactive_mode_errors = []
-        # self.iterated = False
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
     def handle(self, stream: Iterable):
@@ -43,9 +42,11 @@ class SSEAdapter(IStreamAdapter):
         for event in stream:
             if event.event == "error":
                 if th2_data_services.INTERACTIVE_MODE:
-                    # if self.iterated: continue
-                    self.data_link.metadata["errors"].append(loads(event.data))
-                    self.interactive_mode_errors.append(loads(event.data))
+                    data = loads(event.data)
+                    if data in self.interactive_mode_errors:
+                        continue
+                    self.data_link.metadata["errors"].append(data)
+                    self.interactive_mode_errors.append(data)
                 else:
                     raise HTTPError(event.data)
             if event.event not in self.events_types_blacklist:
@@ -54,7 +55,6 @@ class SSEAdapter(IStreamAdapter):
                 #     self.interactive_mode_errors.append([i])
                 #     i += 1
                 yield from self.json_processor.decode(event.data)
-        # self.iterated = True
         yield from self.json_processor.fin()
 
 
