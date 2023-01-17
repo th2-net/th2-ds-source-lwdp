@@ -134,12 +134,12 @@ class SSEHandlerClassBase(IHTTPCommand):
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
         data = Data(sse_events_stream)
-        if th2_data_services.INTERACTIVE_MODE:
+        if th2_data_services.INTERACTIVE_MODE:  # For Data Link Solution
             self._sse_handler.data_link = data
         data = data.map_stream(self._sse_handler).use_cache(self._cache)
-        # if th2_data_services.INTERACTIVE_MODE:
-        #     data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
-        #     assert data.limit(0)
+        if th2_data_services.INTERACTIVE_MODE:  # For SSEAdapter.attr Solution
+            data.limit(0)
+            data.metadata["errors2"] = self._sse_handler.interactive_mode_errors
         data.metadata["urls"] = self._get_urls(data_source)
         return data
 
@@ -288,7 +288,7 @@ class GetPageByName(IHTTPCommand):
         self._page_name = page_name
 
     def handle(self, data_source: HTTPDataSource) -> Page:  # noqa: D102
-        pages = data_source.command(GetPages(self._book_id, all=True)).filter(
+        pages = data_source.command(GetPages(self._book_id)).filter(
             lambda page: page.name == self._page_name
         )
         for page in pages:
@@ -358,9 +358,9 @@ class GetPages(SSEHandlerClassBase):
         if th2_data_services.INTERACTIVE_MODE:
             self._sse_handler.data_link = data
         data = data.map_stream(self._sse_handler).map_stream(self.to_pages).use_cache(self._cache)
-        # if th2_data_services.INTERACTIVE_MODE:
-        #     data.metadata["errors2"] = self._sse_handler._interactive_mode_errors
-        #     assert data.limit(0)
+        if th2_data_services.INTERACTIVE_MODE:
+            assert data.limit(0)
+            data.metadata["errors2"] = self._sse_handler.interactive_mode_errors
         data.metadata["urls"] = self._get_urls(data_source)
         return data
 

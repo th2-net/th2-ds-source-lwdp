@@ -1,9 +1,9 @@
-from datetime import datetime
-
-import pytest
-
-from th2_data_services import Data
 from . import HTTPAPI, HTTPDataSource, http, LwDPFilter, DEMO_PORT  # noqa
+from sseclient import Event as SSEEvent
+from datetime import datetime
+from th2_data_services import Data
+import pytest
+import json
 
 
 @pytest.fixture
@@ -173,3 +173,26 @@ def messages_from_data_source_with_test_streams(
         )
     )
     return messages
+
+
+@pytest.fixture
+def dummy_error_events():
+    return Data(
+        [
+            SSEEvent(id=i, event="error", data=json.dumps({"id": i, "error": f"error message {i}"}))
+            for i in range(1, 11)
+        ]
+    )
+
+
+@pytest.fixture
+def events_from_demo_book_1(data_source: HTTPDataSource) -> Data:
+    command = http.GetEventsByBookByScopes(
+        book_id="demo_book_1",
+        scopes=["th2-scope"],
+        start_timestamp=START_TIME,
+        end_timestamp=END_TIME,
+    )
+    events = data_source.command(command)
+    print(events)
+    return events
