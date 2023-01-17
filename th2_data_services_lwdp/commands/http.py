@@ -321,8 +321,6 @@ class GetPages(SSEHandlerClassBase):
             self._all_results = False
         super().__init__(cache, buffer_limit=buffer_limit)
         self._book_id = book_id
-        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
-        self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
         self._result_limit = result_limit
 
     def _get_urls(self, data_source: HTTPDataSource):
@@ -349,9 +347,9 @@ class GetPages(SSEHandlerClassBase):
         Returns:
              Data
         """
-        sse_stream = partial(self._sse_events_stream, data_source)
+        sse_events_stream = partial(self._sse_events_stream, data_source)
         data = (
-            Data(sse_stream)
+            Data(sse_events_stream)
             .map_stream(self._sse_handler)
             .map_stream(self.to_pages)
             .use_cache(self._cache)
@@ -483,7 +481,6 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         _check_milliseconds(start_timestamp)
-        _check_milliseconds(end_timestamp)
         if end_timestamp:
             _check_milliseconds(end_timestamp)
         super().__init__(
@@ -725,7 +722,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
-        buffer_limit=DEFAULT_BUFFER_LIMIT,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ):
         """GetMessages constructor.
 
