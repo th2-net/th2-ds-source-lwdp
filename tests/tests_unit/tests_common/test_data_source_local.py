@@ -5,7 +5,7 @@ import requests
 
 from th2_data_services.data import Data
 from th2_data_services.exceptions import CommandError
-from ..conftest import http, HTTPDataSource
+from tests.tests_integration.conftest import http, HTTPDataSource
 
 """
 Slava Ermakov 2022.10.31

@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from ..conftest import LwDPFilter, HTTPAPI
+from tests.tests_integration.conftest import LwDPFilter, HTTPAPI
 
 
 def test_generate_url_search_sse_events():

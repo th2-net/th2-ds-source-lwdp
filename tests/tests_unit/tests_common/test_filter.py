@@ -1,4 +1,4 @@
-from ..conftest import LwDPFilter
+from tests.tests_integration.conftest import LwDPFilter
 
 
 def test_filter_url():

@@ -13,12 +13,12 @@ from tests.tests_integration.conftest import (
     MESSAGE_ID_1,
     MESSAGE_ID_2,
 )
-from ..test_bodies.http.event_bodies import (
+from tests.tests_integration.test_bodies.http.event_bodies import (
     root_event_body,
     plain_event_1_body,
     filter_event_3_body,
 ) 
-from ..test_bodies.http.message_bodies import message_1_body, message_2_body
+from tests.tests_integration.test_bodies.http.message_bodies import message_1_body, message_2_body
 
 
 def test_issue_events(all_events):
