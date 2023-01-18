@@ -33,3 +33,4 @@
 5. HTTP Commands changed:
    - GetEvents -> GetEventsByBookByScopes
    - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
+6. [TH2-4672] Removed ability to add custom sse handler in commands. Buffer limit can be changed.
