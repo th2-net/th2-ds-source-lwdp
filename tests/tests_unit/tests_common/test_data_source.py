@@ -2,14 +2,7 @@ from datetime import datetime
 
 import pytest
 import requests
-<<<<<<< HEAD:tests/tests_unit/tests_common/test_data_source_local.py
-
-from th2_data_services.data import Data
-from th2_data_services.exceptions import CommandError
-from tests.tests_integration.conftest import http, HTTPDataSource
-=======
 from ..conftest import http, HTTPDataSource
->>>>>>> b139bb5ecfac3a8275614bcea8670c6777de88f7:tests/tests_unit/tests_common/test_data_source.py
 
 
 def test_check_url_for_data_source():
