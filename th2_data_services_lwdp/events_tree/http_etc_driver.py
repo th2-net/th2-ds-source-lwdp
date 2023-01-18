@@ -29,7 +29,7 @@ class HttpETCDriver(IETCDriver):
         event_struct: EventStruct = http_event_struct,
         use_stub: bool = False,
     ):
-        """The driver for HTTP EventsTreeCollection.
+        """The driver for EventsTreeCollection (HTTP).
 
         Args:
             event_struct: Structure of the event.

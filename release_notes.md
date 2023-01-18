@@ -33,3 +33,6 @@
 5. HTTP Commands changed:
    - GetEvents -> GetEventsByBookByScopes
    - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
+6. [TH2-4651] 
+   - EventsTreeCollection & ParentEventsTreeCollection removed.
+   - HttpETCDriver added.
