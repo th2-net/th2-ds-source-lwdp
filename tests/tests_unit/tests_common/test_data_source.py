@@ -2,20 +2,7 @@ from datetime import datetime
 
 import pytest
 import requests
-
-from th2_data_services.data import Data
-from th2_data_services.exceptions import CommandError
 from ..conftest import http, HTTPDataSource
-
-"""
-Slava Ermakov 2022.10.31
-
-All tests below were skipped because there was a plan to change 
-DataSource classes to mocks.
-
-The same tests are placed in tests/tests_integration 
-"""
-
 
 
 def test_check_url_for_data_source():
