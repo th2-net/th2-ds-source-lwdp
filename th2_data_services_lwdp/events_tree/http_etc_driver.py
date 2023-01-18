@@ -97,16 +97,5 @@ class HttpETCDriver(IETCDriver):
         """
         return http_event_stub_builder.build({self.event_struct.EVENT_ID: id_})
 
-    # def stub_event_name(self, id_: str) -> str:
-    #     """Returns stub event name.
-    #
-    #     Args:
-    #         id_: Stub Event ID
-    #
-    #     Returns:
-    #         Stub Event Name
-    #     """
-    #     pass
-
     def stub_event_name(self):
-        pass
+        return self.event_struct.NAME
