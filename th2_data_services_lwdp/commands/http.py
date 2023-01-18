@@ -98,7 +98,6 @@ class SSEHandlerClassBase(IHTTPCommand):
         api: HTTPAPI = data_source.source_api
         urls: List[str] = self._get_urls(data_source)
         for url in urls:
-            print(url)
             # LOG             logger.info(url)
             yield from api.execute_sse_request(url)
 

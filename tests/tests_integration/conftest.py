@@ -71,16 +71,6 @@ def all_messages(http_data_source: HTTPDataSource) -> DataCase:
         ),
         expected_data_values=all_message_bodies_http,
     )
-    '''with open("log.txt", mode='a') as f:
-        print(id(case),file=f)
-        print(id(case.data), file=f)
-        print("COMMAND "+str(id(comm)),file=f)
-        print("HANDLER "+str(id(comm._sse_handler)),file=f)
-        print(file=f)
-    print(id(case))
-    print(id(case.data))
-    print("COMMAND "+str(id(comm)))
-    print("HANDLER "+str(id(comm._sse_handler)))'''
     return case
 
 

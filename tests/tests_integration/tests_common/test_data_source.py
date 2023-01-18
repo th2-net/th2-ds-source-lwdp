@@ -26,7 +26,6 @@ def test_issue_events(all_events):
 
 
 def test_issue_messages(all_messages):
-    print(all_messages.data)
     assert list(all_messages.data) == all_messages.expected_data_values
 
 def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups,all_messages):

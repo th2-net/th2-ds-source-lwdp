@@ -1,2 +1,2 @@
 
-python3 -m pytest tests/tests_integration -n 4
+python3 -m pytest tests/tests_integration
