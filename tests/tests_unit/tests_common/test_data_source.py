@@ -2,7 +2,8 @@ from datetime import datetime
 
 import pytest
 import requests
-from tests.tests_integration.conftest import http, HTTPDataSource
+from th2_data_services_lwdp.commands import http
+from th2_data_services_lwdp.data_source import HTTPDataSource
 
 
 def test_check_url_for_data_source():
