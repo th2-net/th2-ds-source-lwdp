@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 import requests
-from ..conftest import http, HTTPDataSource
+from tests.tests_integration.conftest import http, HTTPDataSource
 
 
 def test_check_url_for_data_source():
