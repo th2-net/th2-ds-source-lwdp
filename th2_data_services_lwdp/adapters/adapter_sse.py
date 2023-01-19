@@ -39,6 +39,9 @@ class SSEAdapter(IStreamAdapter):
         yield from self.json_processor.fin()
 
 
-def get_default_sse_adapter(buffer_limit=250):
+DEFAULT_BUFFER_LIMIT = 250
+
+
+def get_default_sse_adapter(buffer_limit=DEFAULT_BUFFER_LIMIT):
     """Returns SSEAdapter object."""
     return SSEAdapter(BufferedJSONProcessor(buffer_limit))
