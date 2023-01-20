@@ -9,12 +9,9 @@ class Page:
         Args:
             data (Dict): Page Data
         """
-        id_ = data.pop("id")
-        data["book"] = id_["book"]
-        data["name"] = id_["name"]
         self.data = data
-        self.book = data["book"]
-        self.name = data["name"]
+        self.book = data["id"]["book"]
+        self.name = data["id"]["name"]
         self.comment = data["comment"]
         self.start_timestamp = data["started"]
         self.end_timestamp = data["ended"]
@@ -28,7 +25,7 @@ class Page:
         return self.__str__()
 
 
-def _get_page_object(book_id, page, data_source) -> Page:  # noqa
+def _get_page_object(book_id, page: Unioin[Page, str], data_source) -> Page:  # noqa
     if isinstance(page, str):
         if book_id is None:
             raise Exception("If page name is passed then book_id should be passed too!")

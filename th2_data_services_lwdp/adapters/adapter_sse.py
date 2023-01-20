@@ -21,6 +21,11 @@ from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
 
 
 class SSEAdapter(IStreamAdapter):
+    # TODO - I don't sure, but maybe it's a good idea to move it to DS-core
+    #   because this adapter doesn't have any lwdp-specific information
+    #   visa-versa, it's common for each sse protocol
+    #   except event.event types.
+    #   The best solution to have separate repo, that has all this code.
     def __init__(self, json_processor: BufferedJSONProcessor):
         """SSE adapter. Convert SSE events to dicts.
 
