@@ -37,7 +37,7 @@ from th2_data_services_lwdp.utils import (
 )
 from th2_grpc_common.common_pb2 import Event
 from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
-from th2_data_services_lwdp.utils.pages import PageNotFound, _get_page_object
+from th2_data_services_lwdp.utils.page import PageNotFound, _get_page_object
 
 
 # LOG import logging

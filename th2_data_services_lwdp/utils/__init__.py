@@ -13,4 +13,4 @@
 #  limitations under the License.
 
 from .misc import _check_list_or_tuple, _check_milliseconds
-from .pages import Page
+from .page import Page
