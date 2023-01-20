@@ -1,5 +1,3 @@
-from importlib_metadata import version, PackageNotFoundError
-
 DEMO_PORT = "32681"  # LwDP provider v2
 
 from th2_data_services_lwdp.data_source import HTTPDataSource  # noqa
