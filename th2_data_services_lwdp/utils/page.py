@@ -1,5 +1,6 @@
 from typing import Dict
 from th2_data_services_lwdp.commands import http
+from typing import Union
 
 
 class Page:
@@ -25,7 +26,7 @@ class Page:
         return self.__str__()
 
 
-def _get_page_object(book_id, page: Unioin[Page, str], data_source) -> Page:  # noqa
+def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
     if isinstance(page, str):
         if book_id is None:
             raise Exception("If page name is passed then book_id should be passed too!")
