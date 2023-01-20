@@ -23,12 +23,12 @@ from th2_data_services_lwdp.interfaces.command import IHTTPCommand
 from th2_data_services_lwdp.data_source.http import HTTPDataSource
 from th2_data_services_lwdp.source_api.http import HTTPAPI
 from th2_data_services_lwdp.streams import Streams, Stream
-from th2_data_services.sse_client import SSEClient
+from th2_data_services.utils.sse_client import SSEClient
 from th2_data_services_lwdp.adapters.adapter_sse import (
     SSEAdapter,
     DEFAULT_BUFFER_LIMIT,
 )
-from th2_data_services.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2_data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
 from th2_data_services_lwdp.utils import (
     Page,
