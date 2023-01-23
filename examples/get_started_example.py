@@ -7,7 +7,7 @@ from th2_data_services_lwdp.streams import Streams, Stream
 
 # [1] Create data source object to connect to lightweight data provider.
 provider_url_link = f"http://10.100.66.105:32681"
-data_source = HTTPDataSource()
+data_source = HTTPDataSource(provider_url_link)
 
 # [2] Getting books, pages, scopes, groups and aliases.
 # [2.1] Get books.
