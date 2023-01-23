@@ -6,9 +6,8 @@ from datetime import datetime
 from th2_data_services_lwdp.streams import Streams, Stream
 
 # [1] Create data source object to connect to lightweight data provider.
-DEMO_HOST = "10.100.66.105"  # Note that this host is only accessible from exactpro domain
-DEMO_PORT = "32681"
-data_source = HTTPDataSource(f"http://{DEMO_HOST}:{DEMO_PORT}")
+provider_url_link = f"http://10.100.66.105:32681"
+data_source = HTTPDataSource()
 
 # [2] Getting books, pages, scopes, groups and aliases.
 # [2.1] Get books.
