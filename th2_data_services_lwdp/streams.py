@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 
 from th2_grpc_common.common_pb2 import Direction
 from th2_grpc_lw_data_provider.lw_data_provider_pb2 import MessageStream
@@ -10,7 +10,7 @@ class Stream:
     The class gives the opportunity to make stream with direction.
     """
 
-    def __init__(self, alias: str, direction: str = None):
+    def __init__(self, alias: str, direction: Optional[int] = None):
         """Streams constructor.
 
         Args:
@@ -19,7 +19,7 @@ class Stream:
         """
         self._alias = alias
         if direction is not None:
-            direction = direction.upper()
+            direction = str(direction)
             if direction not in ("1", "2"):
                 raise ValueError("The direction must be '1' or '2'.")
         self._direction = direction
@@ -50,7 +50,6 @@ class Stream:
                 MessageStream(name=self._alias, direction=Direction.FIRST),
                 MessageStream(name=self._alias, direction=Direction.SECOND),
             ]
-            return result
         return [
             MessageStream(name=stream, direction=Direction.Value(self._direction))
             for stream in self._aliases
@@ -63,7 +62,7 @@ class Streams:
     The class gives the opportunity to make list of streams with direction for each.
     """
 
-    def __init__(self, aliases: List[str], direction: str = None):
+    def __init__(self, aliases: List[str], direction: Optional[int] = None):
         """Streams constructor.
 
         Args:
@@ -72,7 +71,7 @@ class Streams:
         """
         self._aliases = aliases
         if direction is not None:
-            direction = direction.upper()
+            direction = str(direction)
             if direction not in ("1", "2"):
                 raise ValueError("The direction must be '1' or '2'.")
         self._direction = direction

@@ -338,7 +338,7 @@ class GetPages(SSEHandlerClassBase):
         for event_data in stream:
             yield Page(event_data)
 
-    def _data_object(self, data_source: HTTPDataSource) -> Data:
+    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
 
         Args:
@@ -435,7 +435,6 @@ class GetEventsById(IHTTPCommand):
         return result
 
 
-# class GetEvents(SSEHandlerClassBase):
 class GetEventsByBookByScopes(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
