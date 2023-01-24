@@ -14,15 +14,18 @@
 
 from typing import Iterable
 
-from sseclient import Event as SSEEvent
 from urllib3.exceptions import HTTPError
-import orjson as json
 
-from th2_data_services.interfaces import IAdapter
+from th2_data_services.interfaces import IStreamAdapter
 from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
 
 
-class SSEAdapter(IAdapter):
+class SSEAdapter(IStreamAdapter):
+    # TODO - I don't sure, but maybe it's a good idea to move it to DS-core
+    #   because this adapter doesn't have any lwdp-specific information
+    #   visa-versa, it's common for each sse protocol
+    #   except event.event types.
+    #   The best solution to have separate repo, that has all this code.
     def __init__(self, json_processor: BufferedJSONProcessor):
         """SSE adapter. Convert SSE events to dicts.
 
@@ -32,33 +35,7 @@ class SSEAdapter(IAdapter):
         self.json_processor = json_processor
         self.events_types_blacklist = {"close", "keep_alive", "message_ids"}
 
-    def handle(self, record: SSEEvent) -> dict:
-        """Adapter handler.
-
-        Args:
-            record: SSE Event.
-
-        Returns:
-            Dict object.
-        """
-        if record.event == "error":
-            raise HTTPError(record.data)
-        if record.event not in ["close", "keep_alive", "message_ids"]:
-            try:
-                return json.loads(record.data)
-            except json.JSONDecodeError as e:
-                raise ValueError(
-                    f"json.decoder.JSONDecodeError: Invalid json received.\n"
-                    f"{e}\n"
-                    f"{record.data}"
-                )
-
-    def handle_stream(self, stream: Iterable):
-        # We need this block because we put generator function in the commands.
-        # TODO this hack will be removed when we add Data.map_stream
-        if callable(stream):
-            stream = stream()
-
+    def handle(self, stream: Iterable):
         for event in stream:
             if event.event == "error":
                 raise HTTPError(event.data)
@@ -67,6 +44,9 @@ class SSEAdapter(IAdapter):
         yield from self.json_processor.fin()
 
 
-def get_default_sse_adapter(buffer_limit=250):
+DEFAULT_BUFFER_LIMIT = 250
+
+
+def get_default_sse_adapter(buffer_limit=DEFAULT_BUFFER_LIMIT):
     """Returns SSEAdapter object."""
     return SSEAdapter(BufferedJSONProcessor(buffer_limit))

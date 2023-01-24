@@ -2,7 +2,6 @@ from th2_data_services_lwdp.filters.filter import LwDPFilter
 
 
 def test_filter_url():
-    """Old style filters."""
     filter_ = LwDPFilter("type", ["one", 2, "three"], False, False)
     assert (
         filter_.url()
