@@ -1,6 +1,10 @@
 from typing import List
+
+from th2_data_services.events_tree import EventTreeCollection
+
 from th2_data_services_lwdp.commands import http as commands
 from th2_data_services_lwdp.data_source import HTTPDataSource
+from th2_data_services_lwdp.events_tree import HttpETCDriver
 from th2_data_services_lwdp.streams import Streams, Stream
 from th2_data_services import Data
 from datetime import datetime
@@ -173,4 +177,15 @@ messages_by_page_name_by_groups: Data[dict] = data_source.command(
 )
 
 # [4] ETCDriver
-# TODO - TBU
+#   To work with EventTreeCollection and its children we need to use special driver.
+#   This driver contains lwdp-related methods that ETC required.
+
+# [4.1] Init driver
+etc_driver = HttpETCDriver(data_source=data_source, use_stub=False)
+# [4.2] Init ETC object
+etc = EventTreeCollection(etc_driver)
+
+# [4.3] Build Event Trees inside ETC and recover unknown events if it has them.
+etc.build(events)
+etc.recover_unknown_events()
+# See more info about how to use ETC in th2-data-services lib documentation.
