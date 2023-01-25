@@ -1,4 +1,4 @@
-# Lightweight Data Provider Data Source (2.0.1.0)
+# Lightweight Data Provider Data Source (major version 2).
 # Introduction
 This repository is an implementation of data-services data source for Lightweight Data Provider V2.
 
