@@ -33,7 +33,7 @@ HTTP_PORT = "32681"  # HTTP lwdp
 
 
 @pytest.fixture
-def http_data_source():
+def http_data_source() -> HTTPDataSource:
     HOST = "10.100.66.105"  # de-th2-qa
     data_source = HTTPDataSource(f"http://{HOST}:{HTTP_PORT}")
     return data_source
@@ -60,15 +60,13 @@ def all_events(http_data_source: HTTPDataSource) -> DataCase:
 @pytest.fixture
 def all_messages(http_data_source: HTTPDataSource) -> DataCase:
     comm = http.GetMessagesByBookByStreams(
-                start_timestamp=START_TIME,
-                end_timestamp=END_TIME,
-                streams=[STREAM_1, STREAM_2],
-                book_id=BOOK_NAME,
-            )
+        start_timestamp=START_TIME,
+        end_timestamp=END_TIME,
+        streams=[STREAM_1, STREAM_2],
+        book_id=BOOK_NAME,
+    )
     case = DataCase(
-        data=http_data_source.command(
-            comm
-        ),
+        data=http_data_source.command(comm),
         expected_data_values=all_message_bodies_http,
     )
     return case
