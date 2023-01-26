@@ -34,6 +34,4 @@
    - GetEvents -> GetEventsByBookByScopes
    - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
 6. [TH2-4672] Removed ability to add custom sse handler in commands. Buffer limit can be changed.
-7. [TH2-4651] 
-   - EventsTreeCollection & ParentEventsTreeCollection removed.
-   - HttpETCDriver added.
+7. [TH2-4651] HttpETCDriver added.
