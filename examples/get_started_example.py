@@ -1,10 +1,10 @@
 from typing import List
 
-from th2_data_services.events_tree import EventTreeCollection
+from th2_data_services.event_tree import EventTreeCollection
 
 from th2_data_services_lwdp.commands import http as commands
 from th2_data_services_lwdp.data_source import HTTPDataSource
-from th2_data_services_lwdp.events_tree import HttpETCDriver
+from th2_data_services_lwdp.event_tree import HttpETCDriver
 from th2_data_services_lwdp.streams import Streams, Stream
 from th2_data_services import Data
 from datetime import datetime
