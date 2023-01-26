@@ -22,6 +22,7 @@
      - GetPageByName command added to get Page by name with book_id
      - GetPages(book_id) can be used get all pages, specifying timestamps will only retrieve pages in given time frame.
    - GetByPage commands can now take page name (with book_id) to use it in command.
+8. [TH2-4651] HttpETCDriver added.
 
 ## Improvements
 
@@ -34,4 +35,4 @@
    - GetEvents -> GetEventsByBookByScopes
    - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
 6. [TH2-4672] Removed ability to add custom sse handler in commands. Buffer limit can be changed.
-7. [TH2-4651] HttpETCDriver added.
+
