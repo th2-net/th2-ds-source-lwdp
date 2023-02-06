@@ -1,12 +1,12 @@
 from collections import namedtuple
-from th2_data_services import Data
+from th2.data_services.data import Data
 from datetime import datetime
 import pytest
 
 from tests.tests_integration.test_bodies.http.all_test_event_bodies import all_event_bodies_http
 from tests.tests_integration.test_bodies.http.all_test_message_bodies import all_message_bodies_http
-from th2_data_services_lwdp.data_source import HTTPDataSource
-from th2_data_services_lwdp.filters import NameFilter, TypeFilter
+from th2.data_services.lwdp.data_source import HTTPDataSource
+from th2.data_services.lwdp.filters import NameFilter, TypeFilter
 
 STREAM_1 = "ds-lib-session1"
 STREAM_2 = "ds-lib-session2"
@@ -14,8 +14,8 @@ STREAM_2 = "ds-lib-session2"
 BOOK_NAME = "demo_book_1"
 SCOPE = "th2-scope"
 
-from th2_data_services_lwdp.commands import http  # noqa
-from th2_data_services_lwdp.source_api import HTTPAPI  # noqa
+from th2.data_services.lwdp.commands import http  # noqa
+from th2.data_services.lwdp.source_api import HTTPAPI  # noqa
 
 START_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=5, microsecond=0)
 END_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=6, microsecond=0)
