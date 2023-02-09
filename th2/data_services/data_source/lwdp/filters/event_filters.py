@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2.data_services.lwdp.filters.filter import LwDPEventFilter
+from th2.data_services.data_source.lwdp.filters.filter import LwDPEventFilter
 
 
 class TypeFilter(LwDPEventFilter):

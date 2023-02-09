@@ -22,22 +22,22 @@ from th2.data_services.interfaces import IEventStruct, IMessageStruct, IEventStu
 
 
 if TYPE_CHECKING:
-    from th2.data_services.lwdp.interfaces.command import IHTTPCommand
+    from th2.data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 
-from th2.data_services.lwdp.struct import (
+from th2.data_services.data_source.lwdp.struct import (
     http_event_struct,
     http_message_struct,
     EventStruct,
     MessageStruct,
 )
-from th2.data_services.lwdp.stub_builder import (
+from th2.data_services.data_source.lwdp.stub_builder import (
     http_event_stub_builder,
     http_message_stub_builder,
     EventStubBuilder,
     MessageStubBuilder,
 )
-from th2.data_services.lwdp.source_api.http import HTTPAPI
-from th2.data_services.lwdp.interfaces.data_source import IHTTPDataSource
+from th2.data_services.data_source.lwdp.source_api.http import HTTPAPI
+from th2.data_services.data_source.lwdp.interfaces.data_source import IHTTPDataSource
 
 # LOG logger = logging.getLogger(__name__)
 

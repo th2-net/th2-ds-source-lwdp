@@ -1,4 +1,4 @@
-from th2.data_services.lwdp.filters.filter import LwDPFilter
+from th2.data_services.data_source.lwdp.filters.filter import LwDPFilter
 
 
 def test_filter_url():

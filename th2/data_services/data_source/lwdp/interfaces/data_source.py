@@ -19,16 +19,16 @@ import requests
 import urllib3
 
 if TYPE_CHECKING:
-    from th2.data_services.lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
+    from th2.data_services.data_source.lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
 
 from th2.data_services.interfaces import IDataSource
-from th2.data_services.lwdp.interfaces.source_api import (
+from th2.data_services.data_source.lwdp.interfaces.source_api import (
     IGRPCSourceAPI,
     ILwDPSourceAPI,
     IHTTPSourceAPI,
 )
-from th2.data_services.lwdp.struct import IEventStruct, IMessageStruct
-from th2.data_services.lwdp.stub_builder import IEventStub, IMessageStub
+from th2.data_services.data_source.lwdp.struct import IEventStruct, IMessageStruct
+from th2.data_services.data_source.lwdp.stub_builder import IEventStub, IMessageStub
 
 CommandT = TypeVar("CommandT", bound="ILwDPCommand")
 EventStructT = TypeVar("EventStructT", bound="IEventStruct")

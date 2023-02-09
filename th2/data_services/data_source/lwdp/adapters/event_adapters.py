@@ -14,7 +14,7 @@
 from typing import Optional, Iterable
 
 from th2.data_services.interfaces.adapter import IRecordAdapter
-from th2.data_services.lwdp.struct import grpc_event_struct, EventStruct
+from th2.data_services.data_source.lwdp.struct import grpc_event_struct, EventStruct
 
 
 class DeleteEventWrappersAdapter(IRecordAdapter):

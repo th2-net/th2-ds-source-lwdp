@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from th2.data_services.lwdp.utils import _check_milliseconds
+from th2.data_services.data_source.lwdp.utils import _check_milliseconds
 
 
 def test_milliseconds():

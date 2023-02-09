@@ -21,7 +21,7 @@ from requests import Response
 from urllib3 import PoolManager, exceptions
 from urllib.parse import quote
 
-from th2.data_services.lwdp.interfaces.source_api import IHTTPSourceAPI
+from th2.data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
 
 
 # LOG logger = logging.getLogger("th2_data_services")

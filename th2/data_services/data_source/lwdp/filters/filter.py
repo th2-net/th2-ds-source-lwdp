@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2.data_services.lwdp.interfaces.filter import ILwDPFilter
+from th2.data_services.data_source.lwdp.interfaces.filter import ILwDPFilter
 from typing import Sequence, Any, Union
 
 from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (

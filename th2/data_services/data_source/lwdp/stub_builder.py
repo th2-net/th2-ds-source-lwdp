@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 from th2.data_services.interfaces import IEventStub, IMessageStub
-from th2.data_services.lwdp.struct import (
+from th2.data_services.data_source.lwdp.struct import (
     grpc_event_struct,
     grpc_message_struct,
     http_event_struct,

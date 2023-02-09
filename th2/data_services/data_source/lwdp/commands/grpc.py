@@ -26,18 +26,18 @@ from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
 from th2.data_services.data import Data
 from th2.data_services.interfaces.command import IAdaptableCommand
 from th2.data_services.exceptions import EventNotFound, MessageNotFound
-from th2.data_services.lwdp.adapters.basic_adapters import GRPCObjectToDictAdapter
-from th2.data_services.lwdp.adapters.event_adapters import DeleteEventWrappersAdapter
-from th2.data_services.lwdp.adapters.message_adapters import DeleteMessageWrappersAdapter
-from th2.data_services.lwdp.filters.filter import LwDPEventFilter
-from th2.data_services.lwdp.interfaces.command import IGRPCCommand
+from th2.data_services.data_source.lwdp.adapters.basic_adapters import GRPCObjectToDictAdapter
+from th2.data_services.data_source.lwdp.adapters.event_adapters import DeleteEventWrappersAdapter
+from th2.data_services.data_source.lwdp.adapters.message_adapters import DeleteMessageWrappersAdapter
+from th2.data_services.data_source.lwdp.filters.filter import LwDPEventFilter
+from th2.data_services.data_source.lwdp.interfaces.command import IGRPCCommand
 
-from th2.data_services.lwdp.data_source.grpc import GRPCDataSource
-from th2.data_services.lwdp.source_api import GRPCAPI
+from th2.data_services.data_source.lwdp.data_source.grpc import GRPCDataSource
+from th2.data_services.data_source.lwdp.source_api import GRPCAPI
 
 import logging
 
-from th2.data_services.lwdp.streams import Streams
+from th2.data_services.data_source.lwdp.streams import Streams
 
 logger = logging.getLogger(__name__)
 

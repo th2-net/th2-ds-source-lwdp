@@ -22,19 +22,19 @@ from th2.data_services.exceptions import CommandError
 from th2.data_services.interfaces import IEventStruct, IMessageStruct
 
 if TYPE_CHECKING:
-    from th2.data_services.lwdp.interfaces.command import IGRPCCommand
+    from th2.data_services.data_source.lwdp.interfaces.command import IGRPCCommand
 
-from th2.data_services.lwdp.interfaces.data_source import IGRPCDataSource
+from th2.data_services.data_source.lwdp.interfaces.data_source import IGRPCDataSource
 
 import logging
 
-from th2.data_services.lwdp.stub_builder import IEventStub, IMessageStub
-from th2.data_services.lwdp.source_api import GRPCAPI
-from th2.data_services.lwdp.struct import (
+from th2.data_services.data_source.lwdp.stub_builder import IEventStub, IMessageStub
+from th2.data_services.data_source.lwdp.source_api import GRPCAPI
+from th2.data_services.data_source.lwdp.struct import (
     grpc_message_struct,
     grpc_event_struct,
 )
-from th2.data_services.lwdp.stub_builder import (
+from th2.data_services.data_source.lwdp.stub_builder import (
     grpc_event_stub_builder,
     grpc_message_stub_builder,
 )

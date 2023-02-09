@@ -42,7 +42,7 @@ setup(
     license="Apache License 2.0",
     python_requires=">=3.7",
     install_requires=requirements,
-    packages=find_packages(include=["th2","th2.data_services","th2.data_services.lwdp","th2.data_services.lwdp.*"]),
-    namespace_packages = ['th2', 'th2.data_services', 'th2.data_services.lwdp'],
+    packages=find_packages(include=["th2","th2.data_services", 'th2.data_services.data_source', 'th2.data_services.data_source.lwdp',"th2.data_services.data_source.lwdp.*"]),
+    namespace_packages = ['th2', 'th2.data_services', 'th2.data_services.data_source', 'th2.data_services.data_source.lwdp'],
     include_package_data=True,
 )

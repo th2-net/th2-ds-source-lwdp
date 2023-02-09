@@ -13,7 +13,7 @@
 #  limitations under the License.
 
 from abc import abstractmethod
-from th2.data_services.lwdp.interfaces.data_source import (
+from th2.data_services.data_source.lwdp.interfaces.data_source import (
     ILwDPDataSource,
     IGRPCDataSource,
     IHTTPDataSource,

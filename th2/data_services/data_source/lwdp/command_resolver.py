@@ -14,12 +14,12 @@
 
 from typing import Type
 
-from th2.data_services.lwdp.interfaces.data_source import ILwDPDataSource
-from th2.data_services.lwdp.commands.grpc import GetEventsById as GetEventsByIdFromGRPC
+from th2.data_services.data_source.lwdp.interfaces.data_source import ILwDPDataSource
+from th2.data_services.data_source.lwdp.commands.grpc import GetEventsById as GetEventsByIdFromGRPC
 
-from th2.data_services.lwdp.commands.grpc import GetEventById as GetEventByIdFromGRPC
+from th2.data_services.data_source.lwdp.commands.grpc import GetEventById as GetEventByIdFromGRPC
 
-from th2.data_services.lwdp.data_source.grpc import GRPCDataSource
+from th2.data_services.data_source.lwdp.data_source.grpc import GRPCDataSource
 
 
 def resolver_get_event_by_id(

@@ -16,10 +16,10 @@ from typing import Sequence, Optional
 from th2.data_services.event_tree import IETCDriver
 from th2.data_services.event_tree.etc_driver import Th2EventType
 from th2.data_services.event_tree.exceptions import FieldIsNotExist
-from th2.data_services.lwdp.commands.http import GetEventsById
-from th2.data_services.lwdp.interfaces.data_source import ILwDPDataSource
-from th2.data_services.lwdp.struct import EventStruct, http_event_struct
-from th2.data_services.lwdp.stub_builder import http_event_stub_builder
+from th2.data_services.data_source.lwdp.commands.http import GetEventsById
+from th2.data_services.data_source.lwdp.interfaces.data_source import ILwDPDataSource
+from th2.data_services.data_source.lwdp.struct import EventStruct, http_event_struct
+from th2.data_services.data_source.lwdp.stub_builder import http_event_stub_builder
 
 
 class HttpETCDriver(IETCDriver):
