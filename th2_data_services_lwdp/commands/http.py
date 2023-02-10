@@ -316,8 +316,8 @@ class GetPages(SSEHandlerClassBase):
         else:
             _check_milliseconds(start_timestamp)
             _check_milliseconds(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         super().__init__(cache, buffer_limit=buffer_limit)
         self._book_id = book_id
@@ -492,9 +492,9 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
+        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(end_timestamp) if end_timestamp else None
+            DatetimeConverter.to_nanoseconds(end_timestamp) if end_timestamp else None
         )
         self._parent_event = parent_event
         self._search_direction = search_direction
@@ -594,11 +594,11 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
 
     def _get_urls(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
-        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
+            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
         self._book_id = page.book
         api = data_source.source_api
@@ -766,9 +766,9 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         self._cache = cache
 
         # + TODO - we can make timestamps optional datetime or int
-        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
+        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(end_timestamp) if end_timestamp else None
+            DatetimeConverter.to_nanoseconds(end_timestamp) if end_timestamp else None
         )
 
         if self._start_timestamp is None and not self._message_ids:
@@ -861,8 +861,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
-        self._start_timestamp = DatetimeConverter.to_milliseconds(start_timestamp)
-        self._end_timestamp = DatetimeConverter.to_milliseconds(end_timestamp)
+        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
         self._sort = sort
         self._response_formats = response_formats
@@ -942,11 +942,11 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
 
     def _get_urls(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
-        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
+            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
         self._book_id = page.book
         api = data_source.source_api
@@ -1025,11 +1025,11 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
 
     def _get_urls(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
-        self._start_timestamp = ProtobufTimestampConverter.to_milliseconds(page.start_timestamp)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_milliseconds(datetime.now().replace(microsecond=0))
+            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_milliseconds(page.end_timestamp)
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
         self._book_id = page.book
         api = data_source.source_api
