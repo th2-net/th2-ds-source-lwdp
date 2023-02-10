@@ -12,17 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-
-from th2_data_services.interfaces import ISourceAPI
-
-
-class ILwDPSourceAPI(ISourceAPI):
-    """Interface for Source API of lwdp-data-provider."""
+from th2.data_services.data_source.lwdp.filters.filter import LwDPEventFilter
 
 
-class IGRPCSourceAPI(ILwDPSourceAPI):
-    """Interface for Source API of lwdp-data-provider which works via GRPC."""
+class TypeFilter(LwDPEventFilter):
+    """Will match the events which type contains one of the given substrings."""
+
+    FILTER_NAME = "type"
 
 
-class IHTTPSourceAPI(ILwDPSourceAPI):
-    """Interface for Source API of lwdp-data-provider which works via HTTP."""
+class NameFilter(LwDPEventFilter):
+    """Will match the events which name contains one of the given substrings."""
+
+    FILTER_NAME = "name"

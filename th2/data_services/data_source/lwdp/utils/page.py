@@ -1,5 +1,5 @@
 from typing import Dict
-from th2_data_services_lwdp.commands import http
+from th2.data_services.data_source.lwdp.commands import http
 from typing import Union
 
 

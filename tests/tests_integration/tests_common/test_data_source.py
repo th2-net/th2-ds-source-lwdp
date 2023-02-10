@@ -1,8 +1,8 @@
 import pytest
 import requests
 
-from th2_data_services.data import Data
-from th2_data_services.exceptions import CommandError
+from th2.data_services.data import Data
+from th2.data_services.exceptions import CommandError
 from tests.tests_integration.conftest import (
     STREAM_1,
     STREAM_2,

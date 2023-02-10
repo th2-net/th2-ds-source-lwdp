@@ -16,28 +16,28 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 
-from th2_data_services import Data
-from th2_data_services.exceptions import EventNotFound, MessageNotFound
-from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
-from th2_data_services_lwdp.interfaces.command import IHTTPCommand
-from th2_data_services_lwdp.data_source.http import HTTPDataSource
-from th2_data_services_lwdp.source_api.http import HTTPAPI
-from th2_data_services_lwdp.streams import Streams, Stream
-from th2_data_services.utils.sse_client import SSEClient
-from th2_data_services_lwdp.adapters.adapter_sse import (
+from th2.data_services.data import Data
+from th2.data_services.exceptions import EventNotFound, MessageNotFound
+from th2.data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
+from th2.data_services.data_source.lwdp.interfaces.command import IHTTPCommand
+from th2.data_services.data_source.lwdp.data_source.http import HTTPDataSource
+from th2.data_services.data_source.lwdp.source_api.http import HTTPAPI
+from th2.data_services.data_source.lwdp.streams import Streams, Stream
+from th2.data_services.utils.sse_client import SSEClient
+from th2.data_services.data_source.lwdp.adapters.adapter_sse import (
     SSEAdapter,
     DEFAULT_BUFFER_LIMIT,
 )
-from th2_data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
-from th2_data_services_lwdp.filters.event_filters import LwDPEventFilter
-from th2_data_services_lwdp.utils import (
+from th2.data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2.data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
+from th2.data_services.data_source.lwdp.utils import (
     Page,
     _check_milliseconds,
     _check_list_or_tuple,
 )
 from th2_grpc_common.common_pb2 import Event
-from th2_data_services_lwdp.utils.json import BufferedJSONProcessor
-from th2_data_services_lwdp.utils.page import PageNotFound, _get_page_object
+from th2.data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
+from th2.data_services.data_source.lwdp.utils.page import PageNotFound, _get_page_object
 
 
 # LOG import logging

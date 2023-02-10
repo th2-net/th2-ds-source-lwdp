@@ -14,7 +14,7 @@
 
 import json
 
-from setuptools import setup, find_packages
+from setuptools import setup, find_namespace_packages
 
 with open("package_info.json", "r") as file:
     package_info = json.load(file)
@@ -42,6 +42,6 @@ setup(
     license="Apache License 2.0",
     python_requires=">=3.7",
     install_requires=requirements,
-    packages=find_packages(include=["th2_data_services_lwdp", "th2_data_services_lwdp.*"]),
+    packages=find_namespace_packages(include=["th2.*"]),
     include_package_data=True,
 )

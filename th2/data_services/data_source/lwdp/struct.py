@@ -14,7 +14,7 @@
 
 from dataclasses import dataclass
 
-from th2_data_services.interfaces.struct import IEventStruct, IMessageStruct
+from th2.data_services.interfaces.struct import IEventStruct, IMessageStruct
 
 
 @dataclass

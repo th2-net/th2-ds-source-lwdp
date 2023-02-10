@@ -17,27 +17,27 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Union
 
-from th2_data_services.exceptions import CommandError
-from th2_data_services.interfaces import IEventStruct, IMessageStruct, IEventStub, IMessageStub
+from th2.data_services.exceptions import CommandError
+from th2.data_services.interfaces import IEventStruct, IMessageStruct, IEventStub, IMessageStub
 
 
 if TYPE_CHECKING:
-    from th2_data_services_lwdp.interfaces.command import IHTTPCommand
+    from th2.data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 
-from th2_data_services_lwdp.struct import (
+from th2.data_services.data_source.lwdp.struct import (
     http_event_struct,
     http_message_struct,
     EventStruct,
     MessageStruct,
 )
-from th2_data_services_lwdp.stub_builder import (
+from th2.data_services.data_source.lwdp.stub_builder import (
     http_event_stub_builder,
     http_message_stub_builder,
     EventStubBuilder,
     MessageStubBuilder,
 )
-from th2_data_services_lwdp.source_api.http import HTTPAPI
-from th2_data_services_lwdp.interfaces.data_source import IHTTPDataSource
+from th2.data_services.data_source.lwdp.source_api.http import HTTPAPI
+from th2.data_services.data_source.lwdp.interfaces.data_source import IHTTPDataSource
 
 # LOG logger = logging.getLogger(__name__)
 
