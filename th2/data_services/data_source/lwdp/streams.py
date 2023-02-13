@@ -1,7 +1,7 @@
 from typing import List, Optional
 
-from th2_grpc_common.common_pb2 import Direction
-from th2_grpc_lw_data_provider.lw_data_provider_pb2 import MessageStream
+
+# from th2_grpc_lw_data_provider.lw_data_provider_pb2 import MessageStream
 
 
 class Stream:
@@ -39,21 +39,21 @@ class Stream:
         return f"&stream={self._alias}:{self._direction}"
 
     # +TODO - Fix it when we need grpc
-    def grpc(self) -> MessageStream:
-        """Generates the grpc object of the GRPC protocol API.
-
-        Returns:
-            MessageStream: Stream with specified direction.
-        """
-        if self._direction is None:
-            return [
-                MessageStream(name=self._alias, direction=Direction.FIRST),
-                MessageStream(name=self._alias, direction=Direction.SECOND),
-            ]
-        return [
-            MessageStream(name=stream, direction=Direction.Value(self._direction))
-            for stream in self._aliases
-        ]
+    # def grpc(self) -> MessageStream:
+    #     """Generates the grpc object of the GRPC protocol API.
+    #
+    #     Returns:
+    #         MessageStream: Stream with specified direction.
+    #     """
+    #     if self._direction is None:
+    #         return [
+    #             MessageStream(name=self._alias, direction=Direction.FIRST),
+    #             MessageStream(name=self._alias, direction=Direction.SECOND),
+    #         ]
+    #     return [
+    #         MessageStream(name=stream, direction=Direction.Value(self._direction))
+    #         for stream in self._aliases
+    #     ]
 
 
 class Streams:
@@ -100,21 +100,21 @@ class Streams:
             return "&".join([f"stream={alias}" for alias in self._aliases])
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._aliases])
 
-    def grpc(self) -> List[MessageStream]:
-        """Generates the grpc objects of the GRPC protocol API.
-
-        Returns:
-            List[MessageStream]: List of Stream with specified direction.
-        """
-        if self._direction is None:
-            result = []
-            for stream in self._aliases:
-                result += [
-                    MessageStream(name=stream, direction=Direction.FIRST),
-                    MessageStream(name=stream, direction=Direction.SECOND),
-                ]
-            return result
-        return [
-            MessageStream(name=stream, direction=Direction.Value(self._direction))
-            for stream in self._aliases
-        ]
+    # def grpc(self) -> List[MessageStream]:
+    #     """Generates the grpc objects of the GRPC protocol API.
+    #
+    #     Returns:
+    #         List[MessageStream]: List of Stream with specified direction.
+    #     """
+    #     if self._direction is None:
+    #         result = []
+    #         for stream in self._aliases:
+    #             result += [
+    #                 MessageStream(name=stream, direction=Direction.FIRST),
+    #                 MessageStream(name=stream, direction=Direction.SECOND),
+    #             ]
+    #         return result
+    #     return [
+    #         MessageStream(name=stream, direction=Direction.Value(self._direction))
+    #         for stream in self._aliases
+    #     ]

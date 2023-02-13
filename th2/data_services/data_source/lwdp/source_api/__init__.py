@@ -12,5 +12,5 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .grpc import GRPCAPI
+# from .grpc import GRPCAPI
 from .http import HTTPAPI
