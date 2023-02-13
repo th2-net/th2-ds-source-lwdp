@@ -6,8 +6,6 @@ def _check_list_or_tuple(variable, var_name):  # noqa
         raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
 
-def _check_milliseconds(dt: datetime):
+def _check_datetime(dt: datetime):
     if not isinstance(dt, datetime):
         raise TypeError("Provided timestamp should be `datetime` object")
-    if dt.microsecond != 0:
-        raise Exception("Provided datetime shouldn't contain microseconds")
