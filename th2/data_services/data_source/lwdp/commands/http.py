@@ -35,10 +35,10 @@ from th2.data_services.data_source.lwdp.utils import (
     _check_datetime,
     _check_list_or_tuple,
 )
-from th2_grpc_common.common_pb2 import Event
 from th2.data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
 from th2.data_services.data_source.lwdp.utils.page import PageNotFound, _get_page_object
 
+Event = dict
 
 # LOG import logging
 
@@ -837,7 +837,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         Args:
             start_timestamp: Sets the search starting point.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
-                
+
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
