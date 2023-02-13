@@ -32,7 +32,7 @@ from th2.data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2.data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
 from th2.data_services.data_source.lwdp.utils import (
     Page,
-    _check_milliseconds,
+    _check_datetime,
     _check_list_or_tuple,
 )
 from th2_grpc_common.common_pb2 import Event
@@ -304,8 +304,8 @@ class GetPages(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp. API expects timestamp in milliseconds.
-            end_timestamp (datetime): End Timestamp. API expects timestamp in milliseconds.
+            start_timestamp (datetime): Start Timestamp.
+            end_timestamp (datetime): End Timestamp.
             result_limit (Optional, int): Return Result Limit.
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
@@ -314,8 +314,8 @@ class GetPages(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_milliseconds(start_timestamp)
-            _check_milliseconds(end_timestamp)
+            _check_datetime(start_timestamp)
+            _check_datetime(end_timestamp)
             self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
             self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
@@ -465,10 +465,10 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         """GetEventsByBookByScopes constructor.
 
         Args:
-            start_timestamp: Start timestamp of search. API expects timestamp in milliseconds.
+            start_timestamp: Start timestamp of search.
             book_id: Book ID for messages.
             scopes: Scope names for events.
-            end_timestamp: End timestamp of search. API expects timestamp in milliseconds.
+            end_timestamp: End timestamp of search.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
             result_count_limit: Result count limit.
@@ -479,9 +479,9 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_milliseconds(start_timestamp)
+        _check_datetime(start_timestamp)
         if end_timestamp:
-            _check_milliseconds(end_timestamp)
+            _check_datetime(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -726,14 +726,14 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         """GetMessages constructor.
 
         Args:
-            start_timestamp: Start timestamp of search. API expects timestamp in milliseconds.
+            start_timestamp: Start timestamp of search.
             book_id: Book ID for messages
             streams: List of aliases to request. If direction is not specified all directions will be requested for stream.
             message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             search_direction: Search direction.
             result_count_limit: Result count limit.
-            end_timestamp: End timestamp of search. API expects timestamp in milliseconds.
+            end_timestamp: End timestamp of search.
             response_formats: The format of the response
             keep_open: If the search has reached the current moment.
                 It needs to wait further for the appearance of new data.
@@ -743,9 +743,9 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_milliseconds(start_timestamp)
+        _check_datetime(start_timestamp)
         if end_timestamp:
-            _check_milliseconds(end_timestamp)
+            _check_datetime(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -835,9 +835,9 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         """GetMessagesByGroups Constructor.
 
         Args:
-            start_timestamp: Sets the search starting point. API expects timestamp in milliseconds.
+            start_timestamp: Sets the search starting point.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
-                 API expects timestamp in milliseconds.
+                
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
@@ -849,8 +849,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_milliseconds(start_timestamp)
-        _check_milliseconds(end_timestamp)
+        _check_datetime(start_timestamp)
+        _check_datetime(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
