@@ -30,9 +30,8 @@
 2. All the arguments that are List types are now in plural forms, e.g., stream -> streams,
    message_id -> message_ids.
 3. Renamed GetMessages to GetMessagesByBookByStreams.
-4. [TH2-4581] Added a check that commands start & end time parameters are milliseconds.
-5. HTTP Commands changed:
+4. HTTP Commands changed:
    - GetEvents -> GetEventsByBookByScopes
    - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
-6. [TH2-4672] Removed ability to add custom sse handler in commands. Buffer limit can be changed.
-7. [TH2-4753] Commands now send timestamps with nanoseconds precision instead of milliseconds.
+5. [TH2-4672] Removed ability to add custom sse handler in commands. Buffer limit can be changed.
+6. [TH2-4753] Commands now send timestamps with nanoseconds precision instead of milliseconds.
