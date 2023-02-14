@@ -75,9 +75,13 @@ def add_text_to_file(file_path_list, text_path):
     with open(file_path, 'r') as target_file:
         target = target_file.readlines()
         c = 0
+        commentFound = False
         for i in target:
-            if i == '\n' or i[0] == '#':
+            if i == '\n' and not commentFound:
                 c+=1
+            elif i[0] == '#':
+                c+=1
+                commentFound = True
             else:
                 break
         target = "".join(target[c:])
