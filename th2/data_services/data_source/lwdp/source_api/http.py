@@ -72,9 +72,12 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `event` call returns a single event with the specified id."""
         return self.__encode_url(f"{self._url}/event/{event_id}")
 
-    def get_url_find_message_by_id(self, message_id: str) -> str:
-        """REST-API `message` call returns a single message with the specified id."""
-        return self.__encode_url(f"{self._url}/message/{message_id}")
+    def get_url_find_message_by_id(self, message_id: str, response_formats: List[str] = None) -> str:
+        """REST-API `message` call returns a single      message with the specified id."""
+        if response_formats:
+            response_formats = "&".join(["responseFormat="+format for format in response_formats])
+            return self.__encode_url(f"{self._url}/message/{message_id}?{response_formats}")
+        return self.__encode_url(f"{self._url}/message/{message_id}?")
 
     def get_url_get_pages_info_all(self, book_id: str):
         """REST-API `search/see/page-infos/{$BOOK_ID}/all` call returns page information with the specified timeframe."""
@@ -158,7 +161,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "searchDirection": search_direction,
             "resultCountLimit": result_count_limit,
             "endTimestamp": end_timestamp,
-            "responseFormats": response_formats,
+            "responseFormat": response_formats,
             "keepOpen": keep_open,
             "bookId": book_id,
         }
@@ -174,7 +177,7 @@ class HTTPAPI(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["stream", "responseFormats", "messageId"]:
+            if k in ["stream", "responseFormat", "messageId"]:
                 for item in v:
                     query += f"&{k}={item}"
             else:
@@ -218,7 +221,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "endTimestamp": end_timestamp,
             "bookId": book_id,
             "sort": sort,
-            "responseFormats": response_formats,
+            "responseFormat": response_formats,
             "keepOpen": keep_open,
         }
         groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
@@ -228,7 +231,7 @@ class HTTPAPI(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["responseFormats"]:
+            if k in ["responseFormat"]:
                 for item in v:
                     options.append(self._option(k, item))
             else:
