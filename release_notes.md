@@ -35,4 +35,5 @@
    - GetMessages -> GetMessagesByBookByStreams / GetMessagesByBookByGroups
 5. [TH2-4672] Removed ability to add custom sse handler in commands. Buffer limit can be changed.
 6. [TH2-4753] Commands now send timestamps with nanoseconds precision instead of milliseconds.
-7. [TH2-4754]  Copyright checker added to pre-commit
+7. [TH2-4754] Copyright checker added to pre-commit
+8. [TH2-4806] Added vulnerabilities scanning
