@@ -43,7 +43,7 @@ repos:
           - README.md
         require_serial: true
 
-  - id: check_copyright
+      - id: check_copyright
         name: check_copyright
         stages: [ commit ]
         entry: python check_copyright.py copyright.txt ./th2
