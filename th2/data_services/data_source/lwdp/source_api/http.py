@@ -72,10 +72,12 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `event` call returns a single event with the specified id."""
         return self.__encode_url(f"{self._url}/event/{event_id}")
 
-    def get_url_find_message_by_id(self, message_id: str, response_formats: List[str] = None) -> str:
+    def get_url_find_message_by_id(
+        self, message_id: str, response_formats: List[str] = None
+    ) -> str:
         """REST-API `message` call returns a single      message with the specified id."""
         if response_formats:
-            response_formats = "&".join(["responseFormat="+format for format in response_formats])
+            response_formats = "&".join(["responseFormat=" + format for format in response_formats])
             return self.__encode_url(f"{self._url}/message/{message_id}?{response_formats}")
         return self.__encode_url(f"{self._url}/message/{message_id}?")
 

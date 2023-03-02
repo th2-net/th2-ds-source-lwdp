@@ -25,6 +25,7 @@ def _check_datetime(dt: datetime):
     if not isinstance(dt, datetime):
         raise TypeError("Provided timestamp should be `datetime` object")
 
+
 def _check_response_formats(formats: List[str]):
     rf = ResponseFormats()
     if not rf.is_valid_response_format(formats):

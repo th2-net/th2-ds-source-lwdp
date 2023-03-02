@@ -680,7 +680,7 @@ class GetMessagesById(IHTTPCommand):
 
         Args:
             ids: Message id list.
-            responseFormast: Response format of the message.
+            responseFormats: Response format of the message.
             use_stub: If True the command returns stub instead of exception.
 
         """

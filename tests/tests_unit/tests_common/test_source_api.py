@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from th2.data_services.data_source.lwdp.filters.filter import LwDPFilter 
+from th2.data_services.data_source.lwdp.filters.filter import LwDPFilter
 from th2.data_services.data_source.lwdp.source_api import HTTPAPI
 
 

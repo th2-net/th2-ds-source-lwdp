@@ -17,7 +17,7 @@ from tests.tests_integration.test_bodies.http.event_bodies import (
     root_event_body,
     plain_event_1_body,
     filter_event_3_body,
-) 
+)
 from tests.tests_integration.test_bodies.http.message_bodies import message_1_body, message_2_body
 
 
@@ -28,8 +28,11 @@ def test_issue_events(all_events):
 def test_issue_messages(all_messages):
     assert list(all_messages.data) == all_messages.expected_data_values
 
-def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups,all_messages):
-    assert sorted(list(get_messages_by_book_by_groups),key=lambda a: a['messageId']) == sorted(all_messages.expected_data_values,key=lambda a: a['messageId']) 
+
+def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups, all_messages):
+    assert sorted(list(get_messages_by_book_by_groups), key=lambda a: a["messageId"]) == sorted(
+        all_messages.expected_data_values, key=lambda a: a["messageId"]
+    )
 
 
 def test_find_messages_by_pages_by_groups(get_messages_by_page_by_groups: Data):
@@ -152,7 +155,7 @@ def test_get_events_from_data_provider_with_error(http_data_source: HTTPDataSour
             )
         )
         list(events)
-    #assert "replace() takes no keyword arguments" in str(exc_info)
+    # assert "replace() takes no keyword arguments" in str(exc_info)
     assert "Provided timestamp should be `datetime` object" in str(exc_info)
 
 
@@ -167,7 +170,7 @@ def test_get_messages_from_data_provider_with_error(http_data_source: HTTPDataSo
             )
         )
         list(messages)
-    #assert "replace() takes no keyword arguments" in str(exc_info)
+    # assert "replace() takes no keyword arguments" in str(exc_info)
     assert "Provided timestamp should be `datetime` object" in str(exc_info)
 
 
@@ -197,7 +200,7 @@ def test_get_messages_with_multiple_url(
 
     assert len(list(messages)) == 6 and len(list(messages_hand_actual)) == len(
         list(messages_hand_expected)
-    )#I can talk like this :D
+    )  # I can talk like this :D
 
 
 # def test_unprintable_character(http_data_source: HTTPDataSource):
@@ -238,7 +241,7 @@ def test_messages_for_data_loss(all_messages):
     It might happen if source inside of Data is object of generator instead of
     generator function.
     """
-    
+
     messages = all_messages.data
     for _ in range(3):
         for _ in messages:

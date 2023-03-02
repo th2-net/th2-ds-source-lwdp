@@ -28,7 +28,9 @@ from th2.data_services.interfaces.command import IAdaptableCommand
 from th2.data_services.exceptions import EventNotFound, MessageNotFound
 from th2.data_services.data_source.lwdp.adapters.basic_adapters import GRPCObjectToDictAdapter
 from th2.data_services.data_source.lwdp.adapters.event_adapters import DeleteEventWrappersAdapter
-from th2.data_services.data_source.lwdp.adapters.message_adapters import DeleteMessageWrappersAdapter
+from th2.data_services.data_source.lwdp.adapters.message_adapters import (
+    DeleteMessageWrappersAdapter,
+)
 from th2.data_services.data_source.lwdp.filters.filter import LwDPEventFilter
 from th2.data_services.data_source.lwdp.interfaces.command import IGRPCCommand
 
