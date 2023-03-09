@@ -47,4 +47,4 @@
 
 ## Improvements
 
-1. [TH2-4828] GetEventById raises EventNotFound exception with description of error. 
+1. [TH2-4828] GetEventById and GetMessageById now raise EventNotFound and MessageNotFound exceptions with description of error from response.
