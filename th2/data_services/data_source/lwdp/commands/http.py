@@ -396,7 +396,7 @@ class GetEventById(IHTTPCommand):
             return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise EventNotFound(response.json()["error"])
+            raise EventNotFound(self._id,response.json()["error"])
         else:
             return response.json()
 
@@ -653,7 +653,7 @@ class GetMessageById(IHTTPCommand):
             return stub
         elif response.status_code in (404, 408, 409):
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise MessageNotFound(response.json()["error"])
+            raise MessageNotFound(self._id,response.json()["error"])
         else:
             return response.json()
 
