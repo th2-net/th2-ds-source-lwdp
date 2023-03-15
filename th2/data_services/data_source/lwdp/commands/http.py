@@ -399,7 +399,7 @@ class GetEventById(IHTTPCommand):
             raise EventNotFound(self._id, response.json()["error"])
         elif response.status_code == 200:
             return response.json()
-        else
+        else:
             raise Exception("HTTP Error: Handling of status code {response.status_code} not implemented")
 
 
@@ -656,8 +656,10 @@ class GetMessageById(IHTTPCommand):
         elif response.status_code in (404, 408, 409):
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
             raise MessageNotFound(self._id, response.json()["error"])
-        else:
+        elif response.status_code == 200:
             return response.json()
+        else:
+            raise Exception("HTTP Error: Handling of status code {response.status_code} not implemented")
 
 
 class GetMessagesById(IHTTPCommand):
