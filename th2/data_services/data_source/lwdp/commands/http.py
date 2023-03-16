@@ -387,7 +387,6 @@ class GetEventById(IHTTPCommand):
         url = api.get_url_find_event_by_id(self._id)
 
         # LOG         logger.info(url)
-
         response = api.execute_request(url)
         # +TODO - perhaps we have to move it to api.execute_request
         if response.status_code == 404 and self._stub_status:
@@ -397,9 +396,11 @@ class GetEventById(IHTTPCommand):
             return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise EventNotFound(self._id)
-        else:
+            raise EventNotFound(self._id, response.json()["error"])
+        elif response.status_code == 200:
             return response.json()
+        else:
+            raise Exception("HTTP Error: Handling of status code {response.status_code} not implemented")
 
 
 class GetEventsById(IHTTPCommand):
@@ -647,16 +648,18 @@ class GetMessageById(IHTTPCommand):
 
         # LOG         logger.info(url)
         response = api.execute_request(url)
-        if response.status_code in (404, 408) and self._stub_status:
+        if response.status_code in (404, 408, 409) and self._stub_status:
             stub = data_source.message_stub_builder.build(
                 {data_source.message_struct.MESSAGE_ID: self._id}
             )
             return stub
-        elif response.status_code in (404, 408):
+        elif response.status_code in (404, 408, 409):
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise MessageNotFound(self._id)
-        else:
+            raise MessageNotFound(self._id, response.json()["error"])
+        elif response.status_code == 200:
             return response.json()
+        else:
+            raise Exception("HTTP Error: Handling of status code {response.status_code} not implemented")
 
 
 class GetMessagesById(IHTTPCommand):
