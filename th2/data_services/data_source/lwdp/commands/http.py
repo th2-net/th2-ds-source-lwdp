@@ -21,6 +21,7 @@ from th2.data_services.exceptions import EventNotFound, MessageNotFound
 from th2.data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
 from th2.data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2.data_services.data_source.lwdp.data_source.http import HTTPDataSource
+from th2.data_services.data_source.lwdp.message_response_format import ResponseFormat
 from th2.data_services.data_source.lwdp.source_api.http import HTTPAPI
 from th2.data_services.data_source.lwdp.streams import Streams, Stream
 from th2.data_services.utils.sse_client import SSEClient
@@ -743,6 +744,8 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        if response_formats is None:
+            response_formats = [ResponseFormat.JSON_PARSED]
         _check_datetime(start_timestamp)
         if end_timestamp:
             _check_datetime(end_timestamp)
@@ -849,6 +852,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        if response_formats is None:
+            response_formats = [ResponseFormat.JSON_PARSED]
         _check_datetime(start_timestamp)
         _check_datetime(end_timestamp)
         super().__init__(
@@ -926,7 +931,8 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
-
+        if response_formats is None:
+            response_formats = [ResponseFormat.JSON_PARSED]
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
@@ -1009,6 +1015,8 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
+        if response_formats is None:
+            response_formats = [ResponseFormat.JSON_PARSED]
 
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
