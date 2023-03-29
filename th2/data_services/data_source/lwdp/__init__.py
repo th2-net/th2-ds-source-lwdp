@@ -11,4 +11,13 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-__import__('pkg_resources').declare_namespace(__name__)
+
+from th2.data_services.config import options
+
+from th2.data_services.data_source.lwdp.resolver import (
+    LwdpEventFieldsResolver,
+    LwdpMessageFieldsResolver,
+)
+
+options.EVENT_FIELDS_RESOLVER = LwdpEventFieldsResolver()
+options.MESSAGE_FIELDS_RESOLVER = LwdpMessageFieldsResolver()
