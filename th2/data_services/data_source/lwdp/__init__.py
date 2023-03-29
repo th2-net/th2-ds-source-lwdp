@@ -12,12 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2.data_services.config import options
+from .message_response_format import ResponseFormat
+from .streams import Stream, Streams
+
+
+from th2.data_services.config import options as _o
 
 from th2.data_services.data_source.lwdp.resolver import (
     LwdpEventFieldsResolver,
     LwdpMessageFieldsResolver,
 )
 
-options.EVENT_FIELDS_RESOLVER = LwdpEventFieldsResolver()
-options.MESSAGE_FIELDS_RESOLVER = LwdpMessageFieldsResolver()
+_o.EVENT_FIELDS_RESOLVER = LwdpEventFieldsResolver()
+_o.MESSAGE_FIELDS_RESOLVER = LwdpMessageFieldsResolver()
