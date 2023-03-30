@@ -9,15 +9,15 @@ Most commands that this library provides can be seen in example below.
 ```python
 from typing import List
 
-from th2.data_services.event_tree import EventTreeCollection
+from th2_data_services.event_tree import EventTreeCollection
 
-from th2.data_services.data_source.lwdp.commands import http as commands
-from th2.data_services.data_source.lwdp.data_source import HTTPDataSource
-from th2.data_services.data_source.lwdp.event_tree import HttpETCDriver
-from th2.data_services.data_source.lwdp.streams import Streams, Stream
-from th2.data_services.data import Data
+from th2_data_services.data_source.lwdp.commands import http as commands
+from th2_data_services.data_source.lwdp.data_source import HTTPDataSource
+from th2_data_services.data_source.lwdp.event_tree import HttpETCDriver
+from th2_data_services.data_source.lwdp.streams import Streams, Stream
+from th2_data_services.data import Data
 from datetime import datetime
-from th2.data_services.data_source.lwdp.utils import Page
+from th2_data_services.data_source.lwdp.utils import Page
 
 # About this example
 #   The following document shows common features of the library.

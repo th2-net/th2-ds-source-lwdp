@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2.data_services.interfaces.adapter import IRecordAdapter
-from th2.data_services.data_source.lwdp.struct import grpc_message_struct, MessageStruct
+from th2_data_services.interfaces.adapter import IRecordAdapter
+from th2_data_services.data_source.lwdp.struct import grpc_message_struct, MessageStruct
 
 
 class DeleteMessageWrappersAdapter(IRecordAdapter):

@@ -2,7 +2,7 @@ from datetime import datetime
 
 import pytest
 
-from th2.data_services.data import Data
+from th2_data_services.data import Data
 from . import HTTPAPI, HTTPDataSource, http, LwDPFilter, DEMO_PORT  # noqa
 
 

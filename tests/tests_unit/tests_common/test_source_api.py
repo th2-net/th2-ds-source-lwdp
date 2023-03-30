@@ -1,7 +1,7 @@
 from datetime import datetime
 
-from th2.data_services.data_source.lwdp.filters.filter import LwDPFilter 
-from th2.data_services.data_source.lwdp.source_api import HTTPAPI
+from th2_data_services.data_source.lwdp.filters.filter import LwDPFilter 
+from th2_data_services.data_source.lwdp.source_api import HTTPAPI
 
 
 def test_generate_url_search_sse_events():

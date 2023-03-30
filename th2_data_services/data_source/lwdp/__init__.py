@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2023 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -12,17 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from .message_response_format import ResponseFormat
+from .streams import Stream, Streams
+from .page import Page
 
-from th2.data_services.interfaces import ISourceAPI
+from th2_data_services.config import options as _o
 
+from th2_data_services.data_source.lwdp.resolver import (
+    LwdpEventFieldsResolver,
+    LwdpMessageFieldsResolver,
+)
 
-class ILwDPSourceAPI(ISourceAPI):
-    """Interface for Source API of lwdp-data-provider."""
-
-
-class IGRPCSourceAPI(ILwDPSourceAPI):
-    """Interface for Source API of lwdp-data-provider which works via GRPC."""
-
-
-class IHTTPSourceAPI(ILwDPSourceAPI):
-    """Interface for Source API of lwdp-data-provider which works via HTTP."""
+_o.EVENT_FIELDS_RESOLVER = LwdpEventFieldsResolver()
+_o.MESSAGE_FIELDS_RESOLVER = LwdpMessageFieldsResolver()
