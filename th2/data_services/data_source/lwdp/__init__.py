@@ -14,7 +14,7 @@
 
 from .message_response_format import ResponseFormat
 from .streams import Stream, Streams
-
+from .page import Page
 
 from th2.data_services.config import options as _o
 

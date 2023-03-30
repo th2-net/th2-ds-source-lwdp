@@ -13,4 +13,3 @@
 #  limitations under the License.
 
 from .misc import _check_list_or_tuple, _check_datetime
-from .page import Page

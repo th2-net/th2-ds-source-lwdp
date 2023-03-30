@@ -12,8 +12,6 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from typing import Dict
-from th2.data_services.data_source.lwdp.commands import http
-from typing import Union
 
 
 class Page:
@@ -37,18 +35,6 @@ class Page:
 
     def __repr__(self):  # noqa
         return self.__str__()
-
-
-def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
-    if isinstance(page, str):
-        if book_id is None:
-            raise Exception("If page name is passed then book_id should be passed too!")
-        else:
-            return data_source.command(http.GetPageByName(book_id, page))
-    elif isinstance(page, Page):
-        return page
-    else:
-        raise Exception("Wrong type. page should be Page object or string (page name)!")
 
 
 class PageNotFound(Exception):

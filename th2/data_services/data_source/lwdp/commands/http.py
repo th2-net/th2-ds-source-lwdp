@@ -19,6 +19,8 @@ from functools import partial
 from th2.data_services.data import Data
 from th2.data_services.exceptions import EventNotFound, MessageNotFound
 from th2.data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
+
+from th2.data_services.data_source.lwdp import Page
 from th2.data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2.data_services.data_source.lwdp.data_source.http import HTTPDataSource
 from th2.data_services.data_source.lwdp.message_response_format import ResponseFormat
@@ -32,12 +34,11 @@ from th2.data_services.data_source.lwdp.adapters.adapter_sse import (
 from th2.data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2.data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
 from th2.data_services.data_source.lwdp.utils import (
-    Page,
     _check_datetime,
     _check_list_or_tuple,
 )
 from th2.data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
-from th2.data_services.data_source.lwdp.utils.page import PageNotFound, _get_page_object
+from th2.data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
 
@@ -1051,3 +1052,15 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
+
+
+def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
+    if isinstance(page, str):
+        if book_id is None:
+            raise Exception("If page name is passed then book_id should be passed too!")
+        else:
+            return data_source.command(http.GetPageByName(book_id, page))
+    elif isinstance(page, Page):
+        return page
+    else:
+        raise Exception("Wrong type. page should be Page object or string (page name)!")
