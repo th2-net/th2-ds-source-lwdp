@@ -631,21 +631,30 @@ class GetMessageById(IHTTPCommand):
         MessageNotFound: If message by id wasn't found.
     """
 
-    def __init__(self, id: str, use_stub=False):
+    def __init__(self, id: str, use_stub=False, response_formats: List[str] = None):
         """GetMessageById constructor.
 
         Args:
             id: Message id.
             use_stub: If True the command returns stub instead of exception.
-
+            response_formats: Allowed values: ["BASE_64","JSON_PARSED"] and ["BASE_64"]
         """
         super().__init__()
         self._id = id
         self._stub_status = use_stub
+        self._response_formats = response_formats
 
     def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
         api: HTTPAPI = data_source.source_api
-        url = api.get_url_find_message_by_id(self._id)
+        if not isinstance(self._response_formats,list):
+            raise Exception("response_formats argument should be a list")
+        if self._response_formats in [None,["JSON_PARSED","BASE_64"],["BASE_64","JSON_PARSED"]]:
+            only_raw = False
+        elif self._response_formats in [["BASE_64"]]:
+            only_raw = True
+        else:
+            raise Exception('response_formats takes only values ["BASE_64","JSON_PARSED"] or ["BASE_64"]')
+        url = api.get_url_find_message_by_id(self._id,only_raw=only_raw)
 
         # LOG         logger.info(url)
         response = api.execute_request(url)
@@ -673,17 +682,18 @@ class GetMessagesById(IHTTPCommand):
         MessageNotFound: If any message by id wasn't found.
     """
 
-    def __init__(self, ids: List[str], use_stub=False):
+    def __init__(self, ids: List[str], use_stub=False, response_formats: List[str] = None):
         """GetMessagesById constructor.
 
         Args:
             ids: Message id list.
             use_stub: If True the command returns stub instead of exception.
-
+            response_formats: Allowed values: ["BASE_64","JSON_PARSED"] and ["BASE_64"]
         """
         super().__init__()
         self._ids: ids = ids
         self._stub_status = use_stub
+        self._response_formats = response_formats
 
     def handle(self, data_source: HTTPDataSource) -> List[dict]:  # noqa: D102
         result = []
@@ -691,6 +701,7 @@ class GetMessagesById(IHTTPCommand):
             message = GetMessageById(
                 message_id,
                 use_stub=self._stub_status,
+                response_formats=self._response_formats,
             ).handle(data_source)
             result.append(message)
 
