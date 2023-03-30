@@ -16,29 +16,29 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 
-from th2.data_services.data import Data
-from th2.data_services.exceptions import EventNotFound, MessageNotFound
-from th2.data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
+from th2_data_services.data import Data
+from th2_data_services.exceptions import EventNotFound, MessageNotFound
+from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
 
-from th2.data_services.data_source.lwdp import Page
-from th2.data_services.data_source.lwdp.interfaces.command import IHTTPCommand
-from th2.data_services.data_source.lwdp.data_source.http import HTTPDataSource
-from th2.data_services.data_source.lwdp.message_response_format import ResponseFormat
-from th2.data_services.data_source.lwdp.source_api.http import HTTPAPI
-from th2.data_services.data_source.lwdp.streams import Streams, Stream
-from th2.data_services.utils.sse_client import SSEClient
-from th2.data_services.data_source.lwdp.adapters.adapter_sse import (
+from th2_data_services.data_source.lwdp import Page
+from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
+from th2_data_services.data_source.lwdp.data_source.http import HTTPDataSource
+from th2_data_services.data_source.lwdp.message_response_format import ResponseFormat
+from th2_data_services.data_source.lwdp.source_api.http import HTTPAPI
+from th2_data_services.data_source.lwdp.streams import Streams, Stream
+from th2_data_services.utils.sse_client import SSEClient
+from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
     SSEAdapter,
     DEFAULT_BUFFER_LIMIT,
 )
-from th2.data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
-from th2.data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
-from th2.data_services.data_source.lwdp.utils import (
+from th2_data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
+from th2_data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
+from th2_data_services.data_source.lwdp.utils import (
     _check_datetime,
     _check_list_or_tuple,
 )
-from th2.data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
-from th2.data_services.data_source.lwdp.page import PageNotFound
+from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
+from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
 

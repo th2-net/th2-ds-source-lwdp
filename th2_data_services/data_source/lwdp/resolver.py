@@ -12,8 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2.data_services.interfaces.utils.resolver import EventFieldsResolver, MessageFieldsResolver
-from th2.data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
+from th2_data_services.interfaces.utils.resolver import EventFieldsResolver, MessageFieldsResolver
+from th2_data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
 
 
 class LwdpEventFieldsResolver(EventFieldsResolver):

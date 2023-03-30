@@ -1,8 +1,8 @@
-from th2.data_services.data import Data
-from th2.data_services.event_tree import EventTreeCollection
+from th2_data_services.data import Data
+from th2_data_services.event_tree import EventTreeCollection
 
-from th2.data_services.data_source.lwdp.data_source import HTTPDataSource
-from th2.data_services.data_source.lwdp.event_tree import HttpETCDriver
+from th2_data_services.data_source.lwdp.data_source import HTTPDataSource
+from th2_data_services.data_source.lwdp.event_tree import HttpETCDriver
 
 from tests.tests_integration.conftest import DataCase
 

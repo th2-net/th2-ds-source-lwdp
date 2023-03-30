@@ -39,9 +39,9 @@ from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
     MessageStreamPointer,
 )
 from grpc import Channel, insecure_channel
-from th2.data_services.data_source.lwdp.interfaces.source_api import IGRPCSourceAPI
-from th2.data_services.data_source.lwdp.streams import Streams
-from th2.data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
+from th2_data_services.data_source.lwdp.interfaces.source_api import IGRPCSourceAPI
+from th2_data_services.data_source.lwdp.streams import Streams
+from th2_data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
 
 logger = logging.getLogger(__name__)
 
