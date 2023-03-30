@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from datetime import datetime
-
+from typing import List
 
 def _check_list_or_tuple(variable, var_name):  # noqa
     if not (isinstance(variable, tuple) or isinstance(variable, list)):
@@ -22,3 +22,12 @@ def _check_list_or_tuple(variable, var_name):  # noqa
 def _check_datetime(dt: datetime):
     if not isinstance(dt, datetime):
         raise TypeError("Provided timestamp should be `datetime` object")
+
+def _check_response_formats(formats: List[str]):
+    if not isinstance(formats, list):
+        raise Exception("response_formats should be list")
+    if formats in [["JSON_PARSED","BASE_64"],["BASE_64","JSON_PARSED"]]:
+        return "BOTH"
+    if formats == ["BASE_64"]:
+        return "RAW"
+    raise Exception('response_formats should be either ["JSON_PARSED","BASE_64"] or ["BASE_64"]')

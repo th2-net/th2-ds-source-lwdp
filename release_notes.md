@@ -48,3 +48,9 @@
 ## Improvements
 
 1. [TH2-4828] GetEventById and GetMessageById now raise EventNotFound and MessageNotFound exceptions with description of error from response.
+
+# v2.0.1.3
+
+## Features
+
+1. [TH2-4692] Added response_formats argument to GetMessageById and GetMessagesById
