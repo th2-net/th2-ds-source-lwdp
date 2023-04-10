@@ -646,7 +646,7 @@ class GetMessageById(IHTTPCommand):
 
     def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
         api: HTTPAPI = data_source.source_api
-        if not isinstance(self._response_formats,list):
+        if not isinstance(self._response_formats,list) and self._response_formats is not None:
             raise Exception("response_formats argument should be a list")
         if self._response_formats in [None,["JSON_PARSED","BASE_64"],["BASE_64","JSON_PARSED"]]:
             only_raw = False
