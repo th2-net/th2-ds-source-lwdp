@@ -270,7 +270,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "endTimestamp": end_timestamp,
             "bookId": book_id,
             "sort": sort,
-            "responseFormats": response_formats,
+            "responseFormat": response_formats,
             "keepOpen": keep_open,
         }
         groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
@@ -280,7 +280,7 @@ class HTTPAPI(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["responseFormats"]:
+            if k in ["responseFormat"]:
                 for item in v:
                     options.append(self._option(k, item))
             else:
