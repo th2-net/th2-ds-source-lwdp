@@ -190,7 +190,6 @@ class HTTPAPI(IHTTPSourceAPI):
         book_id: str,
         groups: List[str],
         sort: bool = None,
-        raw_only: bool = False,
         response_formats: List[str] = None,
         keep_open: bool = None,
         max_url_length=2048,
@@ -205,7 +204,6 @@ class HTTPAPI(IHTTPSourceAPI):
             book_id: book ID for requested groups.
             groups: List of groups to search messages by
             sort: Enables message sorting in the request
-            raw_only: If true, only raw message will be returned in the response
             response_formats: Response format
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range
             max_url_length: API request url max length.
@@ -224,6 +222,60 @@ class HTTPAPI(IHTTPSourceAPI):
         groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
         options = []
         url = f"{self._url}/search/sse/messages/group?"
+
+        for k, v in kwargs.items():
+            if v is None:
+                continue
+            if k in ["responseFormats"]:
+                for item in v:
+                    options.append(self._option(k, item))
+            else:
+                options.append(self._option(k, v))
+
+        options_url = "&".join(options)
+        url = f"{url}{options_url}"
+        urls = self.__split_requests(url, groups, max_url_length)
+        return [self.__encode_url(url) for url in urls]
+
+    def get_download_messages(
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        max_url_length=2048,
+    ) -> List[str]:
+        """REST-API `download/messages` call downloads messages in specified time range in json format.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages by
+            sort: Enables message sorting in the request
+            response_formats: Response format
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range
+            max_url_length: API request url max length.
+
+        Returns:
+            Iterable object which return messages as parts of streaming response or message stream pointers.
+        """
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "bookId": book_id,
+            "sort": sort,
+            "responseFormats": response_formats,
+            "keepOpen": keep_open,
+        }
+        groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
+        options = []
+        url = f"{self._url}/download/messages?"
 
         for k, v in kwargs.items():
             if v is None:

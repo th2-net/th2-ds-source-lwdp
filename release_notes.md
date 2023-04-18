@@ -47,6 +47,7 @@
 
 ## Features
 1. [TH2-4869] Added ResponseFormat class to provide possible values for response_formats commands parameter. 
+2. [TH2-4882] Added get_download_messages API
 
 ## Improvements
 1. [TH2-4869] ResponseFormat == 'JSON_PARSED' made as default
