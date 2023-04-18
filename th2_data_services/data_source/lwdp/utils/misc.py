@@ -12,7 +12,8 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from datetime import datetime
-
+from typing import List
+from th2_data_services.data_source.lwdp.utils.response_formats import ResponseFormats
 
 def _check_list_or_tuple(variable, var_name):  # noqa
     if not (isinstance(variable, tuple) or isinstance(variable, list)):
@@ -22,3 +23,10 @@ def _check_list_or_tuple(variable, var_name):  # noqa
 def _check_datetime(dt: datetime):
     if not isinstance(dt, datetime):
         raise TypeError("Provided timestamp should be `datetime` object")
+
+
+def _check_response_formats(formats: List[str]):
+    rf = ResponseFormats()
+    if not rf.is_valid_response_format(formats):
+        print(formats)
+        raise Exception("Invalid response format")

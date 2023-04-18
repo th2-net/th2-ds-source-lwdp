@@ -46,7 +46,8 @@
 # v2.0.2.0
 
 ## Features
-1. [TH2-4869] Added ResponseFormat class to provide possible values for response_formats commands parameter. 
+1. [TH2-4869] Added ResponseFormat class to provide possible values for response_formats commands parameter.
+2. [TH2-4692] Added response_formats for GetMessageById and GetMessagesById and fixed for SSE commands
 
 ## Improvements
 1. [TH2-4869] ResponseFormat == 'JSON_PARSED' made as default
