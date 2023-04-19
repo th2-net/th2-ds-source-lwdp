@@ -20,8 +20,12 @@ class ResponseFormats:
         self.correct_formats = ["PROTO_PARSED", "JSON_PARSED", "BASE_64"]
 
     def is_valid_response_format(self, formats: Union[str, List[str]]):
+        if formats is None:
+            return True
         if isinstance(formats, str):
             formats = [formats]
         if not isinstance(formats, list):
             raise Exception("Wrong type. formats should be list or string")
+        if "PROTO_PARSED" in self.correct_formats and "JSON_PARSED" in self.correct_formats:
+            raise Exception("PROTO_PARSED and JSON_PARSED can't be used together for format")
         return all(format in self.correct_formats for format in formats)

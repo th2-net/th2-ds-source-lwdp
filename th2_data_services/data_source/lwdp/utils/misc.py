@@ -28,5 +28,4 @@ def _check_datetime(dt: datetime):
 def _check_response_formats(formats: List[str]):
     rf = ResponseFormats()
     if not rf.is_valid_response_format(formats):
-        print(formats)
         raise Exception("Invalid response format")
