@@ -36,6 +36,7 @@ from th2_data_services.data_source.lwdp.filters.event_filters import LwDPEventFi
 from th2_data_services.data_source.lwdp.utils import (
     _check_datetime,
     _check_list_or_tuple,
+    _check_response_formats,
 )
 from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
@@ -631,22 +632,30 @@ class GetMessageById(IHTTPCommand):
         MessageNotFound: If message by id wasn't found.
     """
 
-    def __init__(self, id: str, use_stub=False):
+    def __init__(self, id: str, use_stub=False, response_formats: List[str] = None):
         """GetMessageById constructor.
 
         Args:
             id: Message id.
             use_stub: If True the command returns stub instead of exception.
+            response_formats: Allowed values: ["BASE_64","JSON_PARSED"] and ["BASE_64"]
 
         """
         super().__init__()
         self._id = id
         self._stub_status = use_stub
+        self._response_formats = response_formats
 
     def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
         api: HTTPAPI = data_source.source_api
-        url = api.get_url_find_message_by_id(self._id)
+        if self._response_formats in [['JSON_PARSED','BASE_64'],['BASE_64','JSON_PARSED'],None]:
+            only_raw = False
+        elif self._response_formats == ['BASE_64']:
+            only_raw = True
+        else:
+            raise Exception("response_formats should be either ['BASE_64'] or ['JSON_PARSED','BASE_64']")
 
+        url = api.get_url_find_message_by_id(self._id, only_raw)
         # LOG         logger.info(url)
         response = api.execute_request(url)
         if response.status_code in (404, 408) and self._stub_status:
@@ -656,7 +665,7 @@ class GetMessageById(IHTTPCommand):
             return stub
         elif response.status_code in (404, 408):
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise MessageNotFound(self._id)
+            raise MessageNotFound(self._id,"Unable to find the message")
         else:
             return response.json()
 
@@ -673,17 +682,19 @@ class GetMessagesById(IHTTPCommand):
         MessageNotFound: If any message by id wasn't found.
     """
 
-    def __init__(self, ids: List[str], use_stub=False):
+    def __init__(self, ids: List[str], use_stub=False, response_formats: List[str] = None):
         """GetMessagesById constructor.
 
         Args:
             ids: Message id list.
             use_stub: If True the command returns stub instead of exception.
+            response_formats: Allowed values: ["BASE_64","JSON_PARSED"] and ["BASE_64"]
 
         """
         super().__init__()
         self._ids: ids = ids
         self._stub_status = use_stub
+        self._response_formats = response_formats
 
     def handle(self, data_source: HTTPDataSource) -> List[dict]:  # noqa: D102
         result = []
@@ -691,6 +702,7 @@ class GetMessagesById(IHTTPCommand):
             message = GetMessageById(
                 message_id,
                 use_stub=self._stub_status,
+                response_formats=self._response_formats,
             ).handle(data_source)
             result.append(message)
 
@@ -750,6 +762,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         _check_datetime(start_timestamp)
         if end_timestamp:
             _check_datetime(end_timestamp)
+        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -857,6 +870,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             response_formats = [ResponseFormat.JSON_PARSED]
         _check_datetime(start_timestamp)
         _check_datetime(end_timestamp)
+        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -926,6 +940,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -1010,6 +1025,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
