@@ -104,7 +104,6 @@ class SSEHandlerClassBase(IHTTPCommand):
         urls: List[str] = self._get_urls(data_source)
         for url in urls:
             # LOG             logger.info(url)
-            print(url)
             yield from api.execute_sse_request(url)
 
     def _sse_events_stream(self, data_source: HTTPDataSource) -> Generator[Event, Any, None]:
@@ -657,7 +656,6 @@ class GetMessageById(IHTTPCommand):
             raise Exception("response_formats should be either ['BASE_64'] or ['JSON_PARSED','BASE_64']")
 
         url = api.get_url_find_message_by_id(self._id, only_raw)
-        print("URL:",url)
         # LOG         logger.info(url)
         response = api.execute_request(url)
         if response.status_code in (404, 408) and self._stub_status:
