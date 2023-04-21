@@ -12,12 +12,13 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from typing import List, Union
+from th2_data_services.data_source.lwdp.message_response_format import ResponseFormat as RF
 
 
 class ResponseFormats:
     def __init__(self):  # noqa
         """ResponseFormats Constructor."""
-        self.correct_formats = ["PROTO_PARSED", "JSON_PARSED", "BASE_64"]
+        self.correct_formats = [RF.JSON_PARSED, RF.BASE64, RF.PROTO_PARSED]
 
     def is_valid_response_format(self, formats: Union[str, List[str]]):
         if formats is None:
@@ -26,6 +27,8 @@ class ResponseFormats:
             formats = [formats]
         if not isinstance(formats, list):
             raise Exception("Wrong type. formats should be list or string")
-        if "PROTO_PARSED" in self.correct_formats and "JSON_PARSED" in self.correct_formats:
-            raise Exception("PROTO_PARSED and JSON_PARSED can't be used together for format")
+        if RF.PROTO_PARSED in formats and RF.JSON_PARSED in formats:
+            raise Exception(
+                f"{RF.PROTO_PARSED} and {RF.JSON_PARSED} can't be used together for format"
+            )
         return all(format in self.correct_formats for format in formats)

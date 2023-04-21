@@ -43,6 +43,7 @@ from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
 
+
 # LOG import logging
 
 # LOG logger = logging.getLogger(__name__)
@@ -648,12 +649,14 @@ class GetMessageById(IHTTPCommand):
 
     def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
         api: HTTPAPI = data_source.source_api
-        if self._response_formats in [['JSON_PARSED','BASE_64'],['BASE_64','JSON_PARSED'],None]:
+        if self._response_formats in [["JSON_PARSED", "BASE_64"], ["BASE_64", "JSON_PARSED"], None]:
             only_raw = False
-        elif self._response_formats == ['BASE_64']:
+        elif self._response_formats == ["BASE_64"]:
             only_raw = True
         else:
-            raise Exception("response_formats should be either ['BASE_64'] or ['JSON_PARSED','BASE_64']")
+            raise Exception(
+                "response_formats should be either ['BASE_64'] or ['JSON_PARSED','BASE_64']"
+            )
 
         url = api.get_url_find_message_by_id(self._id, only_raw)
         # LOG         logger.info(url)
@@ -665,7 +668,7 @@ class GetMessageById(IHTTPCommand):
             return stub
         elif response.status_code in (404, 408):
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise MessageNotFound(self._id,"Unable to find the message")
+            raise MessageNotFound(self._id, "Unable to find the message")
         else:
             return response.json()
 
@@ -737,7 +740,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         cache: bool = False,
         buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ):
-        """GetMessages constructor.
+        """GetMessagesByBookByStreams constructor.
 
         Args:
             start_timestamp: Start timestamp of search.
@@ -849,7 +852,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         cache: bool = False,
         buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
-        """GetMessagesByGroups Constructor.
+        """GetMessagesByBookByGroups Constructor.
 
         Args:
             start_timestamp: Sets the search starting point.

@@ -13,7 +13,8 @@
 #  limitations under the License.
 from datetime import datetime
 from typing import List
-from th2_data_services.data_source.lwdp.utils.response_formats import ResponseFormats
+from th2_data_services.data_source.lwdp.utils._response_formats import ResponseFormats
+
 
 def _check_list_or_tuple(variable, var_name):  # noqa
     if not (isinstance(variable, tuple) or isinstance(variable, list)):
