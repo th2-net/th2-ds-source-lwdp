@@ -22,13 +22,28 @@ from th2_data_services.data_source.lwdp.struct import (
     MessageStruct,
 )
 
+
 class BrokenEvent:
     def __str__(self):
         return "<BrokenEvent>"
 
+    def __repr__(self):
+        return "<BrokenEvent>"
+
+    def __eq__(self, other):
+        return other == BrokenEvent
+
+
 class BrokenMessage:
     def __str__(self):
         return "<BrokenMessage>"
+
+    def __repr__(self):
+        return "<BrokenMessage>"
+
+    def __eq__(self, other):
+        return other == BrokenMessage
+
 
 class EventStubBuilder(IEventStub):
     def __init__(self, event_struct: EventStruct):
