@@ -22,6 +22,13 @@ from th2_data_services.data_source.lwdp.struct import (
     MessageStruct,
 )
 
+class BrokenEvent:
+    def __str__(self):
+        return "<BrokenEvent>"
+
+class BrokenMessage:
+    def __str__(self):
+        return "<BrokenMessage>"
 
 class EventStubBuilder(IEventStub):
     def __init__(self, event_struct: EventStruct):
@@ -42,13 +49,13 @@ class EventStubBuilder(IEventStub):
         """
         return {
             self.event_fields.ATTACHED_MESSAGES_IDS: [],
-            self.event_fields.BATCH_ID: "Broken_Event",
+            self.event_fields.BATCH_ID: BrokenEvent(),
             self.event_fields.END_TIMESTAMP: {"nano": 0, "epochSecond": 0},
             self.event_fields.START_TIMESTAMP: {"nano": 0, "epochSecond": 0},
             self.event_fields.EVENT_ID: self.REQUIRED_FIELD,
-            self.event_fields.NAME: "Broken_Event",
-            self.event_fields.EVENT_TYPE: "Broken_Event",
-            self.event_fields.PARENT_EVENT_ID: "Broken_Event",
+            self.event_fields.NAME: BrokenEvent(),
+            self.event_fields.EVENT_TYPE: BrokenEvent(),
+            self.event_fields.PARENT_EVENT_ID: BrokenEvent(),
             self.event_fields.STATUS: None,
             self.event_fields.IS_BATCHED: None,
         }
@@ -73,8 +80,8 @@ class MessageStubBuilder(IMessageStub):
         """
         return {
             self.message_fields.DIRECTION: None,
-            self.message_fields.SESSION_ID: "Broken_Message",
-            self.message_fields.MESSAGE_TYPE: "Broken_Message",
+            self.message_fields.SESSION_ID: BrokenMessage(),
+            self.message_fields.MESSAGE_TYPE: BrokenMessage(),
             self.message_fields.TIMESTAMP: {"nano": 0, "epochSecond": 0},
             self.message_fields.BODY: [],
             self.message_fields.BODY_BASE64: [],

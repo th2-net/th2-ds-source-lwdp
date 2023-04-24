@@ -51,3 +51,4 @@
 
 ## Improvements
 1. [TH2-4869] ResponseFormat == 'JSON_PARSED' made as default
+2. [TH2-4790] Stub messages and events don't use values "Broken_event" and "Broken_message" anymore and instead use BrokenEvent and BrokenMessage objects.
