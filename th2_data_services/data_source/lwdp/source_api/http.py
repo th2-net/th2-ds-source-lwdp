@@ -265,7 +265,7 @@ class HTTPAPI(IHTTPSourceAPI):
             max_url_length: API request url max length.
 
         Returns:
-            Iterable object which return messages as parts of streaming response or message stream pointers.
+            URL for downloading messages.
         """
         kwargs = {
             "startTimestamp": start_timestamp,
