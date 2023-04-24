@@ -197,7 +197,7 @@ def test_get_messages_with_multiple_url(
 
     assert len(list(messages)) == 6 and len(list(messages_hand_actual)) == len(
         list(messages_hand_expected)
-    )#I can talk like this :D
+    )
 
 
 # def test_unprintable_character(http_data_source: HTTPDataSource):
