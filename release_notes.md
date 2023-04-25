@@ -50,19 +50,20 @@
 
 1. [I] Stub builders create stub events and messages with BrokenEvent/BrokenMessages objects instead
    of strings. It means that the old check like `if stub_event["eventName"] == "Broken_Event"` will
-   not work more. Use `if stub_event["eventName"] == BrokenEvent`
+   not work more. Use `if stub_event["eventName"] == BrokenEvent`.
    [M] Update your string `Broken_Event` check to class BrokenEvent. The same for messages.
 
 ## Features
-
 1. [TH2-4869] Added ResponseFormat class to provide possible values for response_formats commands
    parameter.
 2. [TH2-4692] Added response_formats for GetMessageById and GetMessagesById and fixed for SSE
-   commands
+   commands.
+3. [TH2-4882] Added get_download_messages API.
+
 
 ## Improvements
 
-1. [TH2-4869] ResponseFormat == 'JSON_PARSED' made as default
+1. [TH2-4869] ResponseFormat == 'JSON_PARSED' made as default.
 2. [TH2-4790] Stub messages and events don't use "Broken_event" and "Broken_message" strings
    anymore.
    Use BrokenEvent and BrokenMessage objects instead.
