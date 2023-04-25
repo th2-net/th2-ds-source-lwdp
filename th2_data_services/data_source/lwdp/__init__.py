@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
+from .stub_builder import BrokenEvent, BrokenMessage
 from .message_response_format import ResponseFormat
 from .streams import Stream, Streams
 from .page import Page
