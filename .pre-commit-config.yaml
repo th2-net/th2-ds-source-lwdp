@@ -46,7 +46,7 @@ repos:
       - id: check_copyright
         name: check_copyright
         stages: [ commit ]
-        entry: python check_copyright.py copyright.txt ./th2
+        entry: python check_copyright.py copyright.txt ./th2_data_services
         language: python
         pass_filenames: false
         always_run: true

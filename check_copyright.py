@@ -3,6 +3,8 @@ import re
 from datetime import date
 import sys
 
+__version__ = "1.0.0"
+
 
 def check_copyright(file_path, text_path):
     # Check if file is a python script
@@ -103,8 +105,6 @@ def check_files_in_dir(dir_path, text_path, uncopyrighted_files):
 
 
 if __name__ == "__main__":
-    import sys
-
     text_path = sys.argv[1]
     dir_path = sys.argv[2]
     update = False

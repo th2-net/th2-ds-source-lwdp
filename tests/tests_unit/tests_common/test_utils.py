@@ -1,6 +1,6 @@
 import pytest
 from datetime import datetime
-from th2.data_services.data_source.lwdp.utils import _check_datetime
+from th2_data_services.data_source.lwdp.utils import _check_datetime
 
 
 def test_datetime_invalid_type():

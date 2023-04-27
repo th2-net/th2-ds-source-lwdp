@@ -1,8 +1,8 @@
 import pytest
 import requests
 
-from th2.data_services.data import Data
-from th2.data_services.exceptions import CommandError
+from th2_data_services.data import Data
+from th2_data_services.exceptions import CommandError
 from tests.tests_integration.conftest import (
     STREAM_1,
     STREAM_2,
@@ -197,7 +197,7 @@ def test_get_messages_with_multiple_url(
 
     assert len(list(messages)) == 6 and len(list(messages_hand_actual)) == len(
         list(messages_hand_expected)
-    )#I can talk like this :D
+    )
 
 
 # def test_unprintable_character(http_data_source: HTTPDataSource):
