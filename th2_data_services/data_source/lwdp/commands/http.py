@@ -306,6 +306,8 @@ class GetPages(SSEHandlerClassBase):
     ) -> None:
         """GetPages Constructor.
 
+        If start_timestamp and end_timestamp are not provided, it returns all Pages.
+
         Args:
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp.
