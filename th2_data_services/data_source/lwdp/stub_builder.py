@@ -32,6 +32,9 @@ class BrokenEvent:
 
     def __eq__(self, other):
         return other == BrokenEvent
+    
+    def __hash__(self):
+        return 0
 
 
 class BrokenMessage:
@@ -43,6 +46,9 @@ class BrokenMessage:
 
     def __eq__(self, other):
         return other == BrokenMessage
+    
+    def __hash__(self):
+        return 0
 
 
 class EventStubBuilder(IEventStub):
