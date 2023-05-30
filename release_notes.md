@@ -67,3 +67,8 @@
 2. [TH2-4790] Stub messages and events don't use "Broken_event" and "Broken_message" strings
    anymore.
    Use BrokenEvent and BrokenMessage objects instead.
+
+# v2.0.3.0
+
+## BugFixes
+1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
