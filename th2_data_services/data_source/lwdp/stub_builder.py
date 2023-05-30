@@ -23,7 +23,16 @@ from th2_data_services.data_source.lwdp.struct import (
 )
 
 
-class BrokenEvent:
+class _Singleton(type):
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+        if cls not in cls._instances:
+            cls._instances[cls] = super(_Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class BrokenEvent(metaclass=_Singleton):
     def __str__(self):
         return "<BrokenEvent>"
 
@@ -32,12 +41,12 @@ class BrokenEvent:
 
     def __eq__(self, other):
         return other == BrokenEvent
-    
+
     def __hash__(self):
         return 0
 
 
-class BrokenMessage:
+class BrokenMessage(metaclass=_Singleton):
     def __str__(self):
         return "<BrokenMessage>"
 
@@ -46,7 +55,7 @@ class BrokenMessage:
 
     def __eq__(self, other):
         return other == BrokenMessage
-    
+
     def __hash__(self):
         return 0
 
@@ -115,3 +124,29 @@ http_event_stub_builder = EventStubBuilder(http_event_struct)
 http_message_stub_builder = MessageStubBuilder(http_message_struct)
 grpc_event_stub_builder = EventStubBuilder(grpc_event_struct)
 grpc_message_stub_builder = MessageStubBuilder(grpc_message_struct)
+
+
+if __name__ == "__main__":
+    # Tests
+    # TODO - move to unit-tests (tech debt)
+    be1 = BrokenEvent()
+    be2 = BrokenEvent()
+
+    print(f"id(be1): {id(be1)}, id(be2): {id(be2)}")
+    print(id(be1) == id(be2))
+    print(id(be1) is id(be2))
+    print("--")
+    print(f"type(be1): {type(be1)}")
+    print(f"type(BrokenEvent): {type(BrokenEvent)}")
+    print(be1 == be2)  # True
+    print(be1 is be2)  # True
+    print("--")
+    print(be1 == BrokenEvent)  # True
+    print(be1 is BrokenEvent)  # False
+
+    print("-- Dict check")
+    d = {}
+    d[be1] = 123
+    print(d)
+    d[be2] = "abc"
+    print(d)
