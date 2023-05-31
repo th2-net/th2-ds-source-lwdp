@@ -235,7 +235,7 @@ class GetMessageAliases(SSEHandlerClassBase):
                 )
             ]
 
-    def _stream_chunk_data(sse_events_stream):
+    def _stream_chunk_data(self, sse_events_stream):
         for chunk in sse_events_stream:
             for event in chunk:
                 yield event
