@@ -202,9 +202,9 @@ class GetMessageAliases(SSEHandlerClassBase):
         buffer_limit: int = DEFAULT_BUFFER_LIMIT,
         cache: bool = False,
     ) -> None:
-        """GetPages Constructor.
+        """GetMessageAliases Constructor.
 
-        If start_timestamp and end_timestamp are not provided, it returns all Pages.
+        If start_timestamp and end_timestamp are not provided, it returns all aliases.
 
         Args:
             book_id (str): Book ID.
