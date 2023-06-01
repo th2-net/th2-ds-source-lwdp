@@ -70,5 +70,10 @@
 
 # v2.0.3.0
 
+## Improvements
+
+1. [TH@-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguements.
+
 ## BugFixes
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
+
