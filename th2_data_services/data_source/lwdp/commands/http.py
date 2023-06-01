@@ -234,12 +234,7 @@ class GetMessageAliases(SSEHandlerClassBase):
                     self._book_id, self._start_timestamp, self._end_timestamp
                 )
             ]
-
-    def _stream_chunk_data(self, sse_events_stream):
-        for chunk in sse_events_stream:
-            for event in chunk:
-                yield event
-
+        
     def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
 
