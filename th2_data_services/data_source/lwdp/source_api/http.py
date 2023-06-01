@@ -67,7 +67,7 @@ class HTTPAPI(IHTTPSourceAPI):
         end_timestamp: int = None,
         chunked_size: int = None,
     ) -> str:
-        """REST-API `book/{bookID}/message/aliases` call returns a list of message aliases in book named bookID."""
+        """REST-API `book/{bookID}/message/aliases/sse` call creates an sse channel of message aliases in book named bookID."""
         url = f"{self._url}/book/{book_id}/message/aliases/sse?"
 
         kwargs = {
