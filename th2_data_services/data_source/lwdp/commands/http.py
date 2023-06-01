@@ -249,7 +249,7 @@ class GetMessageAliases(SSEHandlerClassBase):
         Returns:
              Data
         """
-        sse_events_stream = self._stream_chunk_data(self._sse_events_stream(data_source))
+        sse_events_stream = partial(self._sse_events_stream, data_source)
         data = (
             Data(sse_events_stream)
             .map_stream(self._sse_handler)
