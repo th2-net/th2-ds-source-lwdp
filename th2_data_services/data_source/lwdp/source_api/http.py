@@ -60,7 +60,13 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `book/{bookID}/event/scopes` call returns a list of scopes in book named bookID."""
         return self.__encode_url(f"{self._url}/book/{book_id}/event/scopes")
 
-    def get_url_get_message_aliases(self, book_id: str, start_timestamp: int = None, end_timestamp: int = None, chunked_size: int = None) -> str:
+    def get_url_get_message_aliases(
+        self,
+        book_id: str,
+        start_timestamp: int = None,
+        end_timestamp: int = None,
+        chunked_size: int = None,
+    ) -> str:
         """REST-API `book/{bookID}/message/aliases` call returns a list of message aliases in book named bookID."""
         url = f"{self._url}/book/{book_id}/message/aliases/sse?"
 
@@ -81,9 +87,7 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `event` call returns a single event with the specified id."""
         return self.__encode_url(f"{self._url}/event/{event_id}")
 
-    def get_url_find_message_by_id(
-        self, message_id: str, only_raw: bool = False
-    ) -> str:
+    def get_url_find_message_by_id(self, message_id: str, only_raw: bool = False) -> str:
         """REST-API `message` call returns a single      message with the specified id."""
         return self.__encode_url(f"{self._url}/message/{message_id}?onlyRaw={only_raw}")
 

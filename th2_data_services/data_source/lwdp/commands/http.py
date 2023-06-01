@@ -227,7 +227,7 @@ class GetMessageAliases(SSEHandlerClassBase):
     def _get_urls(self, data_source: HTTPDataSource):
         api = data_source.source_api
         if self._all_results:
-            return [api.get_url_get_message_aliases(book_id = self._book_id)]
+            return [api.get_url_get_message_aliases(book_id=self._book_id)]
         else:
             return [
                 api.get_url_get_message_aliases(
@@ -250,13 +250,10 @@ class GetMessageAliases(SSEHandlerClassBase):
              Data
         """
         sse_events_stream = partial(self._sse_events_stream, data_source)
-        data = (
-            Data(sse_events_stream)
-            .map_stream(self._sse_handler)
-            .use_cache(self._cache)
-        )
+        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
         data.metadata["urls"] = self._get_urls(data_source)
         return data
+
 
 class GetMessageGroups(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
