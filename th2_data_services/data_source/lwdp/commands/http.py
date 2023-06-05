@@ -234,7 +234,7 @@ class GetMessageAliases(SSEHandlerClassBase):
                     self._book_id, self._start_timestamp, self._end_timestamp
                 )
             ]
-        
+
     def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
 
@@ -302,8 +302,10 @@ class GetMessageGroups(SSEHandlerClassBase):
 
     def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
+
         Args:
             data_source: HTTPDataSource
+
         Returns:
              Data
         """
@@ -1046,7 +1048,11 @@ class GetMessagesByPage(SSEHandlerClassBase):
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
-        self._streams = GetMessageAliases(self._book_id,datetime.fromtimestamp(self._start_timestamp / 1_000_000),datetime.fromtimestamp(self._end_timestamp / 1_000_000))
+        self._streams = GetMessageAliases(
+            self._book_id,
+            datetime.fromtimestamp(self._start_timestamp / 1_000_000),
+            datetime.fromtimestamp(self._end_timestamp / 1_000_000),
+        )
         self._book_id = page.book
         api = data_source.source_api
         return api.get_url_search_sse_messages(
