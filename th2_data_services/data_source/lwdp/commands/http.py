@@ -1048,10 +1048,11 @@ class GetMessagesByPage(SSEHandlerClassBase):
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
-        self._streams = GetMessageAliases(
+        print(datetime.fromtimestamp(self._start_timestamp // 1_000_000))
+        self._streams = GetMessageGroups(
             self._book_id,
-            datetime.fromtimestamp(self._start_timestamp / 1_000_000),
-            datetime.fromtimestamp(self._end_timestamp / 1_000_000),
+            datetime.fromtimestamp(self._start_timestamp // 1_000_000),
+            datetime.fromtimestamp(self._end_timestamp // 1_000_000),
         )
         self._book_id = page.book
         api = data_source.source_api
