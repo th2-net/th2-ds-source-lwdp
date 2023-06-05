@@ -985,6 +985,84 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         )
 
 
+class GetMessagesByPage(SSEHandlerClassBase):
+    def __init__(
+        self,
+        page: Union[Page, str],
+        book_id: str = None,
+        message_ids: List[None] = None,
+        search_direction: Optional[str] = "next",
+        result_count_limit: int = None,
+        response_formats: List[str] = None,
+        keep_open: bool = None,
+        max_url_length: int = 2048,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+    ):
+        """GetMessagesByPage Constructor.
+
+        Args:
+            page: Page to search with.
+            book_id: Book to search page by name.
+            message_ids: Search for message ids.
+            result_count_limit: Max results to get.
+            search_direction: Search direction.
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            max_url_length: API request url max length.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+        """
+        _check_response_formats(response_formats)
+        super().__init__(
+            cache=cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
+        if response_formats is None:
+            response_formats = [ResponseFormat.JSON_PARSED]
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._cache = cache
+        self._page = page
+        self._book_id = book_id
+        self._result_count_limit = result_count_limit
+        self._search_direction = search_direction
+        self._response_formats = response_formats
+        self._message_ids = message_ids
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+
+    def _get_urls(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        self._end_timestamp = (
+            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+        )
+        self._streams = GetMessageAliases(self._book_id,datetime.fromtimestamp(self._start_timestamp / 1_000_000),datetime.fromtimestamp(self._end_timestamp / 1_000_000))
+        self._book_id = page.book
+        api = data_source.source_api
+        return api.get_url_search_sse_messages(
+            start_timestamp=self._start_timestamp,
+            stream=self._streams,
+            book_id=self._book_id,
+            message_ids=self._message_ids,
+            search_direction=self._search_direction,
+            result_count_limit=self._result_count_limit,
+            end_timestamp=self._end_timestamp,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            max_url_length=self._max_url_length,
+        )
+
+
 class GetMessagesByPageByStreams(SSEHandlerClassBase):
     def __init__(
         self,
