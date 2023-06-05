@@ -68,12 +68,20 @@
    anymore.
    Use BrokenEvent and BrokenMessage objects instead.
 
-# v2.0.3.0
+# v2.1.0.0
+
+## User impact and migration instructions
+
+1. [I] GetMessageAliases and GetMessageGroups commands now return a TH2 Data object instead of a list.
+   It means that using list functions on these commands' return values won't work anymore and must be
+   treated as Data objects.
+   [M] Update your usage of these commands' returned objects and don't use list methods on them, instead
+   use Data object's functions or cast them into a list first.
 
 ## Improvements
 
-1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguements.
-2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguements.
+1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
+2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
 
 ## BugFixes
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
