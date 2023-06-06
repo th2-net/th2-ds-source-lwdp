@@ -1029,6 +1029,7 @@ class GetMessagesByPage(IHTTPCommand):
             response_formats = [ResponseFormat.JSON_PARSED]
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
+        self._buffer_limit=buffer_limit
         self._cache = cache
         self._page = page
         self._book_id = book_id
@@ -1036,8 +1037,7 @@ class GetMessagesByPage(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._max_url_length = max_url_length
-        self._cache=cache,
-        self._buffer_limit=buffer_limit,
+        self._cache=cache
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
