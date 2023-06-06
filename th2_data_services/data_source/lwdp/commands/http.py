@@ -1059,18 +1059,20 @@ class GetMessagesByPage(IHTTPCommand):
             datetime.fromtimestamp(self._end_timestamp // 1_000_000_000),
         )
         self._book_id = page.book
-        return GetMessagesByPageByGroups(
-            page=self._page,
-            groups=self._groups,
-            book_id=self._book_id,
-            sort=self._sort,
-            response_formats=self._response_formats,
-            keep_open=self._keep_open,
-            max_url_length=self._max_url_length,
-            char_enc=self._char_enc,
-            decode_error_handler=self._decode_error_handler,
-            cache=self._cache,
-            buffer_limit=self._buffer_limit
+        return data_source.command(
+            GetMessagesByPageByGroups(
+                page=self._page,
+                groups=self._groups,
+                book_id=self._book_id,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                keep_open=self._keep_open,
+                max_url_length=self._max_url_length,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit
+            )
         )
 
 
