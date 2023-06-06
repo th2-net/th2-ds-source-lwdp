@@ -1041,14 +1041,18 @@ class GetMessagesByPage(IHTTPCommand):
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
+        print("PAGE START: ", page.start_timestamp)
+        print("PAGE END: ", page.end_timestamp)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
             DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
-        print(self._start_timestamp)
+        print("SELF START: ", self._start_timestamp)
+        print("SELF END: ", self._end_timestamp)
         print(datetime.fromtimestamp(self._start_timestamp // 1_000_000))
+        print(datetime.fromtimestamp(self._end_timestamp // 1_000_000))
         self._groups = GetMessageGroups(
             self._book_id,
             datetime.fromtimestamp(self._start_timestamp // 1_000_000),
