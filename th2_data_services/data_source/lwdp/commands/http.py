@@ -200,6 +200,7 @@ class GetMessageAliases(SSEHandlerClassBase):
         start_timestamp: datetime = None,
         end_timestamp: datetime = None,
         buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+        char_enc: str = "utf-8",
         cache: bool = False,
     ) -> None:
         """GetMessageAliases Constructor.
@@ -213,7 +214,7 @@ class GetMessageAliases(SSEHandlerClassBase):
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit)
+        super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc)
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
@@ -265,6 +266,7 @@ class GetMessageGroups(SSEHandlerClassBase):
         start_timestamp: datetime = None,
         end_timestamp: datetime = None,
         buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+        char_enc: str = "utf-8",
         cache: bool = False,
     ) -> None:
         """GetMessageGroups Constructor.
@@ -278,7 +280,7 @@ class GetMessageGroups(SSEHandlerClassBase):
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit)
+        super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc)
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
