@@ -210,8 +210,9 @@ class GetMessageAliases(SSEHandlerClassBase):
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp.
             end_timestamp (datetime): End Timestamp.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            char_enc: Encoding for the byte stream.
+            cache (Optional, bool): Cache Status. Defaults To `False`.
         """
         super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc)
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
@@ -276,8 +277,9 @@ class GetMessageGroups(SSEHandlerClassBase):
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp.
             end_timestamp (datetime): End Timestamp.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            char_enc: Encoding for the byte stream.
+            cache (Optional, bool): Cache Status. Defaults To `False`.
         """
         super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc)
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
@@ -996,6 +998,7 @@ class GetMessagesByPage(IHTTPCommand):
     Returns:
         Iterable[dict]: Stream of Th2 messages.
     """
+
     def __init__(
         self,
         page: Union[Page, str],
@@ -1028,7 +1031,7 @@ class GetMessagesByPage(IHTTPCommand):
             response_formats = [ResponseFormat.JSON_PARSED]
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
-        self._buffer_limit=buffer_limit
+        self._buffer_limit = buffer_limit
         self._cache = cache
         self._page = page
         self._book_id = book_id
@@ -1036,7 +1039,7 @@ class GetMessagesByPage(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._max_url_length = max_url_length
-        self._cache=cache
+        self._cache = cache
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1069,7 +1072,7 @@ class GetMessagesByPage(IHTTPCommand):
                 char_enc=self._char_enc,
                 decode_error_handler=self._decode_error_handler,
                 cache=self._cache,
-                buffer_limit=self._buffer_limit
+                buffer_limit=self._buffer_limit,
             )
         )
 
