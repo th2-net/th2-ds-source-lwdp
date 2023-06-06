@@ -1038,7 +1038,6 @@ class GetMessagesByPage(IHTTPCommand):
         self._max_url_length = max_url_length
         self._cache=cache,
         self._buffer_limit=buffer_limit,
-        self._char_enc=char_enc,
         self._decode_error_handler=decode_error_handler,
 
     def handle(self, data_source: HTTPDataSource):
