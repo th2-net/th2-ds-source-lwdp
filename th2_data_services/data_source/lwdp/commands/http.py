@@ -1030,7 +1030,7 @@ class GetMessagesByPage(IHTTPCommand):
         self._cache = cache
         self._page = page
         self._book_id = book_id
-        self._sort
+        self._sort = sort
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._max_url_length = max_url_length
