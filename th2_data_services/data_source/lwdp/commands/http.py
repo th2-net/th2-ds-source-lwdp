@@ -1061,6 +1061,7 @@ class GetMessagesByPage(IHTTPCommand):
                     self._book_id,
                     datetime.fromtimestamp(self._start_timestamp // 1_000_000_000),
                     datetime.fromtimestamp(self._end_timestamp // 1_000_000_000),
+                    char_enc=self._char_enc,
                 )
             )
         )
