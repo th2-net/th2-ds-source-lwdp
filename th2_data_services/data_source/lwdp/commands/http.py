@@ -987,14 +987,19 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         )
 
 
-class GetMessagesByPage(SSEHandlerClassBase):
+class GetMessagesByPage(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by page.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
+    """
     def __init__(
         self,
         page: Union[Page, str],
         book_id: str = None,
-        message_ids: List[None] = None,
-        search_direction: Optional[str] = "next",
-        result_count_limit: int = None,
+        sort: bool = None,
         response_formats: List[str] = None,
         keep_open: bool = None,
         max_url_length: int = 2048,
@@ -1008,9 +1013,7 @@ class GetMessagesByPage(SSEHandlerClassBase):
         Args:
             page: Page to search with.
             book_id: Book to search page by name.
-            message_ids: Search for message ids.
-            result_count_limit: Max results to get.
-            search_direction: Search direction.
+            sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             max_url_length: API request url max length.
@@ -1020,12 +1023,6 @@ class GetMessagesByPage(SSEHandlerClassBase):
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         _check_response_formats(response_formats)
-        super().__init__(
-            cache=cache,
-            buffer_limit=buffer_limit,
-            char_enc=char_enc,
-            decode_error_handler=decode_error_handler,
-        )
         if response_formats is None:
             response_formats = [ResponseFormat.JSON_PARSED]
         self._char_enc = char_enc
@@ -1033,14 +1030,16 @@ class GetMessagesByPage(SSEHandlerClassBase):
         self._cache = cache
         self._page = page
         self._book_id = book_id
-        self._result_count_limit = result_count_limit
-        self._search_direction = search_direction
+        self._sort
         self._response_formats = response_formats
-        self._message_ids = message_ids
         self._keep_open = keep_open
         self._max_url_length = max_url_length
+        self._cache=cache,
+        self._buffer_limit=buffer_limit,
+        self._char_enc=char_enc,
+        self._decode_error_handler=decode_error_handler,
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
@@ -1050,24 +1049,24 @@ class GetMessagesByPage(SSEHandlerClassBase):
         )
         print(self._start_timestamp)
         print(datetime.fromtimestamp(self._start_timestamp // 1_000_000))
-        self._streams = GetMessageGroups(
+        self._groups = GetMessageGroups(
             self._book_id,
             datetime.fromtimestamp(self._start_timestamp // 1_000_000),
             datetime.fromtimestamp(self._end_timestamp // 1_000_000),
         )
         self._book_id = page.book
-        api = data_source.source_api
-        return api.get_url_search_sse_messages(
-            start_timestamp=self._start_timestamp,
-            stream=self._streams,
+        return GetMessagesByPageByGroups(
+            page=self._page,
+            groups=self._groups,
             book_id=self._book_id,
-            message_ids=self._message_ids,
-            search_direction=self._search_direction,
-            result_count_limit=self._result_count_limit,
-            end_timestamp=self._end_timestamp,
+            sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
+            char_enc=self._char_enc,
+            decode_error_handler=self._decode_error_handler,
+            cache=self._cache,
+            buffer_limit=self._buffer_limit
         )
 
 
