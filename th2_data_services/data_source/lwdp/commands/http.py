@@ -118,12 +118,12 @@ class SSEHandlerClassBase(IHTTPCommand):
         """
         sse_bytes_stream = partial(self._sse_bytes_stream, data_source)
 
+        print(self._char_enc)
         client = SSEClient(
             sse_bytes_stream(),
             char_enc=self._char_enc,
             decode_errors_handler=self._decode_error_handler,
         )
-
         yield from client.events()
 
     def _data_object(self, data_source: HTTPDataSource) -> Data:
