@@ -1025,6 +1025,10 @@ class GetMessagesByPage(IHTTPCommand):
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         _check_response_formats(response_formats)
+        self._buffer_limit=buffer_limit,
+        self._char_enc=char_enc,
+        self._decode_error_handler=decode_error_handler,
+        self._cache = cache
         if response_formats is None:
             response_formats = [ResponseFormat.JSON_PARSED]
         self._page = page
@@ -1034,10 +1038,6 @@ class GetMessagesByPage(IHTTPCommand):
         self._keep_open = keep_open
         self._max_url_length = max_url_length
         self._cache=cache,
-        self._buffer_limit=buffer_limit,
-        self._char_enc=char_enc,
-        self._decode_error_handler=decode_error_handler,
-        self._cache = cache
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
