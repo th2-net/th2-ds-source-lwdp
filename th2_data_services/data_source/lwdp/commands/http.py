@@ -1055,6 +1055,7 @@ class GetMessagesByPage(IHTTPCommand):
         print("SELF END: ", self._end_timestamp)
         print(datetime.fromtimestamp(self._start_timestamp // 1_000_000_000))
         print(datetime.fromtimestamp(self._end_timestamp // 1_000_000_000))
+        print(self._char_enc)
         self._groups = list(
             data_source.command(
                 GetMessageGroups(
