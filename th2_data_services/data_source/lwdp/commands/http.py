@@ -1274,7 +1274,7 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         if book_id is None:
             raise Exception("If page name is passed then book_id should be passed too!")
         else:
-            return data_source.command(http.GetPageByName(book_id, page))
+            return data_source.command(GetPageByName(book_id, page))
     elif isinstance(page, Page):
         return page
     else:
