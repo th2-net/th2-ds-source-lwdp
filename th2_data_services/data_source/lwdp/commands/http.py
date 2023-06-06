@@ -552,6 +552,88 @@ class GetEventsById(IHTTPCommand):
 
         return result
 
+class GetEventsByPage(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches events stream by page.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
+    """
+
+    def __init__(
+        self,
+        page: Union[Page, str],
+        book_id: str = None,
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit=DEFAULT_BUFFER_LIMIT,
+    ):
+        """GetEventsByPage Constructor.
+
+        Args:
+            page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            parent_event: Match events to the specified parent.
+            search_direction: Search direction.
+            result_count_limit: Result count limit.
+            filters: Filters using in search for messages.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+        """
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._buffer_limit = buffer_limit
+        self._cache = cache
+        self._page = page
+        self._book_id = book_id
+        self._parent_event = parent_event
+        self._result_count_limit = result_count_limit
+        self._search_direction = search_direction
+        self._filters = filters
+        self._cache = cache
+
+    def handle(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        self._end_timestamp = (
+            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+        )
+        self._scopes = list(
+            data_source.command(
+                GetEventScopes(
+                    self._book_id,
+                    datetime.fromtimestamp(self._start_timestamp // 1_000_000_000),
+                    datetime.fromtimestamp(self._end_timestamp // 1_000_000_000),
+                    char_enc=self._char_enc,
+                )
+            )
+        )
+        self._book_id = page.book
+        return data_source.command(
+            GetEventsByPageByScopes(
+                page=self._page,
+                scopes=self._scopes,
+                book_id=self._book_id,
+                parent_event=self._parent_event,
+                search_direction=self._search_direction,
+                result_count_limit=self._result_count_limit,
+                filters=self._filters,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
+            )
+        )
 
 class GetEventsByBookByScopes(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
