@@ -53,9 +53,9 @@ class SSEHandlerClassBase(IHTTPCommand):
     def __init__(
         self,
         cache: bool,
-        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int,  # e.g. DEFAULT_BUFFER_LIMIT,
+        char_enc: str,  # e.g. "utf-8",
+        decode_error_handler: str,  # e.g. UNICODE_REPLACE_HANDLER,
     ):
         """SSEHandlerClassBase Constructor.
 
@@ -198,9 +198,10 @@ class GetMessageAliases(SSEHandlerClassBase):
         book_id: str,
         start_timestamp: datetime = None,
         end_timestamp: datetime = None,
-        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
-        char_enc: str = "utf-8",
         cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ) -> None:
         """GetMessageAliases Constructor.
 
@@ -210,11 +211,18 @@ class GetMessageAliases(SSEHandlerClassBase):
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp.
             end_timestamp (datetime): End Timestamp.
-            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc)
+        super().__init__(
+            cache=cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
@@ -265,9 +273,10 @@ class GetMessageGroups(SSEHandlerClassBase):
         book_id: str,
         start_timestamp: datetime = None,
         end_timestamp: datetime = None,
-        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
-        char_enc: str = "utf-8",
         cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ) -> None:
         """GetMessageGroups Constructor.
 
@@ -277,11 +286,18 @@ class GetMessageGroups(SSEHandlerClassBase):
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp.
             end_timestamp (datetime): End Timestamp.
-            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc)
+        super().__init__(
+            cache=cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
@@ -380,8 +396,10 @@ class GetPages(SSEHandlerClassBase):
         start_timestamp: datetime = None,
         end_timestamp: datetime = None,
         result_limit: int = None,
-        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
         cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ) -> None:
         """GetPages Constructor.
 
@@ -392,10 +410,12 @@ class GetPages(SSEHandlerClassBase):
             start_timestamp (datetime): Start Timestamp.
             end_timestamp (datetime): End Timestamp.
             result_limit (Optional, int): Return Result Limit.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit)
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
@@ -404,7 +424,12 @@ class GetPages(SSEHandlerClassBase):
             self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
             self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
-        super().__init__(cache, buffer_limit=buffer_limit)
+        super().__init__(
+            cache=cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
         self._book_id = book_id
         self._result_limit = result_limit
 
@@ -482,7 +507,7 @@ class GetEventById(IHTTPCommand):
             return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise EventNotFound(self._id)
+            raise EventNotFound(self._id, "Unable to find the event")
         else:
             return response.json()
 
