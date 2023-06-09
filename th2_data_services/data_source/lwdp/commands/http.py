@@ -38,6 +38,7 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
+from th2_data_services.data_source.lwdp.utils._misc import get_utc_datetime_now
 from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 
@@ -706,7 +707,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            get_utc_datetime_now()
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
@@ -1068,19 +1069,20 @@ class GetMessagesByPage(IHTTPCommand):
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
-        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+        start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
+        end_timestamp = (
+            get_utc_datetime_now()
             if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+            else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
         )
-        self._groups = list(
+        groups = list(
             data_source.command(
                 GetMessageGroups(
                     self._book_id,
-                    datetime.fromtimestamp(self._start_timestamp // 1_000_000_000),
-                    datetime.fromtimestamp(self._end_timestamp // 1_000_000_000),
+                    start_timestamp,
+                    end_timestamp,
                     char_enc=self._char_enc,
+                    decode_error_handler=self._decode_error_handler,
                 )
             )
         )
@@ -1088,7 +1090,7 @@ class GetMessagesByPage(IHTTPCommand):
         return data_source.command(
             GetMessagesByPageByGroups(
                 page=self._page,
-                groups=self._groups,
+                groups=groups,
                 book_id=self._book_id,
                 sort=self._sort,
                 response_formats=self._response_formats,
@@ -1162,7 +1164,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            get_utc_datetime_now()
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
@@ -1248,7 +1250,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            get_utc_datetime_now()
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
