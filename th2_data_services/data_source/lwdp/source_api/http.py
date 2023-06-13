@@ -56,9 +56,24 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `books` call returns a list of books in cradleAPI."""
         return self.__encode_url(f"{self._url}/books")
 
-    def get_url_get_scopes(self, book_id: str) -> str:
-        """REST-API `book/{bookID}/event/scopes` call returns a list of scopes in book named bookID."""
-        return self.__encode_url(f"{self._url}/book/{book_id}/event/scopes")
+    def get_url_get_scopes(
+        self,
+        book_id: str,
+        start_timestamp: int = None,
+        end_timestamp: int = None,
+        chunked_size: int = None,
+    ) -> str:
+        """REST-API `book/{bookID}/event/scopes/sse` call creates an sse channel of event scopes in book named bookID."""
+        url = f"{self._url}/book/{book_id}/event/scopes/sse?"
+
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "chunkedSize": chunked_size,
+        }
+
+        url += "&".join(f"{k}={v}" for k, v in kwargs.items() if v is not None)
+        return self.__encode_url(url)
 
     def get_url_get_message_aliases(
         self,
@@ -97,7 +112,7 @@ class HTTPAPI(IHTTPSourceAPI):
 
         url += "&".join(f"{k}={v}" for k, v in kwargs.items() if v is not None)
         return self.__encode_url(url)
-    
+
     def get_url_find_event_by_id(self, event_id: str) -> str:
         """REST-API `event` call returns a single event with the specified id."""
         return self.__encode_url(f"{self._url}/event/{event_id}")

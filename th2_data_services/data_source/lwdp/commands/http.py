@@ -158,7 +158,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         return self._current_handle_function(data_source)
 
 
-class GetEventScopes(IHTTPCommand):
+class GetEventScopes(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of event scopes in book.
@@ -167,22 +167,68 @@ class GetEventScopes(IHTTPCommand):
         dict: List[str].
     """
 
-    def __init__(self, book_id: str):
-        """GetEventScopes constructor.
+    def __init__(
+        self,
+        book_id: str,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+    ) -> None:
+        """GetEventScopes Constructor.
+
+        If start_timestamp and end_timestamp are not provided, it returns all aliases.
 
         Args:
-            book_id: Name of book to search in.
+            book_id (str): Book ID.
+            start_timestamp (datetime): Start Timestamp.
+            end_timestamp (datetime): End Timestamp.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__()
+        super().__init__(
+            cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
+        if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
+            self._all_results = True
+        else:
+            _check_datetime(start_timestamp)
+            _check_datetime(end_timestamp)
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            self._all_results = False
         self._book_id = book_id
 
-    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
-        api: HTTPAPI = data_source.source_api
-        url = api.get_url_get_scopes(self._book_id)
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
+        if self._all_results:
+            return [api.get_url_get_scopes(book_id=self._book_id)]
+        else:
+            return [
+                api.get_url_get_scopes(self._book_id, self._start_timestamp, self._end_timestamp)
+            ]
 
-        # LOG         logger.info(url)
+    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+        """Parses SSEEvents Into Data Object.
 
-        return api.execute_request(url).json()
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Data
+        """
+        sse_events_stream = partial(self._sse_events_stream, data_source)
+        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
+        data.metadata["urls"] = self._get_urls(data_source)
+        return data
 
 
 class GetMessageAliases(SSEHandlerClassBase):
@@ -544,6 +590,89 @@ class GetEventsById(IHTTPCommand):
             result.append(event)
 
         return result
+
+
+class GetEventsByPage(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches events stream by page.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
+    """
+
+    def __init__(
+        self,
+        page: Union[Page, str],
+        book_id: str = None,
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit=DEFAULT_BUFFER_LIMIT,
+    ):
+        """GetEventsByPage Constructor.
+
+        Args:
+            page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            parent_event: Match events to the specified parent.
+            search_direction: Search direction.
+            result_count_limit: Result count limit.
+            filters: Filters using in search for messages.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+        """
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._buffer_limit = buffer_limit
+        self._cache = cache
+        self._page = page
+        self._book_id = book_id
+        self._parent_event = parent_event
+        self._result_count_limit = result_count_limit
+        self._search_direction = search_direction
+        self._filters = filters
+        self._cache = cache
+
+    def handle(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
+        self._end_timestamp = (
+            datetime.now().replace(microsecond=0)
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
+        )
+        self._scopes = list(
+            data_source.command(
+                GetEventScopes(
+                    self._book_id,
+                    self._start_timestamp,
+                    self._end_timestamp,
+                )
+            )
+        )
+        self._book_id = page.book
+        return data_source.command(
+            GetEventsByPageByScopes(
+                page=self._page,
+                scopes=self._scopes,
+                book_id=self._book_id,
+                parent_event=self._parent_event,
+                search_direction=self._search_direction,
+                result_count_limit=self._result_count_limit,
+                filters=self._filters,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
+            )
+        )
 
 
 class GetEventsByBookByScopes(SSEHandlerClassBase):
