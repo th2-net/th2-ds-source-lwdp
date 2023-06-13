@@ -200,10 +200,10 @@ class GetEventScopes(SSEHandlerClassBase):
     def _get_urls(self, data_source: HTTPDataSource):
         api = data_source.source_api
         if self._all_results:
-            return [api.get_url_get_message_groups(book_id=self._book_id)]
+            return [api.get_url_get_scopes(book_id=self._book_id)]
         else:
             return [
-                api.get_url_get_message_groups(
+                api.get_url_get_scopes(
                     self._book_id, self._start_timestamp, self._end_timestamp
                 )
             ]
