@@ -23,7 +23,6 @@ from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimest
 from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2_data_services.data_source.lwdp.data_source.http import HTTPDataSource
-from th2_data_services.data_source.lwdp.message_response_format import ResponseFormat
 from th2_data_services.data_source.lwdp.source_api.http import HTTPAPI
 from th2_data_services.data_source.lwdp.streams import Streams, Stream
 from th2_data_services.utils.sse_client import SSEClient
@@ -38,7 +37,10 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
-from th2_data_services.data_source.lwdp.utils._misc import get_utc_datetime_now
+from th2_data_services.data_source.lwdp.utils._misc import (
+    get_utc_datetime_now,
+    _get_response_format,
+)
 from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 
@@ -869,7 +871,7 @@ class GetMessageById(IHTTPCommand):
         MessageNotFound: If message by id wasn't found.
     """
 
-    def __init__(self, id: str, use_stub=False, response_formats: List[str] = None):
+    def __init__(self, id: str, use_stub=False, response_formats: Union[List[str], str] = None):
         """GetMessageById constructor.
 
         Args:
@@ -921,7 +923,9 @@ class GetMessagesById(IHTTPCommand):
         MessageNotFound: If any message by id wasn't found.
     """
 
-    def __init__(self, ids: List[str], use_stub=False, response_formats: List[str] = None):
+    def __init__(
+        self, ids: List[str], use_stub=False, response_formats: Union[List[str], str] = None
+    ):
         """GetMessagesById constructor.
 
         Args:
@@ -966,7 +970,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         search_direction: str = "next",
         result_count_limit: int = None,
         end_timestamp: datetime = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = False,
         # Non-data source args.
         # +TODO - we often repeat these args. Perhaps it's better to move them to some class.
@@ -996,12 +1000,11 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
         _check_datetime(start_timestamp)
         if end_timestamp:
             _check_datetime(end_timestamp)
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -1079,7 +1082,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         book_id: str,
         groups: List[str],
         sort: bool = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         # Non-data source args.
         max_url_length: int = 2048,
@@ -1107,11 +1110,10 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
         _check_datetime(start_timestamp)
         _check_datetime(end_timestamp)
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -1161,7 +1163,7 @@ class GetMessagesByPage(IHTTPCommand):
         page: Union[Page, str],
         book_id: str = None,
         sort: bool = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -1183,9 +1185,8 @@ class GetMessagesByPage(IHTTPCommand):
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
+        response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._buffer_limit = buffer_limit
@@ -1244,7 +1245,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         message_ids: List[None] = None,
         search_direction: Optional[str] = "next",
         result_count_limit: int = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -1269,15 +1270,14 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
@@ -1330,7 +1330,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         groups: List[str],
         book_id: str = None,
         sort: bool = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         # Non-data source args.
         max_url_length: int = 2048,
@@ -1354,15 +1354,14 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
 
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
