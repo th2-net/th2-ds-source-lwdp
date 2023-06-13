@@ -646,7 +646,7 @@ class GetEventsByPage(IHTTPCommand):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
         self._end_timestamp = (
-            datetime.now().replace(microsecond=0)
+            get_utc_datetime_now()
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
         )
