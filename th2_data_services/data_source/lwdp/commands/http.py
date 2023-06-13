@@ -172,8 +172,10 @@ class GetEventScopes(SSEHandlerClassBase):
         book_id: str,
         start_timestamp: datetime = None,
         end_timestamp: datetime = None,
-        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
         cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ) -> None:
         """GetEventScopes Constructor.
 
@@ -186,7 +188,7 @@ class GetEventScopes(SSEHandlerClassBase):
             cache (Optional, bool): Cache Status. Defaults To `False`.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit)
+        super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc, decode_error_handler=decode_error_handler)
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
