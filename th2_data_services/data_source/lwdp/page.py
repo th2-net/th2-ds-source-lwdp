@@ -11,7 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from typing import Dict
+from typing import Dict, Optional
 
 
 class Page:
@@ -21,12 +21,12 @@ class Page:
         Args:
             data (Dict): Page Data
         """
-        self.data = data
-        self.book = data["id"]["book"]
-        self.name = data["id"]["name"]
-        self.comment = data["comment"]
-        self.start_timestamp = data["started"]
-        self.end_timestamp = data["ended"]
+        self.data: dict = data
+        self.book: str = data["id"]["book"]
+        self.name: str = data["id"]["name"]
+        self.comment: str = data["comment"]
+        self.start_timestamp: Dict[str, int] = data["started"]  # eg. {'epochSeconds': 0, 'nano': 0}
+        self.end_timestamp: Optional[Dict[str, int]] = data["ended"]
         self.updated = data["updated"]
         self.removed = data["removed"]
 

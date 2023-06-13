@@ -78,10 +78,15 @@
    [M] Update your usage of these commands' returned objects and don't use list methods on them, instead
    use Data object's functions or cast them into a list first.
 
+## Features
+
+1. [TH2-4924] Added GetMessagesByPage command.
+
 ## Improvements
 
 1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
 2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
+3. [TH2-4924] Added GetMessageByPages command.
 
 ## BugFixes
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.

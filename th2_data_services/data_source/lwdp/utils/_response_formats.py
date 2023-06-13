@@ -15,7 +15,7 @@ from typing import List, Union
 from th2_data_services.data_source.lwdp.message_response_format import ResponseFormat as RF
 
 
-class ResponseFormats:
+class ResponseFormatsChecker:
     def __init__(self):  # noqa
         """ResponseFormats Constructor."""
         self.correct_formats = [RF.JSON_PARSED, RF.BASE64, RF.PROTO_PARSED]
