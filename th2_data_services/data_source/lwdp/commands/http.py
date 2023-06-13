@@ -185,10 +185,18 @@ class GetEventScopes(SSEHandlerClassBase):
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp.
             end_timestamp (datetime): End Timestamp.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit, char_enc=char_enc, decode_error_handler=decode_error_handler)
+        super().__init__(
+            cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
@@ -205,9 +213,7 @@ class GetEventScopes(SSEHandlerClassBase):
             return [api.get_url_get_scopes(book_id=self._book_id)]
         else:
             return [
-                api.get_url_get_scopes(
-                    self._book_id, self._start_timestamp, self._end_timestamp
-                )
+                api.get_url_get_scopes(self._book_id, self._start_timestamp, self._end_timestamp)
             ]
 
     def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
@@ -585,6 +591,7 @@ class GetEventsById(IHTTPCommand):
 
         return result
 
+
 class GetEventsByPage(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
@@ -666,6 +673,7 @@ class GetEventsByPage(IHTTPCommand):
                 buffer_limit=self._buffer_limit,
             )
         )
+
 
 class GetEventsByBookByScopes(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
