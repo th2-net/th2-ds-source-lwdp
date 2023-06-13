@@ -602,19 +602,18 @@ class GetEventsByPage(IHTTPCommand):
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
-        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        self._start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            datetime.now().replace(microsecond=0)
             if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+            else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
         )
         self._scopes = list(
             data_source.command(
                 GetEventScopes(
                     self._book_id,
-                    datetime.fromtimestamp(self._start_timestamp // 1_000_000_000),
-                    datetime.fromtimestamp(self._end_timestamp // 1_000_000_000),
-                    char_enc=self._char_enc,
+                    self._start_timestamp,
+                    self._end_timestamp,
                 )
             )
         )
