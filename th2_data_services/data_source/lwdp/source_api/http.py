@@ -361,16 +361,18 @@ class HTTPAPI(IHTTPSourceAPI):
 
         response.release_conn()
 
-    def execute_request(self, url: str) -> Response:
+    def execute_request(self, url: str, headers: dict = None, stream = False) -> Response:
         """Sends a GET request to provider.
 
         Args:
             url: Url for a get request to rpt-data-provider.
+            headers: Dictionary of headers for request.
+            stream: Gets response as a stream if True.
 
         Returns:
             requests.Response: Response data.
         """
-        return requests.get(url)
+        return requests.get(url, headers=headers, stream=stream)
 
     def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
         if len(fixed_url) >= max_url_len:
