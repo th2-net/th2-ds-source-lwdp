@@ -1217,7 +1217,86 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
                 with open(f"{self._filename}.{num+1}.gzip", 'wb') as file:
                     response = api.execute_request(url, headers=headers, stream=True)
                     copyfileobj(response.raw, file)
-    
+
+class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by page & groups and downloads them.
+
+    Returns:
+        Nothing.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        # Non-data source args.
+        max_url_length: int = 2048,
+    ):
+        """DownloadMessagesByBookByGroupsGzip Constructor.
+
+        Args:
+            filename: Filename of downloaded files.
+            start_timestamp: Sets the search starting point.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+                  (You cannot specify a direction in groups unlike streams.
+                  It's possible to add it to the CradleAPI by request to dev team.)
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            max_url_length: API request url max length.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        _check_datetime(start_timestamp)
+        _check_datetime(end_timestamp)
+        self._filename = filename
+        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        self._groups = groups
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._book_id = book_id
+        self._max_url_length = max_url_length
+
+        _check_list_or_tuple(self._groups, var_name="groups")
+
+    def handle(self, data_source: HTTPDataSource):
+        api = data_source.source_api
+        urls = api.get_download_messages(
+            start_timestamp=self._start_timestamp,  
+            end_timestamp=self._end_timestamp,
+            book_id=self._book_id,
+            groups=self._groups,
+            sort=self._sort,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            max_url_length=self._max_url_length,
+        )
+        headers = {
+            'Accept': 'application/stream+json',
+            'Accept-Encoding': 'gzip, deflate'
+        }
+        if len(urls) == 1:
+            with open(f"{self._filename}.gzip", 'wb') as file:
+                response = api.execute_request(urls[0], headers=headers, stream=True)
+                copyfileobj(response.raw, file)
+        else:
+            for num, url in enumerate(urls):
+                with open(f"{self._filename}.{num+1}.gzip", 'wb') as file:
+                    response = api.execute_request(url, headers=headers, stream=True)
+                    copyfileobj(response.raw, file)    
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
