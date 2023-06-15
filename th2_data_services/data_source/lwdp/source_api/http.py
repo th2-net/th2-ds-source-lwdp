@@ -361,7 +361,7 @@ class HTTPAPI(IHTTPSourceAPI):
 
         response.release_conn()
 
-    def execute_request(self, url: str, headers: dict = None, stream = False) -> Response:
+    def execute_request(self, url: str, headers: dict = None, stream=False) -> Response:
         """Sends a GET request to provider.
 
         Args:

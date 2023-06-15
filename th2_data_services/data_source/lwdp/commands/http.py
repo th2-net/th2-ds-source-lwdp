@@ -1195,7 +1195,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._book_id = page.book
         api = data_source.source_api
         urls = api.get_download_messages(
-            start_timestamp=self._start_timestamp,  
+            start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
@@ -1204,19 +1204,17 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
         )
-        headers = {
-            'Accept': 'application/stream+json',
-            'Accept-Encoding': 'gzip, deflate'
-        }
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
         if len(urls) == 1:
-            with open(f"{self._filename}.gzip", 'wb') as file:
+            with open(f"{self._filename}.gz", "wb") as file:
                 response = api.execute_request(urls[0], headers=headers, stream=True)
                 copyfileobj(response.raw, file)
         else:
             for num, url in enumerate(urls):
-                with open(f"{self._filename}.{num+1}.gzip", 'wb') as file:
+                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
                     response = api.execute_request(url, headers=headers, stream=True)
                     copyfileobj(response.raw, file)
+
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
@@ -1275,7 +1273,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
     def handle(self, data_source: HTTPDataSource):
         api = data_source.source_api
         urls = api.get_download_messages(
-            start_timestamp=self._start_timestamp,  
+            start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
@@ -1284,19 +1282,17 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
         )
-        headers = {
-            'Accept': 'application/stream+json',
-            'Accept-Encoding': 'gzip, deflate'
-        }
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
         if len(urls) == 1:
-            with open(f"{self._filename}.gzip", 'wb') as file:
+            with open(f"{self._filename}.gz", "wb") as file:
                 response = api.execute_request(urls[0], headers=headers, stream=True)
                 copyfileobj(response.raw, file)
         else:
             for num, url in enumerate(urls):
-                with open(f"{self._filename}.{num+1}.gzip", 'wb') as file:
+                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
                     response = api.execute_request(url, headers=headers, stream=True)
-                    copyfileobj(response.raw, file)    
+                    copyfileobj(response.raw, file)
+
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
