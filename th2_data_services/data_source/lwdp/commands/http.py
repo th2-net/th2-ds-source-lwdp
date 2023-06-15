@@ -1110,11 +1110,11 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
-        start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
         end_timestamp = (
             get_utc_datetime_now()
             if page.end_timestamp is None
-            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+            else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
         )
         groups = list(
             data_source.command(
@@ -1159,7 +1159,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         # Non-data source args.
         max_url_length: int = 2048,
     ):
-        """GetMessagesByPageByGroups Constructor.
+        """DownloadMessagesByPageByGroupsGzip Constructor.
 
         Args:
             filename: Filename of downloaded files.
