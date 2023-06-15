@@ -15,6 +15,7 @@ from abc import abstractmethod
 from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
+from shutil import copyfileobj
 
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
@@ -1066,6 +1067,77 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         )
 
 
+class DownloadMessagesByPageGzip(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by page and downloads them.
+
+    Returns:
+        Nothing.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        page: Union[Page, str],
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        # Non-data source args.
+        max_url_length: int = 2048,
+    ):
+        """DownloadMessagesByPageGzip Constructor.
+
+        Args:
+            filename: Filename of downloaded files.
+            page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            max_url_length: API request url max length.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        self._filename = filename
+        self._page = page
+        self._book_id = book_id
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+
+    def handle(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        end_timestamp = (
+            get_utc_datetime_now()
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+        )
+        groups = list(
+            data_source.command(
+                GetMessageGroups(
+                    self._book_id,
+                    start_timestamp,
+                    end_timestamp,
+                )
+            )
+        )
+        self._book_id = page.book
+        return DownloadMessagesByPageByGroupsGzip(
+            filename=self._filename,
+            page=page,
+            groups=groups,
+            book_id=self._book_id,
+            sort=self._sort,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            max_url_length=self._max_url_length,
+        )
+
+
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
@@ -1090,20 +1162,18 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         """GetMessagesByPageByGroups Constructor.
 
         Args:
+            filename: Filename of downloaded files.
             page: Page to search with.
             book_id: Book to search page by name. If page is string, book_id should be passed.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            char_enc: Encoding for the byte stream.
-            decode_error_handler: Registered decode error handler.
-            cache: If True, all requested data from lw-data-provider will be saved to cache.
             max_url_length: API request url max length.
-            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
+        self._filename = filename
         self._page = page
         self._book_id = book_id
         self._groups = groups
@@ -1111,8 +1181,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._max_url_length = max_url_length
-
-        self._filename = filename
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
@@ -1140,13 +1208,16 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             'Accept': 'application/stream+json',
             'Accept-Encoding': 'gzip, deflate'
         }
-        with open(self._filename, 'wb') as file:
-            for url in urls:
-                response = api.execute_request(url, headers=headers, stream=True)
-                for chunk in response.iter_content(chunk_size=8192):
-                    file.write(chunk)
-
-   
+        if len(urls) == 1:
+            with open(self._filename, 'wb') as file:
+                response = api.execute_request(urls[0], headers=headers, stream=True)
+                copyfileobj(response.raw, file)
+        else:
+            for num, url in enumerate(urls):
+                with open(f"{self._filename}.{num+1}.gzip", 'wb') as file:
+                    response = api.execute_request(url, headers=headers, stream=True)
+                    copyfileobj(response.raw, file)
+    
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
