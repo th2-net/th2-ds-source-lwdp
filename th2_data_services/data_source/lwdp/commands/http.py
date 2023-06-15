@@ -1195,7 +1195,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._book_id = page.book
         api = data_source.source_api
         urls = api.get_download_messages(
-            start_timestamp=self._start_timestamp,
+            start_timestamp=self._start_timestamp,  
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
@@ -1209,7 +1209,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             'Accept-Encoding': 'gzip, deflate'
         }
         if len(urls) == 1:
-            with open(self._filename, 'wb') as file:
+            with open(f"{self._filename}.gzip", 'wb') as file:
                 response = api.execute_request(urls[0], headers=headers, stream=True)
                 copyfileobj(response.raw, file)
         else:
