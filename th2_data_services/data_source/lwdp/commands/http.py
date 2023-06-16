@@ -1071,6 +1071,9 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page and downloads them.
+    Beware that if you request this command with long list of groups,
+      you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
+      etc., since the request might exceed url limit.
 
     Returns:
         Nothing.
@@ -1142,6 +1145,10 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page & groups and downloads them.
+    Beware that if you request this command with long list of groups,
+      you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
+      etc., since the request might exceed url limit.
+
 
     Returns:
         Nothing.
@@ -1220,6 +1227,10 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page & groups and downloads them.
+    Beware that if you request this command with long list of groups,
+      you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
+      etc., since the request might exceed url limit.
+
 
     Returns:
         Nothing.
