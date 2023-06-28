@@ -66,6 +66,10 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
     def get_subsequence(message):
         return message[http_message_struct.BODY]["metadata"][http_message_struct.SUBSEQUENCE]
+    
+    @staticmethod
+    def get_protocol(message):
+        return message[http_message_struct.BODY]["metadata"][http_message_struct.PROTOCOL]
 
     @staticmethod
     def get_direction(message):

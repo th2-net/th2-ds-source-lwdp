@@ -42,6 +42,7 @@ class MessageStruct(IMessageStruct):
     SESSION_ID: str
     MESSAGE_TYPE: str
     SUBSEQUENCE: str
+    PROTOCOL: str
     TIMESTAMP: str
     BODY: str
     BODY_BASE64: str
@@ -83,6 +84,7 @@ http_message_struct = MessageStruct(
     SESSION_ID="sessionId",
     MESSAGE_TYPE="messageType",
     SUBSEQUENCE="subsequence",
+    PROTOCOL="protocol",
     TIMESTAMP="timestamp",
     BODY="body",
     BODY_BASE64="bodyBase64",
@@ -95,6 +97,7 @@ grpc_message_struct = MessageStruct(
     SESSION_ID="sessionId",
     MESSAGE_TYPE="messageType",
     SUBSEQUENCE="subsequence",
+    PROTOCOL="protocol",
     TIMESTAMP="timestamp",
     BODY="body",
     BODY_BASE64="bodyBase64",
