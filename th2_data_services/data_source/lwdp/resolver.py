@@ -61,16 +61,15 @@ class LwdpEventFieldsResolver(EventFieldsResolver):
     def get_body(event):
         return event[http_event_struct.BODY]
 
-
 class LwdpMessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
     def get_subsequence(message):
         return message[http_message_struct.BODY]["metadata"][http_message_struct.SUBSEQUENCE]
-    
+
     @staticmethod
     def get_protocol(message):
         return message[http_message_struct.BODY]["metadata"][http_message_struct.PROTOCOL]
-
+    
     @staticmethod
     def get_direction(message):
         return message[http_message_struct.DIRECTION]
@@ -82,6 +81,18 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
     def get_type(message):
         return message[http_message_struct.BODY]["metadata"][http_message_struct.MESSAGE_TYPE]
+
+    @staticmethod
+    def get_connection_id(message):
+        return { "sessionAlias": LwdpMessageFieldsResolver.get_session_alias(message) }
+
+    @staticmethod
+    def get_session_alias(message):
+        return message[http_message_struct.MESSAGE_ID].split(':')[1]
+
+    @staticmethod
+    def get_sequence(message):
+        return message[http_message_struct.MESSAGE_ID].split(':')[4]
 
     @staticmethod
     def get_timestamp(message):
