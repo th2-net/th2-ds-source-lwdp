@@ -65,7 +65,7 @@ class LwdpEventFieldsResolver(EventFieldsResolver):
 class LwdpMessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
     def get_subsequence(message):
-        raise NotImplementedError
+        return message[http_message_struct.BODY]["metadata"][http_message_struct.SUBSEQUENCE]
 
     @staticmethod
     def get_direction(message):
@@ -77,23 +77,7 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
 
     @staticmethod
     def get_type(message):
-        return message[http_message_struct.MESSAGE_TYPE]
-
-    @staticmethod
-    def get_connection_id(message):
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ]
-
-    @staticmethod
-    def get_session_alias(message):
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ][http_message_struct.SESSION_ALIAS]
-
-    @staticmethod
-    def get_sequence(message):
-        return message[http_message_struct.BODY]["metadata"]["id"][http_message_struct.SEQUENCE]
+        return message[http_message_struct.BODY]["metadata"][http_message_struct.MESSAGE_TYPE]
 
     @staticmethod
     def get_timestamp(message):
