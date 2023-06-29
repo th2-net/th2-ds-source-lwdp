@@ -22,7 +22,9 @@ from th2_data_services.config import options as _o
 from th2_data_services.data_source.lwdp.resolver import (
     LwdpEventFieldsResolver,
     LwdpMessageFieldsResolver,
+    SubMessageFieldResolver
 )
 
 _o.EVENT_FIELDS_RESOLVER = LwdpEventFieldsResolver()
 _o.MESSAGE_FIELDS_RESOLVER = LwdpMessageFieldsResolver()
+_o.SUB_MESSAGE_FIELDS_RESOLVER = SubMessageFieldResolver()
