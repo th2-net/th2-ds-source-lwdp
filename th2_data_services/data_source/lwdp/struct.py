@@ -52,7 +52,7 @@ class MessageStruct(IMessageStruct):
     ATTACHED_EVENT_IDS: str
 
 
-http_event_struct = EventStruct(
+http_event_struct = event_struct = EventStruct(
     EVENT_ID="eventId",
     PARENT_EVENT_ID="parentEventId",
     STATUS="successful",
@@ -67,7 +67,7 @@ http_event_struct = EventStruct(
 )
 
 # +TODO - unknown fields. Perhaps we have them in GRPC
-http_message_struct = MessageStruct(
+http_message_struct = message_struct = MessageStruct(
     DIRECTION="direction",
     SESSION_ID="sessionId",
     MESSAGE_TYPE="messageType",

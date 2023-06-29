@@ -3,12 +3,12 @@ from datetime import datetime
 import pytest
 import requests
 from th2_data_services.data_source.lwdp.commands import http
-from th2_data_services.data_source.lwdp.data_source import HTTPDataSource
+from th2_data_services.data_source.lwdp.data_source import DataSource
 
 
 def test_check_url_for_data_source():
     with pytest.raises(requests.exceptions.ConnectionError) as exc_info:
-        data_source = HTTPDataSource("http://test_test:8080/")
+        data_source = DataSource("http://test_test:8080/")
     assert "Max retries exceeded with url" in str(exc_info)
 
 

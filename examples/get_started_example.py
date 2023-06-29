@@ -3,8 +3,8 @@ from typing import List
 from th2_data_services.event_tree import EventTreeCollection
 
 from th2_data_services.data_source.lwdp.commands import http as commands
-from th2_data_services.data_source.lwdp.data_source import HTTPDataSource
-from th2_data_services.data_source.lwdp.event_tree import HttpETCDriver
+from th2_data_services.data_source.lwdp.data_source import DataSource
+from th2_data_services.data_source.lwdp.event_tree import ETCDriver
 from th2_data_services.data_source.lwdp.streams import Streams, Stream
 from th2_data_services.data import Data
 from datetime import datetime
@@ -56,7 +56,7 @@ END_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=6, mic
 
 # [1] Create data source object to connect to lightweight data provider.
 provider_url_link = f"http://10.100.66.105:32681"
-data_source = HTTPDataSource(provider_url_link)
+data_source = DataSource(provider_url_link)
 
 # [2] Getting books, pages, scopes, groups and aliases.
 
@@ -181,7 +181,7 @@ messages_by_page_name_by_groups: Data[dict] = data_source.command(
 #   This driver contains lwdp-related methods that ETC required.
 
 # [4.1] Init driver
-etc_driver = HttpETCDriver(data_source=data_source, use_stub=False)
+etc_driver = ETCDriver(data_source=data_source, use_stub=False)
 # [4.2] Init ETC object
 etc = EventTreeCollection(etc_driver)
 

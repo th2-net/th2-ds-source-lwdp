@@ -1,11 +1,11 @@
 from datetime import datetime
 
-from th2_data_services.data_source.lwdp.filters.filter import LwDPFilter 
-from th2_data_services.data_source.lwdp.source_api import HTTPAPI
+from th2_data_services.data_source.lwdp.filters.filter import Filter 
+from th2_data_services.data_source.lwdp.source_api import API
 
 
 def test_generate_url_search_sse_events():
-    api = HTTPAPI(url="http://host:port")
+    api = API(url="http://host:port")
 
     start_time = int(datetime.now().timestamp() * 1000)
     end_time = int(datetime.now().timestamp() * 1000)
@@ -29,7 +29,7 @@ def test_generate_url_search_sse_events():
 
 
 def test_generate_url_search_sse_events_with_filters():
-    api = HTTPAPI(url="http://host:port")
+    api = API(url="http://host:port")
 
     start_time = int(datetime.now().timestamp() * 1000)
     end_time = int(datetime.now().timestamp() * 1000)
@@ -42,7 +42,7 @@ def test_generate_url_search_sse_events_with_filters():
         end_timestamp=end_time,
         book_id=book,
         scope=scope,
-        filters=LwDPFilter(filter_name, filter_value).url(),
+        filters=Filter(filter_name, filter_value).url(),
     )
 
     assert (
@@ -54,7 +54,7 @@ def test_generate_url_search_sse_events_with_filters():
 
 
 def test_generate_url_search_sse_messages():
-    api = HTTPAPI(url="http://host:port")
+    api = API(url="http://host:port")
 
     start_time = int(datetime.now().timestamp() * 1000)
     end_time = int(datetime.now().timestamp() * 1000)
@@ -76,7 +76,7 @@ def test_generate_url_search_sse_messages():
 
 
 def test_generate_url_search_sse_messages_by_groups():
-    api = HTTPAPI(url="http://host:port")
+    api = API(url="http://host:port")
 
     start_time = int(datetime.now().timestamp() * 1000)
     end_time = int(datetime.now().timestamp() * 1000)
@@ -99,7 +99,7 @@ def test_generate_url_search_sse_messages_by_groups():
 
 
 def test_long_url_splitting():
-    api = HTTPAPI(url="http://host:port")
+    api = API(url="http://host:port")
 
     start_time = int(datetime.now().timestamp() * 1000)
     end_time = int(datetime.now().timestamp() * 1000)
@@ -156,7 +156,7 @@ def test_long_url_splitting():
 
 
 def test_encoding_url():
-    api = HTTPAPI(url="http://host:port")
+    api = API(url="http://host:port")
 
     start_time = int(datetime.now().timestamp() * 1000)
     end_time = int(datetime.now().timestamp() * 1000)
@@ -169,7 +169,7 @@ def test_encoding_url():
         end_timestamp=end_time,
         book_id=book,
         scope=scope,
-        filters=LwDPFilter(filter_name, filter_value).url(),
+        filters=Filter(filter_name, filter_value).url(),
     )
 
     filter_name = filter_name.split()
@@ -187,10 +187,10 @@ def test_encoding_url():
 
 
 def test_count_slash_in_non_standart_url():
-    api0 = HTTPAPI(url="http://host:port")
-    api1 = HTTPAPI(url="http://host:port/")
-    api4 = HTTPAPI(url="http://host:port/////")
-    api10 = HTTPAPI(url="//////////")
+    api0 = API(url="http://host:port")
+    api1 = API(url="http://host:port/")
+    api4 = API(url="http://host:port/////")
+    api10 = API(url="//////////")
 
     assert (
         api0._url == "http://host:port"

@@ -17,23 +17,23 @@ from th2_data_services.event_tree import IETCDriver
 from th2_data_services.event_tree.etc_driver import Th2EventType
 from th2_data_services.event_tree.exceptions import FieldIsNotExist
 from th2_data_services.data_source.lwdp.commands.http import GetEventsById
-from th2_data_services.data_source.lwdp.interfaces.data_source import ILwDPDataSource
-from th2_data_services.data_source.lwdp.struct import EventStruct, http_event_struct
-from th2_data_services.data_source.lwdp.stub_builder import http_event_stub_builder
+from th2_data_services.data_source.lwdp.interfaces.data_source import IDataSource
+from th2_data_services.data_source.lwdp.struct import EventStruct, event_struct
+from th2_data_services.data_source.lwdp.stub_builder import event_stub_builder
 
 
-class HttpETCDriver(IETCDriver):
+class ETCDriver(IETCDriver):
     def __init__(
         self,
-        data_source: ILwDPDataSource = None,
-        event_struct: EventStruct = http_event_struct,
+        data_source: IDataSource = None,
+        event_struct: EventStruct = event_struct,
         use_stub: bool = False,
     ):
         """The driver for EventsTreeCollection (HTTP).
 
         Args:
             event_struct: Structure of the event.
-            data_source: LwDPDataSource object.
+            data_source: DataSource.
             use_stub: Build stubs or not.
         """
         super().__init__(data_source=data_source, event_struct=event_struct, use_stub=use_stub)
@@ -95,7 +95,10 @@ class HttpETCDriver(IETCDriver):
         Returns:
             Stub event.
         """
-        return http_event_stub_builder.build({self.event_struct.EVENT_ID: id_})
+        return event_stub_builder.build({self.event_struct.EVENT_ID: id_})
 
     def stub_event_name(self):
-        return http_event_stub_builder.template[self.event_struct.NAME]
+        return event_stub_builder.template[self.event_struct.NAME]
+
+
+HttpETCDriver = ETCDriver

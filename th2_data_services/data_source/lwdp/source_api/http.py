@@ -21,14 +21,14 @@ from requests import Response
 from urllib3 import PoolManager, exceptions
 from urllib.parse import quote
 
-from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
+from th2_data_services.interfaces.source_api import ISourceAPI
 
 
 # LOG logger = logging.getLogger("th2_data_services")
 # LOG logger.setLevel(logging.DEBUG)
 
 
-class HTTPAPI(IHTTPSourceAPI):
+class API(ISourceAPI):
     def __init__(self, url: str, chunk_length: int = 65536):
         """HTTP API.
 
@@ -396,3 +396,5 @@ class HTTPAPI(IHTTPSourceAPI):
 
     def _option(self, opt_name, value):
         return f"{opt_name}={value}"
+
+HTTPAPI = API

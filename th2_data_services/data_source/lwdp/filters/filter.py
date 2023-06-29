@@ -12,10 +12,10 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.data_source.lwdp.interfaces.filter import ILwDPFilter
+from th2_data_services.data_source.lwdp.interfaces.filter import IFilter
 from typing import Sequence, Any, Union
 
-class LwDPFilter(ILwDPFilter):
+class Filter(IFilter):
     """General interface for Filters of Provider v6."""
 
     def __init__(
@@ -72,12 +72,16 @@ class LwDPFilter(ILwDPFilter):
         )
 
 
-class _LwDPFilterBase(LwDPFilter):
+class _FilterBase(Filter):
     FILTER_NAME = "FILTER_NAME"
 
     def __init__(self, values: Sequence[Any], negative: bool = False, conjunct: bool = False):
         super().__init__(self.FILTER_NAME, values, negative, conjunct)
 
 
-class LwDPEventFilter(_LwDPFilterBase):
+class EventFilter(_FilterBase):
     """Base class for Event Filters of LwDP."""
+
+LwDPFilter = Filter
+_LwDPFilterBase = _FilterBase
+LwDPEventFilter = EventFilter

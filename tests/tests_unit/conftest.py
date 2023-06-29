@@ -3,13 +3,13 @@ from datetime import datetime
 import pytest
 
 from th2_data_services.data import Data
-from . import HTTPAPI, HTTPDataSource, http, LwDPFilter, DEMO_PORT  # noqa
+from . import API, DataSource, http, Filter, DEMO_PORT  # noqa
 
 
 @pytest.fixture
 def data_source():
     HOST = "10.100.66.105"  # th2-kuber-test03
-    data_source = HTTPDataSource(f"http://{HOST}:{DEMO_PORT}")
+    data_source = DataSource(f"http://{HOST}:{DEMO_PORT}")
     return data_source
 
 
@@ -18,12 +18,12 @@ END_TIME = datetime(year=2022, month=6, day=30, hour=15, minute=0, second=0, mic
 
 
 @pytest.fixture
-def get_events_with_one_filter(data_source: HTTPDataSource) -> Data:
+def get_events_with_one_filter(data_source: DataSource) -> Data:
     case = data_source.command(
         http.GetEventsByBookByScopes(
             start_timestamp=START_TIME,
             end_timestamp=END_TIME,
-            filters=[LwDPFilter("name", "TS_1")],
+            filters=[Filter("name", "TS_1")],
         )
     )
 
@@ -31,15 +31,15 @@ def get_events_with_one_filter(data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def get_events_with_filters(data_source: HTTPDataSource) -> Data:
+def get_events_with_filters(data_source: DataSource) -> Data:
     case = data_source.command(
         http.GetEventsByBookByScopes(
             start_timestamp=START_TIME,
             end_timestamp=END_TIME,
             filters=[
-                LwDPFilter("name", "ExecutionReport"),
-                LwDPFilter("type", "message"),
-                LwDPFilter("body", "589"),
+                Filter("name", "ExecutionReport"),
+                Filter("type", "message"),
+                Filter("body", "589"),
             ],
         )
     )
@@ -48,7 +48,7 @@ def get_events_with_filters(data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def get_messages_with_one_filter(data_source: HTTPDataSource) -> Data:
+def get_messages_with_one_filter(data_source: DataSource) -> Data:
     case = data_source.command(
         http.GetMessages(
             start_timestamp=datetime(
@@ -58,7 +58,7 @@ def get_messages_with_one_filter(data_source: HTTPDataSource) -> Data:
                 year=2022, month=6, day=30, hour=14, minute=48, second=25, microsecond=0
             ),
             stream=["arfq01fix07"],
-            filters=LwDPFilter("type", "NewOrderSingle"),
+            filters=Filter("type", "NewOrderSingle"),
         )
     )
 
@@ -66,7 +66,7 @@ def get_messages_with_one_filter(data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def get_messages_with_filters(data_source: HTTPDataSource) -> Data:
+def get_messages_with_filters(data_source: DataSource) -> Data:
     case = data_source.command(
         http.GetMessages(
             start_timestamp=datetime(
@@ -76,7 +76,7 @@ def get_messages_with_filters(data_source: HTTPDataSource) -> Data:
                 year=2022, month=6, day=30, hour=14, minute=48, second=25, microsecond=0
             ),
             stream=["arfq01fix07"],
-            filters=[LwDPFilter("type", "NewOrderSingle"), LwDPFilter("body", "200")],
+            filters=[Filter("type", "NewOrderSingle"), Filter("body", "200")],
         )
     )
 
@@ -84,7 +84,7 @@ def get_messages_with_filters(data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def events_from_data_source(data_source: HTTPDataSource) -> Data:
+def events_from_data_source(data_source: DataSource) -> Data:
     events = data_source.command(
         http.GetEventsByBookByScopes(
             start_timestamp=START_TIME,
@@ -97,7 +97,7 @@ def events_from_data_source(data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def messages_from_data_source(data_source: HTTPDataSource) -> Data:
+def messages_from_data_source(data_source: DataSource) -> Data:
     messages = data_source.command(
         http.GetMessages(
             start_timestamp=datetime(
@@ -113,7 +113,7 @@ def messages_from_data_source(data_source: HTTPDataSource) -> Data:
 
 @pytest.fixture
 def events_from_data_source_with_cache_status(
-    data_source: HTTPDataSource,
+    data_source: DataSource,
 ) -> Data:
     events = data_source.command(
         http.GetEventsByBookByScopes(start_timestamp=START_TIME, end_timestamp=END_TIME, cache=True)
@@ -125,7 +125,7 @@ def events_from_data_source_with_cache_status(
 
 @pytest.fixture
 def messages_from_data_source_with_test_streams(
-    data_source: HTTPDataSource,
+    data_source: DataSource,
 ) -> Data:
     messages = data_source.command(
         http.GetMessages(

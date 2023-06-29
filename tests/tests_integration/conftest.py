@@ -5,7 +5,7 @@ import pytest
 
 from tests.tests_integration.test_bodies.http.all_test_event_bodies import all_event_bodies_http
 from tests.tests_integration.test_bodies.http.all_test_message_bodies import all_message_bodies_http
-from th2_data_services.data_source.lwdp.data_source import HTTPDataSource
+from th2_data_services.data_source.lwdp.data_source import DataSource
 from th2_data_services.data_source.lwdp.filters import NameFilter, TypeFilter
 
 STREAM_1 = "ds-lib-session1"
@@ -15,7 +15,7 @@ BOOK_NAME = "demo_book_1"
 SCOPE = "th2-scope"
 
 from th2_data_services.data_source.lwdp.commands import http  # noqa
-from th2_data_services.data_source.lwdp.source_api import HTTPAPI  # noqa
+from th2_data_services.data_source.lwdp.source_api import API  # noqa
 
 START_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=5, microsecond=0)
 END_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=6, microsecond=0)
@@ -33,9 +33,9 @@ HTTP_PORT = "32681"  # HTTP lwdp
 
 
 @pytest.fixture
-def http_data_source() -> HTTPDataSource:
+def http_data_source() -> DataSource:
     HOST = "10.100.66.105"  # de-th2-qa
-    data_source = HTTPDataSource(f"http://{HOST}:{HTTP_PORT}")
+    data_source = DataSource(f"http://{HOST}:{HTTP_PORT}")
     return data_source
 
 
@@ -43,7 +43,7 @@ DataCase = namedtuple("DataCase", ["data", "expected_data_values"])
 
 
 @pytest.fixture
-def all_events(http_data_source: HTTPDataSource) -> DataCase:
+def all_events(http_data_source: DataSource) -> DataCase:
     return DataCase(
         data=http_data_source.command(
             http.GetEventsByBookByScopes(
@@ -58,7 +58,7 @@ def all_events(http_data_source: HTTPDataSource) -> DataCase:
 
 
 @pytest.fixture
-def all_messages(http_data_source: HTTPDataSource) -> DataCase:
+def all_messages(http_data_source: DataSource) -> DataCase:
     comm = http.GetMessagesByBookByStreams(
         start_timestamp=START_TIME,
         end_timestamp=END_TIME,
@@ -73,7 +73,7 @@ def all_messages(http_data_source: HTTPDataSource) -> DataCase:
 
 
 @pytest.fixture
-def get_messages_by_page_by_streams(http_data_source: HTTPDataSource) -> Data:
+def get_messages_by_page_by_streams(http_data_source: DataSource) -> Data:
     pages = http_data_source.command(
         http.GetPages("demo_book_1", start_timestamp=START_TIME, end_timestamp=END_TIME)
     )
@@ -88,7 +88,7 @@ def get_messages_by_page_by_streams(http_data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def get_messages_by_book_by_groups(http_data_source: HTTPDataSource) -> Data:
+def get_messages_by_book_by_groups(http_data_source: DataSource) -> Data:
     messages = http_data_source.command(
         http.GetMessagesByBookByGroups(
             start_timestamp=START_TIME,
@@ -102,7 +102,7 @@ def get_messages_by_book_by_groups(http_data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def get_messages_by_page_by_groups(http_data_source: HTTPDataSource) -> Data:
+def get_messages_by_page_by_groups(http_data_source: DataSource) -> Data:
     pages = http_data_source.command(
         http.GetPages("demo_book_1", start_timestamp=START_TIME, end_timestamp=END_TIME)
     )
@@ -117,7 +117,7 @@ def get_messages_by_page_by_groups(http_data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def get_events_with_one_filter(http_data_source: HTTPDataSource) -> Data:
+def get_events_with_one_filter(http_data_source: DataSource) -> Data:
     case = http_data_source.command(
         http.GetEventsByBookByScopes(
             book_id=BOOK_NAME,
@@ -132,7 +132,7 @@ def get_events_with_one_filter(http_data_source: HTTPDataSource) -> Data:
 
 
 @pytest.fixture
-def get_events_with_filters(http_data_source: HTTPDataSource) -> Data:
+def get_events_with_filters(http_data_source: DataSource) -> Data:
     case = http_data_source.command(
         http.GetEventsByBookByScopes(
             book_id=BOOK_NAME,
@@ -150,7 +150,7 @@ def get_events_with_filters(http_data_source: HTTPDataSource) -> Data:
 
 @pytest.fixture
 def events_from_data_source_with_cache_status(
-    http_data_source: HTTPDataSource,
+    http_data_source: DataSource,
 ) -> Data:
     events = http_data_source.command(
         http.GetEventsByBookByScopes(
@@ -167,7 +167,7 @@ def events_from_data_source_with_cache_status(
 
 @pytest.fixture
 def messages_from_data_source_with_streams(
-    http_data_source: HTTPDataSource,
+    http_data_source: DataSource,
 ) -> Data:
     messages = http_data_source.command(
         http.GetMessagesByBookByStreams(
