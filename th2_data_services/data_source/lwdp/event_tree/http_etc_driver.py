@@ -17,7 +17,7 @@ from th2_data_services.event_tree import IETCDriver
 from th2_data_services.event_tree.etc_driver import Th2EventType
 from th2_data_services.event_tree.exceptions import FieldIsNotExist
 from th2_data_services.data_source.lwdp.commands.http import GetEventsById
-from th2_data_services.data_source.lwdp.interfaces.data_source import IDataSource
+from th2_data_services.data_source.lwdp.interfaces.data_source import IHTTPDataSource
 from th2_data_services.data_source.lwdp.struct import EventStruct, event_struct
 from th2_data_services.data_source.lwdp.stub_builder import event_stub_builder
 
@@ -25,7 +25,7 @@ from th2_data_services.data_source.lwdp.stub_builder import event_stub_builder
 class ETCDriver(IETCDriver):
     def __init__(
         self,
-        data_source: IDataSource = None,
+        data_source: IHTTPDataSource = None,
         event_struct: EventStruct = event_struct,
         use_stub: bool = False,
     ):

@@ -19,14 +19,14 @@ import requests
 import urllib3
 
 if TYPE_CHECKING:
-    from th2_data_services.interfaces import ICommand
+    from th2_data_services.interfaces import ILwDPCommand
 
-from th2_data_services.interfaces import IDataSource
-from th2_data_services.interfaces.source_api import ISourceAPI
+from th2_data_services.interfaces.data_source import IDataSource
+from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI 
 from th2_data_services.data_source.lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services.data_source.lwdp.stub_builder import IEventStub, IMessageStub
 
-CommandT = TypeVar("CommandT", bound="ICommand")
+CommandT = TypeVar("CommandT", bound="ILwDPCommand")
 EventStructT = TypeVar("EventStructT", bound="IEventStruct")
 MessageStructT = TypeVar("MessageStructT", bound="IMessageStruct")
 EventStubBuilderT = TypeVar("EventStubBuilderT", bound="IEventStub")
@@ -37,8 +37,7 @@ MessageStubBuilderT = TypeVar("MessageStubBuilderT", bound="IMessageStub")
 
 # LOG logger = logging.getLogger(__name__)
 
-
-class IDataSource(
+class ILwDPDataSource(
     IDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
 ):
     def __init__(
@@ -93,13 +92,23 @@ class IDataSource(
 
     @abstractmethod
     def command(self, cmd: CommandT):
-        """Execute the transmitted HTTP command."""
+        """Execute the transmitted command."""
 
     @property
     @abstractmethod
-    def source_api(self) -> ISourceAPI:
-        """Returns HTTP Provider API."""
+    def source_api(self) -> IHTTPSourceAPI:
+        """Returns Provider API."""
+
  
+class IHTTPDataSource(
+    ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
+):
+    """Interface of DataSource that provides work with lwdp-data-provider via HTTP."""
+
+    @abstractmethod
+    def command(self, cmd):
+        """Execute the transmitted HTTP command."""
+
     def check_connect(self, timeout: Tuple[int, float], certification: bool = True) -> None:
         """Checks whether url is working.
 
@@ -117,5 +126,7 @@ class IDataSource(
                 f"Unable to connect to host '{self.url}'\nReason: {error}"
             )
 
-
-ILwDPDataSource = IHTTPDataSource = IDataSource
+    @property
+    @abstractmethod
+    def source_api(self) -> IHTTPSourceAPI:
+        """Returns HTTP Provider API."""

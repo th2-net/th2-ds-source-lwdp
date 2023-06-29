@@ -22,7 +22,7 @@ from th2_data_services.interfaces import IEventStruct, IMessageStruct, IEventStu
 
 
 if TYPE_CHECKING:
-    from th2_data_services.interfaces import ICommand
+    from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 
 from th2_data_services.data_source.lwdp.struct import (
     event_struct,
@@ -37,13 +37,13 @@ from th2_data_services.data_source.lwdp.stub_builder import (
     MessageStubBuilder,
 )
 from th2_data_services.data_source.lwdp.source_api.http import API
-from th2_data_services.data_source.lwdp.interfaces.data_source import IDataSource
+from th2_data_services.data_source.lwdp.interfaces.data_source import IHTTPDataSource
 
 # LOG logger = logging.getLogger(__name__)
 
 
 class DataSource(
-    IDataSource[EventStruct, MessageStruct, EventStubBuilder, MessageStubBuilder]
+    IHTTPDataSource[EventStruct, MessageStruct, EventStubBuilder, MessageStubBuilder]
 ):
     """DataSource class which provide work with http LwDP."""
 
@@ -79,7 +79,7 @@ class DataSource(
 
     # LOG         logger.info(url)
 
-    def command(self, cmd: ICommand):
+    def command(self, cmd: IHTTPCommand):
         """HTTP  command processor.
 
         Args:

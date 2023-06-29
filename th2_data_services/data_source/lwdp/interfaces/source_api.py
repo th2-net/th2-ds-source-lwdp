@@ -12,4 +12,12 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .http import API, HTTPAPI
+
+from th2_data_services.interfaces import ISourceAPI
+
+
+class ILwDPSourceAPI(ISourceAPI):
+    """Interface for Source API of lwdp-data-provider."""
+
+class IHTTPSourceAPI(ILwDPSourceAPI):
+    """Interface for Source API of lwdp-data-provider which works via HTTP."""

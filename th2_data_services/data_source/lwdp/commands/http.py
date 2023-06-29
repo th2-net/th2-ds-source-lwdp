@@ -22,7 +22,7 @@ from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
 
 from th2_data_services.data_source.lwdp import Page
-from th2_data_services.interfaces import ICommand
+from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2_data_services.data_source.lwdp.data_source.http import DataSource
 from th2_data_services.data_source.lwdp.source_api.http import API
 from th2_data_services.data_source.lwdp.streams import Streams, Stream
@@ -53,7 +53,7 @@ Event = dict
 # LOG logger = logging.getLogger(__name__)
 
 
-class SSEHandlerClassBase(ICommand):
+class SSEHandlerClassBase(IHTTPCommand):
     def __init__(
         self,
         cache: bool,
@@ -384,7 +384,7 @@ class GetMessageGroups(SSEHandlerClassBase):
         return data
 
 
-class GetBooks(ICommand):
+class GetBooks(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of books from provider.
@@ -406,7 +406,7 @@ class GetBooks(ICommand):
         return api.execute_request(url).json()
 
 
-class GetPageByName(ICommand):
+class GetPageByName(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the page by page name from the book.
@@ -518,7 +518,7 @@ class GetPages(SSEHandlerClassBase):
         return data
 
 
-class GetEventById(ICommand):
+class GetEventById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the event by id with `attachedMessageIds` list.
@@ -562,7 +562,7 @@ class GetEventById(ICommand):
             return response.json()
 
 
-class GetEventsById(ICommand):
+class GetEventsById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the events by ids with `attachedMessageIds` list.
@@ -595,7 +595,7 @@ class GetEventsById(ICommand):
         return result
 
 
-class GetEventsByPage(ICommand):
+class GetEventsByPage(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches events stream by page.
@@ -860,7 +860,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         ]
 
 
-class GetMessageById(ICommand):
+class GetMessageById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the message by id.
@@ -912,7 +912,7 @@ class GetMessageById(ICommand):
             return response.json()
 
 
-class GetMessagesById(ICommand):
+class GetMessagesById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves the messages by ids.
@@ -1067,7 +1067,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         )
 
 
-class DownloadMessagesByPageGzip(ICommand):
+class DownloadMessagesByPageGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page and downloads them.
@@ -1141,7 +1141,7 @@ class DownloadMessagesByPageGzip(ICommand):
         )
 
 
-class DownloadMessagesByPageByGroupsGzip(ICommand):
+class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page & groups and downloads them.
@@ -1223,7 +1223,7 @@ class DownloadMessagesByPageByGroupsGzip(ICommand):
                     copyfileobj(response.raw, file)
 
 
-class DownloadMessagesByBookByGroupsGzip(ICommand):
+class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page & groups and downloads them.
@@ -1388,7 +1388,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         )
 
 
-class GetMessagesByPage(ICommand):
+class GetMessagesByPage(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page.

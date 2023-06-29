@@ -17,3 +17,6 @@ from abc import ABC
 
 class IFilter(ABC):
     pass
+
+
+ILwDPFilter = IFilter

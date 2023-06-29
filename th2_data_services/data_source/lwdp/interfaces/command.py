@@ -12,4 +12,26 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from .http import API, HTTPAPI
+from abc import abstractmethod
+from th2_data_services.data_source.lwdp.interfaces.data_source import (
+    ILwDPDataSource,
+    IHTTPDataSource,
+)
+from th2_data_services.interfaces import ICommand
+
+
+class ILwDPCommand(ICommand):
+    """Interface of command for lwdp-data-provider."""
+
+    @abstractmethod
+    def handle(self, data_source: ILwDPDataSource):
+        pass
+
+
+class IHTTPCommand(ILwDPCommand):
+    """Interface of command for rpt-data-provider which works via HTTP."""
+
+    @abstractmethod
+    def handle(self, data_source: IHTTPDataSource):
+        pass
+
