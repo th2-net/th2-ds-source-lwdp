@@ -20,9 +20,9 @@ from .page import Page
 from th2_data_services.config import options as _o
 
 from th2_data_services.data_source.lwdp.resolver import (
-    LwdpEventFieldsResolver,
-    LwdpMessageFieldsResolver,
+    EventFieldsResolver,
+    MessageFieldsResolver,
 )
 
-_o.EVENT_FIELDS_RESOLVER = LwdpEventFieldsResolver()
-_o.MESSAGE_FIELDS_RESOLVER = LwdpMessageFieldsResolver()
+_o.EVENT_FIELDS_RESOLVER = EventFieldsResolver()
+_o.MESSAGE_FIELDS_RESOLVER = MessageFieldsResolver()

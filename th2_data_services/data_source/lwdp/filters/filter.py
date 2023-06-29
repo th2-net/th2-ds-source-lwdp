@@ -15,12 +15,6 @@
 from th2_data_services.data_source.lwdp.interfaces.filter import ILwDPFilter
 from typing import Sequence, Any, Union
 
-# from th2_grpc_lw_data_provider.lw_data_provider_pb2 import (
-#     Filter as grpc_Filter,
-#     FilterName as grpc_FilterName,
-# )
-
-
 class LwDPFilter(ILwDPFilter):
     """General interface for Filters of Provider v6."""
 
@@ -76,15 +70,6 @@ class LwDPFilter(ILwDPFilter):
             + f"&{self.name}-negative={self.negative}"
             + f"&{self.name}-conjunct={self.conjunct}"
         )
-
-    # def grpc(self) -> grpc_Filter:
-    #     """Generates the grpc object of the GRPC protocol API."""
-    #     return grpc_Filter(
-    #         name=grpc_FilterName(name=self.name),
-    #         negative=google.protobuf.wrappers_pb2.BoolValue(value=self.negative),
-    #         value=self.values,
-    #         conjunct=google.protobuf.wrappers_pb2.BoolValue(value=self.conjunct),
-    #     )
 
 
 class _LwDPFilterBase(LwDPFilter):

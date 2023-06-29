@@ -66,20 +66,6 @@ http_event_struct = EventStruct(
     BODY="body",
 )
 
-grpc_event_struct = EventStruct(
-    EVENT_ID="eventId",
-    PARENT_EVENT_ID="parentEventId",
-    STATUS="successful",
-    NAME="eventName",
-    BATCH_ID="batchId",
-    IS_BATCHED="isBatched",
-    EVENT_TYPE="eventType",
-    END_TIMESTAMP="endTimestamp",
-    START_TIMESTAMP="startTimestamp",
-    ATTACHED_MESSAGES_IDS="attachedMessageIds",
-    BODY="body",
-)
-
 # +TODO - unknown fields. Perhaps we have them in GRPC
 http_message_struct = MessageStruct(
     DIRECTION="direction",
@@ -94,19 +80,4 @@ http_message_struct = MessageStruct(
     BODY_BASE64="bodyBase64",
     MESSAGE_ID="messageId",
     ATTACHED_EVENT_IDS="attachedEventIds",
-)
-
-grpc_message_struct = MessageStruct(
-    DIRECTION="direction",
-    SESSION_ID="sessionId",
-    MESSAGE_TYPE="messageType",
-    CONNECTION_ID="connectionId",
-    SESSION_ALIAS="sessionAlias",
-    SUBSEQUENCE="subsequence",
-    SEQUENCE="sequence",
-    TIMESTAMP="timestamp",
-    BODY="body",
-    BODY_BASE64="bodyBase64",
-    MESSAGE_ID="messageId",
-    ATTACHED_EVENT_IDS="attachedEventIds",
-)
+) 

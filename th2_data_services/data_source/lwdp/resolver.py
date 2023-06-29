@@ -16,7 +16,7 @@ from th2_data_services.interfaces.utils.resolver import EventFieldsResolver, Mes
 from th2_data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
 
 
-class LwdpEventFieldsResolver(EventFieldsResolver):
+class EventFieldsResolver(EventFieldsResolver):
     @staticmethod
     def get_id(event):
         return event[http_event_struct.EVENT_ID]
@@ -62,7 +62,7 @@ class LwdpEventFieldsResolver(EventFieldsResolver):
         return event[http_event_struct.BODY]
 
 
-class LwdpMessageFieldsResolver(MessageFieldsResolver):
+class MessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
     def get_subsequence(message):
         raise NotImplementedError
@@ -118,3 +118,6 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
     def get_fields(message):
         return message[http_message_struct.BODY]["fields"]
+
+LwdpEventFieldsResolver = EventFieldsResolver
+LwdpMessageFieldsResolver = MessageFieldsResolver

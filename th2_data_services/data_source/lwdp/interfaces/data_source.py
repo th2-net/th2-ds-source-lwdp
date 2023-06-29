@@ -19,11 +19,10 @@ import requests
 import urllib3
 
 if TYPE_CHECKING:
-    from th2_data_services.data_source.lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
+    from th2_data_services.data_source.lwdp.interfaces.command import ILwDPCommand
 
 from th2_data_services.interfaces import IDataSource
 from th2_data_services.data_source.lwdp.interfaces.source_api import (
-    IGRPCSourceAPI,
     ILwDPSourceAPI,
     IHTTPSourceAPI,
 )
@@ -103,22 +102,7 @@ class ILwDPDataSource(
     @abstractmethod
     def source_api(self) -> ILwDPSourceAPI:
         """Returns Provider API."""
-
-
-class IGRPCDataSource(
-    ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
-):
-    """Interface of DataSource that provides work with lwdp-data-provider via GRPC."""
-
-    @abstractmethod
-    def command(self, cmd: "IGRPCCommand"):
-        """Execute the transmitted GRPC command."""
-
-    @property
-    @abstractmethod
-    def source_api(self) -> IGRPCSourceAPI:
-        """Returns GRPC Provider API."""
-
+ 
 
 class IHTTPDataSource(
     ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
