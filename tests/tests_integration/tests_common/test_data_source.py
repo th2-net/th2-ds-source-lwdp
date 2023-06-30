@@ -7,7 +7,7 @@ from tests.tests_integration.conftest import (
     STREAM_1,
     STREAM_2,
     http,
-    HTTPDataSource,
+    DataSource,
     EVENT_ID_TEST_DATA_ROOT,
     EVENT_ID_PLAIN_EVENT_1,
     MESSAGE_ID_1,
@@ -40,7 +40,7 @@ def test_find_messages_by_pages_by_streams(get_messages_by_page_by_streams: Data
     assert get_messages_by_page_by_streams.len == 28
 
 
-def test_find_events_by_id_from_data_provider(http_data_source: HTTPDataSource):
+def test_find_events_by_id_from_data_provider(http_data_source: DataSource):
     expected_event = root_event_body
 
     expected_events = [expected_event, plain_event_1_body]
@@ -109,7 +109,7 @@ def test_find_events_by_id_from_data_provider(http_data_source: HTTPDataSource):
         http_data_source.command(http.GetEventById("id"))
 
 
-def test_find_messages_by_id_from_data_provider(http_data_source: HTTPDataSource):
+def test_find_messages_by_id_from_data_provider(http_data_source: DataSource):
     expected_message = message_1_body
 
     expected_messages = [message_1_body, message_2_body]
@@ -137,14 +137,14 @@ def test_get_x_with_filters(
     assert list(get_events_with_filters) == event_case
 
 
-def test_find_message_by_id_from_data_provider_with_error(http_data_source: HTTPDataSource):
+def test_find_message_by_id_from_data_provider_with_error(http_data_source: DataSource):
     with pytest.raises(CommandError) as exc_info:
         http_data_source.command(
             http.GetMessageById("demo-conn_not_exist:first:1624005448022245399")
         )
 
 
-def test_get_events_from_data_provider_with_error(http_data_source: HTTPDataSource):
+def test_get_events_from_data_provider_with_error(http_data_source: DataSource):
     with pytest.raises(TypeError) as exc_info:
         events = http_data_source.command(
             http.GetEventsByBookByScopes(
@@ -156,7 +156,7 @@ def test_get_events_from_data_provider_with_error(http_data_source: HTTPDataSour
     assert "Provided timestamp should be `datetime` object" in str(exc_info)
 
 
-def test_get_messages_from_data_provider_with_error(http_data_source: HTTPDataSource):
+def test_get_messages_from_data_provider_with_error(http_data_source: DataSource):
     with pytest.raises(TypeError) as exc_info:
         messages = http_data_source.command(
             http.GetMessagesByBookByStreams(
@@ -173,7 +173,7 @@ def test_get_messages_from_data_provider_with_error(http_data_source: HTTPDataSo
 
 def test_check_url_for_http_data_source():
     with pytest.raises(requests.exceptions.ConnectionError) as exc_info:
-        http_data_source = HTTPDataSource("http://test_test:8080/")
+        http_data_source = DataSource("http://test_test:8080/")
     assert "Max retries exceeded with url" in str(exc_info)
 
 

@@ -25,24 +25,24 @@ if TYPE_CHECKING:
     from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 
 from th2_data_services.data_source.lwdp.struct import (
-    http_event_struct,
-    http_message_struct,
+    event_struct,
+    message_struct,
     EventStruct,
     MessageStruct,
 )
 from th2_data_services.data_source.lwdp.stub_builder import (
-    http_event_stub_builder,
-    http_message_stub_builder,
+    event_stub_builder,
+    message_stub_builder,
     EventStubBuilder,
     MessageStubBuilder,
 )
-from th2_data_services.data_source.lwdp.source_api.http import HTTPAPI
+from th2_data_services.data_source.lwdp.source_api.http import API
 from th2_data_services.data_source.lwdp.interfaces.data_source import IHTTPDataSource
 
 # LOG logger = logging.getLogger(__name__)
 
 
-class HTTPDataSource(
+class DataSource(
     IHTTPDataSource[EventStruct, MessageStruct, EventStubBuilder, MessageStubBuilder]
 ):
     """DataSource class which provide work with http LwDP."""
@@ -51,13 +51,13 @@ class HTTPDataSource(
         self,
         url: str,
         chunk_length: int = 65536,
-        event_struct: IEventStruct = http_event_struct,
-        message_struct: IMessageStruct = http_message_struct,
-        event_stub_builder: IEventStub = http_event_stub_builder,
-        message_stub_builder: IMessageStub = http_message_stub_builder,
+        event_struct: IEventStruct = event_struct,
+        message_struct: IMessageStruct = message_struct,
+        event_stub_builder: IEventStub = event_stub_builder,
+        message_stub_builder: IMessageStub = message_stub_builder,
         check_connect_timeout: Union[int, float] = 5,
     ):
-        """HTTPDataSource constructor.
+        """DataSource constructor.
 
         Args:
             url: HTTP data source url.
@@ -75,7 +75,7 @@ class HTTPDataSource(
 
         self.__chunk_length = chunk_length
         self.check_connect(check_connect_timeout)
-        self._provider_api = HTTPAPI(url, chunk_length)
+        self._provider_api = API(url, chunk_length)
 
     # LOG         logger.info(url)
 
@@ -99,6 +99,9 @@ class HTTPDataSource(
             )
 
     @property
-    def source_api(self) -> HTTPAPI:
+    def source_api(self) -> API:
         """HTTP  API."""
         return self._provider_api
+
+
+HTTPDataSource = DataSource

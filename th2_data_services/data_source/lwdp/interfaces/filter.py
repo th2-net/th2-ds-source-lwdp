@@ -15,5 +15,8 @@
 from abc import ABC
 
 
-class ILwDPFilter(ABC):
+class IFilter(ABC):
     pass
+
+
+ILwDPFilter = IFilter

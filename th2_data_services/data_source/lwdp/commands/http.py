@@ -23,8 +23,8 @@ from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimest
 
 from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
-from th2_data_services.data_source.lwdp.data_source.http import HTTPDataSource
-from th2_data_services.data_source.lwdp.source_api.http import HTTPAPI
+from th2_data_services.data_source.lwdp.data_source.http import DataSource
+from th2_data_services.data_source.lwdp.source_api.http import API
 from th2_data_services.data_source.lwdp.streams import Streams, Stream
 from th2_data_services.utils.sse_client import SSEClient
 from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
@@ -32,7 +32,7 @@ from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
     DEFAULT_BUFFER_LIMIT,
 )
 from th2_data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
-from th2_data_services.data_source.lwdp.filters.event_filters import LwDPEventFilter
+from th2_data_services.data_source.lwdp.filters.event_filters import EventFilter
 from th2_data_services.data_source.lwdp.utils import (
     _check_datetime,
     _check_list_or_tuple,
@@ -103,19 +103,19 @@ class SSEHandlerClassBase(IHTTPCommand):
         return self
 
     def _sse_bytes_stream(
-        self, data_source: HTTPDataSource
+        self, data_source: DataSource
     ) -> Generator[bytes, None, None]:  # noqa
-        api: HTTPAPI = data_source.source_api
+        api: API = data_source.source_api
         urls: List[str] = self._get_urls(data_source)
         for url in urls:
             # LOG             logger.info(url)
             yield from api.execute_sse_request(url)
 
-    def _sse_events_stream(self, data_source: HTTPDataSource) -> Generator[Event, Any, None]:
+    def _sse_events_stream(self, data_source: DataSource) -> Generator[Event, Any, None]:
         """Turns SSEByte Stream Into SSEEvent Stream.
 
         Args:
-            data_source: HTTPDataSource
+            data_source: DataSource
 
         Returns:
              Generator[Event, Any, None]
@@ -129,11 +129,11 @@ class SSEHandlerClassBase(IHTTPCommand):
         )
         yield from client.events()
 
-    def _data_object(self, data_source: HTTPDataSource) -> Data:
+    def _data_object(self, data_source: DataSource) -> Data:
         """Parses SSEEvents Into Data Object.
 
         Args:
-            data_source: HTTPDataSource
+            data_source: DataSource
 
         Returns:
              Data
@@ -144,11 +144,11 @@ class SSEHandlerClassBase(IHTTPCommand):
         return data
 
     @abstractmethod
-    def _get_urls(self, data_source: HTTPDataSource) -> List[str]:
+    def _get_urls(self, data_source: DataSource) -> List[str]:
         pass
 
     def handle(
-        self, data_source: HTTPDataSource
+        self, data_source: DataSource
     ) -> Union[Generator[bytes, None, None], Generator[Event, None, None], Data]:
         """Handles Stream By Handle Function, Defaults To `Data`.
 
@@ -210,7 +210,7 @@ class GetEventScopes(SSEHandlerClassBase):
             self._all_results = False
         self._book_id = book_id
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
         if self._all_results:
             return [api.get_url_get_scopes(book_id=self._book_id)]
@@ -219,11 +219,11 @@ class GetEventScopes(SSEHandlerClassBase):
                 api.get_url_get_scopes(self._book_id, self._start_timestamp, self._end_timestamp)
             ]
 
-    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+    def _data_object(self, data_source: DataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
 
         Args:
-            data_source: HTTPDataSource
+            data_source: DataSource
 
         Returns:
              Data
@@ -283,7 +283,7 @@ class GetMessageAliases(SSEHandlerClassBase):
             self._all_results = False
         self._book_id = book_id
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
         if self._all_results:
             return [api.get_url_get_message_aliases(book_id=self._book_id)]
@@ -294,11 +294,11 @@ class GetMessageAliases(SSEHandlerClassBase):
                 )
             ]
 
-    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+    def _data_object(self, data_source: DataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
 
         Args:
-            data_source: HTTPDataSource
+            data_source: DataSource
 
         Returns:
              Data
@@ -358,7 +358,7 @@ class GetMessageGroups(SSEHandlerClassBase):
             self._all_results = False
         self._book_id = book_id
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
         if self._all_results:
             return [api.get_url_get_message_groups(book_id=self._book_id)]
@@ -369,11 +369,11 @@ class GetMessageGroups(SSEHandlerClassBase):
                 )
             ]
 
-    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+    def _data_object(self, data_source: DataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
 
         Args:
-            data_source: HTTPDataSource
+            data_source: DataSource
 
         Returns:
              Data
@@ -397,8 +397,8 @@ class GetBooks(IHTTPCommand):
         """GetBooks constructor."""
         super().__init__()
 
-    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
-        api: HTTPAPI = data_source.source_api
+    def handle(self, data_source: DataSource) -> List[str]:  # noqa: D102
+        api: API = data_source.source_api
         url = api.get_url_get_books()
 
         # LOG         logger.info(url)
@@ -429,7 +429,7 @@ class GetPageByName(IHTTPCommand):
         self._book_id = book_id
         self._page_name = page_name
 
-    def handle(self, data_source: HTTPDataSource) -> Page:  # noqa: D102
+    def handle(self, data_source: DataSource) -> Page:  # noqa: D102
         pages = data_source.command(GetPages(self._book_id)).filter(
             lambda page: page.name == self._page_name
         )
@@ -483,7 +483,7 @@ class GetPages(SSEHandlerClassBase):
         self._book_id = book_id
         self._result_limit = result_limit
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
         if self._all_results:
             return [api.get_url_get_pages_info_all(self._book_id)]
@@ -498,11 +498,11 @@ class GetPages(SSEHandlerClassBase):
         for event_data in stream:
             yield Page(event_data)
 
-    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+    def _data_object(self, data_source: DataSource) -> Data[Page]:
         """Parses SSEEvents Into Data Object.
 
         Args:
-            data_source: HTTPDataSource
+            data_source: DataSource
 
         Returns:
              Data
@@ -542,8 +542,8 @@ class GetEventById(IHTTPCommand):
         self._id = id
         self._stub_status = use_stub
 
-    def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
-        api: HTTPAPI = data_source.source_api
+    def handle(self, data_source: DataSource) -> dict:  # noqa: D102
+        api: API = data_source.source_api
         url = api.get_url_find_event_by_id(self._id)
 
         # LOG         logger.info(url)
@@ -586,7 +586,7 @@ class GetEventsById(IHTTPCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
-    def handle(self, data_source: HTTPDataSource) -> List[dict]:  # noqa: D102
+    def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         result = []
         for event_id in self._ids:
             event = GetEventById(event_id, use_stub=self._stub_status).handle(data_source)
@@ -611,7 +611,7 @@ class GetEventsByPage(IHTTPCommand):
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        filters: Union[EventFilter, List[EventFilter]] = None,
         cache: bool = False,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -643,7 +643,7 @@ class GetEventsByPage(IHTTPCommand):
         self._filters = filters
         self._cache = cache
 
-    def handle(self, data_source: HTTPDataSource):
+    def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
         self._end_timestamp = (
@@ -696,7 +696,7 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        filters: Union[EventFilter, List[EventFilter]] = None,
         # Non-data source args.
         # +TODO - add `max_url_length: int = 2048,`
         #   It'll be required when you implement `__split_requests` in source_api/http.py
@@ -745,14 +745,14 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         self._filters = filters
         self._book_id = book_id
         self._scopes = scopes
-        if isinstance(filters, LwDPEventFilter):
+        if isinstance(filters, EventFilter):
             self._filters = filters.url()
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
         _check_list_or_tuple(self._scopes, var_name="scopes")
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
         return [
             api.get_url_search_sse_events(
@@ -786,7 +786,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        filters: Union[EventFilter, List[EventFilter]] = None,
         # Non-data source args.
         # +TODO - add `max_url_length: int = 2048,`
         #   It'll be required when you implement `__split_requests` in source_api/http.py
@@ -828,14 +828,14 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         self._result_count_limit = result_count_limit
         self._filters = filters
         self._scopes = scopes
-        if isinstance(filters, LwDPEventFilter):
+        if isinstance(filters, EventFilter):
             self._filters = filters.url()
         elif isinstance(filters, (tuple, list)):
             self._filters = "".join([filter_.url() for filter_ in filters])
 
         _check_list_or_tuple(self._scopes, var_name="scopes")
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
@@ -886,8 +886,8 @@ class GetMessageById(IHTTPCommand):
         self._stub_status = use_stub
         self._response_formats = response_formats
 
-    def handle(self, data_source: HTTPDataSource) -> dict:  # noqa: D102
-        api: HTTPAPI = data_source.source_api
+    def handle(self, data_source: DataSource) -> dict:  # noqa: D102
+        api: API = data_source.source_api
         if self._response_formats in [["JSON_PARSED", "BASE_64"], ["BASE_64", "JSON_PARSED"], None]:
             only_raw = False
         elif self._response_formats == ["BASE_64"]:
@@ -940,7 +940,7 @@ class GetMessagesById(IHTTPCommand):
         self._stub_status = use_stub
         self._response_formats = response_formats
 
-    def handle(self, data_source: HTTPDataSource) -> List[dict]:  # noqa: D102
+    def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         result = []
         for message_id in self._ids:
             message = GetMessageById(
@@ -1051,7 +1051,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
                 f"Got {type(self._streams)}"
             )
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
         return api.get_url_search_sse_messages(
             start_timestamp=self._start_timestamp,
@@ -1111,7 +1111,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         self._keep_open = keep_open
         self._max_url_length = max_url_length
 
-    def handle(self, data_source: HTTPDataSource):
+    def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
         end_timestamp = (
@@ -1191,7 +1191,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def handle(self, data_source: HTTPDataSource):
+    def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
@@ -1281,7 +1281,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def handle(self, data_source: HTTPDataSource):
+    def handle(self, data_source: DataSource):
         api = data_source.source_api
         urls = api.get_download_messages(
             start_timestamp=self._start_timestamp,
@@ -1374,7 +1374,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
         return api.get_url_search_messages_by_groups(
             start_timestamp=self._start_timestamp,
@@ -1438,7 +1438,7 @@ class GetMessagesByPage(IHTTPCommand):
         self._max_url_length = max_url_length
         self._cache = cache
 
-    def handle(self, data_source: HTTPDataSource):
+    def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
         end_timestamp = (
@@ -1530,7 +1530,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         self._max_url_length = max_url_length
         self._stream = stream
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
@@ -1615,7 +1615,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
 
         _check_list_or_tuple(self._groups, var_name="groups")
 
-    def _get_urls(self, data_source: HTTPDataSource):
+    def _get_urls(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (

@@ -15,7 +15,6 @@
 from abc import abstractmethod
 from th2_data_services.data_source.lwdp.interfaces.data_source import (
     ILwDPDataSource,
-    IGRPCDataSource,
     IHTTPDataSource,
 )
 from th2_data_services.interfaces import ICommand
@@ -36,14 +35,3 @@ class IHTTPCommand(ILwDPCommand):
     def handle(self, data_source: IHTTPDataSource):
         pass
 
-
-class IGRPCCommand(ILwDPCommand):
-    """Interface of command for lwdp-data-provider.
-
-    Lwdp-data-provider version: 1.1.x
-    Protocol: GRPC
-    """
-
-    @abstractmethod
-    def handle(self, data_source: IGRPCDataSource):
-        pass

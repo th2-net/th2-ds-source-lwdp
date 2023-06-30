@@ -13,20 +13,16 @@
 #  limitations under the License.
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, TypeVar, Generic
+from typing import TYPE_CHECKING, TypeVar, Generic, Tuple
 
 import requests
 import urllib3
 
 if TYPE_CHECKING:
-    from th2_data_services.data_source.lwdp.interfaces.command import IGRPCCommand, ILwDPCommand
+    from th2_data_services.interfaces import ILwDPCommand
 
-from th2_data_services.interfaces import IDataSource
-from th2_data_services.data_source.lwdp.interfaces.source_api import (
-    IGRPCSourceAPI,
-    ILwDPSourceAPI,
-    IHTTPSourceAPI,
-)
+from th2_data_services.interfaces.data_source import IDataSource
+from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI 
 from th2_data_services.data_source.lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services.data_source.lwdp.stub_builder import IEventStub, IMessageStub
 
@@ -40,7 +36,6 @@ MessageStubBuilderT = TypeVar("MessageStubBuilderT", bound="IMessageStub")
 # LOG import logging
 
 # LOG logger = logging.getLogger(__name__)
-
 
 class ILwDPDataSource(
     IDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
@@ -101,25 +96,10 @@ class ILwDPDataSource(
 
     @property
     @abstractmethod
-    def source_api(self) -> ILwDPSourceAPI:
+    def source_api(self) -> IHTTPSourceAPI:
         """Returns Provider API."""
 
-
-class IGRPCDataSource(
-    ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
-):
-    """Interface of DataSource that provides work with lwdp-data-provider via GRPC."""
-
-    @abstractmethod
-    def command(self, cmd: "IGRPCCommand"):
-        """Execute the transmitted GRPC command."""
-
-    @property
-    @abstractmethod
-    def source_api(self) -> IGRPCSourceAPI:
-        """Returns GRPC Provider API."""
-
-
+ 
 class IHTTPDataSource(
     ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
 ):
@@ -129,7 +109,7 @@ class IHTTPDataSource(
     def command(self, cmd):
         """Execute the transmitted HTTP command."""
 
-    def check_connect(self, timeout: (int, float), certification: bool = True) -> None:
+    def check_connect(self, timeout: Tuple[int, float], certification: bool = True) -> None:
         """Checks whether url is working.
 
         Args:

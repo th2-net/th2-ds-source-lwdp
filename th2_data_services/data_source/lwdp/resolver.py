@@ -12,111 +12,118 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.interfaces.utils.resolver import EventFieldsResolver, MessageFieldsResolver, SubMessageFieldResolver
-from th2_data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
+from th2_data_services.interfaces.utils import resolver as resolver_core
+from th2_data_services.data_source.lwdp.struct import event_struct, message_struct
 
 
-class LwdpEventFieldsResolver(EventFieldsResolver):
+class EventFieldResolver(resolver_core.EventFieldResolver):
     @staticmethod
     def get_id(event):
-        return event[http_event_struct.EVENT_ID]
+        return event[event_struct.EVENT_ID]
 
     @staticmethod
     def get_parent_id(event):
-        return event[http_event_struct.PARENT_EVENT_ID]
+        return event[event_struct.PARENT_EVENT_ID]
 
     @staticmethod
     def get_status(event):
-        return event[http_event_struct.STATUS]
+        return event[event_struct.STATUS]
 
     @staticmethod
     def get_name(event):
-        return event[http_event_struct.NAME]
+        return event[event_struct.NAME]
 
     @staticmethod
     def get_batch_id(event):
-        return event[http_event_struct.BATCH_ID]
+        return event[event_struct.BATCH_ID]
 
     @staticmethod
     def get_is_batched(event):
-        return event[http_event_struct.IS_BATCHED]
+        return event[event_struct.IS_BATCHED]
 
     @staticmethod
     def get_type(event):
-        return event[http_event_struct.EVENT_TYPE]
+        return event[event_struct.EVENT_TYPE]
 
     @staticmethod
     def get_start_timestamp(event):
-        return event[http_event_struct.START_TIMESTAMP]
+        return event[event_struct.START_TIMESTAMP]
 
     @staticmethod
     def get_end_timestamp(event):
-        return event[http_event_struct.END_TIMESTAMP]
+        return event[event_struct.END_TIMESTAMP]
 
     @staticmethod
     def get_attached_messages_ids(event):
-        return event[http_event_struct.ATTACHED_MESSAGES_IDS]
+        return event[event_struct.ATTACHED_MESSAGES_IDS]
 
     @staticmethod
     def get_body(event):
-        return event[http_event_struct.BODY]
+        return event[event_struct.BODY]
 
 
-class LwdpMessageFieldsResolver(MessageFieldsResolver):
+class MessageFieldResolver(resolver_core.MessageFieldResolver):
     @staticmethod
     def get_direction(message):
-        return message[http_message_struct.DIRECTION]
+        return message[message_struct.DIRECTION]
 
     @staticmethod
     def get_session_id(message):
-        return message[http_message_struct.SESSION_ID]
+        return message[message_struct.SESSION_ID]
 
     @staticmethod
     def get_type(message):
         raise NotImplementedError
 
     @staticmethod
-    def get_sequence(message): # <book>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
-        return message[http_message_struct.MESSAGE_ID].split(':')[4].split('.')[0]
+    def get_sequence(message):  # <book>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
+        return message[message_struct.MESSAGE_ID].split(":")[4].split(".")[0]
 
     @staticmethod
     def get_timestamp(message):
-        return message[http_message_struct.TIMESTAMP]
+        return message[message_struct.TIMESTAMP]
 
     @staticmethod
     def get_body(message):
-        return message[http_message_struct.BODY]
+        return message[message_struct.BODY]
 
     @staticmethod
     def get_body_base64(message):
-        return message[http_message_struct.BODY_BASE64]
+        return message[message_struct.BODY_BASE64]
 
     @staticmethod
     def get_id(message):
-        return message[http_message_struct.MESSAGE_ID]
+        return message[message_struct.MESSAGE_ID]
 
     @staticmethod
     def get_attached_event_ids(message):
-        return message[http_message_struct.ATTACHED_EVENT_IDS]
+        return message[message_struct.ATTACHED_EVENT_IDS]
 
 
-class SubMessageFieldResolver(SubMessageFieldResolver):
+class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
     def get_metadata(sub_message):
         return sub_message["metadata"]
 
     @staticmethod
     def get_subsequence(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.SUBSEQUENCE, [1])
+        return SubMessageFieldResolver.get_metadata(sub_message).get(
+            message_struct.SUBSEQUENCE, [1]
+        )
 
     @staticmethod
     def get_type(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message)[http_message_struct.MESSAGE_TYPE]
+        return SubMessageFieldResolver.get_metadata(sub_message)[message_struct.MESSAGE_TYPE]
 
     @staticmethod
     def get_protocol(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.PROTOCOL)
+        return SubMessageFieldResolver.get_metadata(sub_message).get(message_struct.PROTOCOL)
 
     @staticmethod
     def get_fields(sub_message):
         return sub_message["fields"]
+
+
+# TODO - for backward compatibility. Should be removed some time.
+LwdpEventFieldsResolver = EventFieldResolver
+LwdpMessageFieldsResolver = MessageFieldResolver

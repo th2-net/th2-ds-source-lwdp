@@ -14,10 +14,8 @@
 
 from th2_data_services.interfaces import IEventStub, IMessageStub
 from th2_data_services.data_source.lwdp.struct import (
-    grpc_event_struct,
-    grpc_message_struct,
-    http_event_struct,
-    http_message_struct,
+    event_struct,
+    message_struct,
     EventStruct,
     MessageStruct,
 )
@@ -119,10 +117,8 @@ class MessageStubBuilder(IMessageStub):
         }
 
 
-http_event_stub_builder = EventStubBuilder(http_event_struct)
-http_message_stub_builder = MessageStubBuilder(http_message_struct)
-grpc_event_stub_builder = EventStubBuilder(grpc_event_struct)
-grpc_message_stub_builder = MessageStubBuilder(grpc_message_struct)
+http_event_stub_builder = event_stub_builder = EventStubBuilder(event_struct)
+http_message_stub_builder = message_stub_builder = MessageStubBuilder(message_struct)
 
 
 if __name__ == "__main__":

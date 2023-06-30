@@ -12,16 +12,16 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.data_source.lwdp.filters.filter import LwDPEventFilter
+from th2_data_services.data_source.lwdp.filters.filter import EventFilter
 
 
-class TypeFilter(LwDPEventFilter):
+class TypeFilter(EventFilter):
     """Will match the events which type contains one of the given substrings."""
 
     FILTER_NAME = "type"
 
 
-class NameFilter(LwDPEventFilter):
+class NameFilter(EventFilter):
     """Will match the events which name contains one of the given substrings."""
 
     FILTER_NAME = "name"
