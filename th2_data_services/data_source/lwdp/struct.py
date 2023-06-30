@@ -41,10 +41,8 @@ class MessageStruct(IMessageStruct):
     DIRECTION: str
     SESSION_ID: str
     MESSAGE_TYPE: str
-    CONNECTION_ID: str
-    SESSION_ALIAS: str
     SUBSEQUENCE: str
-    SEQUENCE: str
+    PROTOCOL: str
     TIMESTAMP: str
     BODY: str
     BODY_BASE64: str
@@ -66,18 +64,15 @@ http_event_struct = event_struct = EventStruct(
     BODY="body",
 )
 
-# +TODO - unknown fields. Perhaps we have them in GRPC
 http_message_struct = message_struct = MessageStruct(
     DIRECTION="direction",
     SESSION_ID="sessionId",
     MESSAGE_TYPE="messageType",
-    CONNECTION_ID="connectionId",  # ??
-    SESSION_ALIAS="sessionAlias",  # ??
-    SUBSEQUENCE="subsequence",  # ??
-    SEQUENCE="sequence",  # ??
+    SUBSEQUENCE="subsequence",
+    PROTOCOL="protocol",
     TIMESTAMP="timestamp",
     BODY="body",
     BODY_BASE64="bodyBase64",
     MESSAGE_ID="messageId",
     ATTACHED_EVENT_IDS="attachedEventIds",
-) 
+)

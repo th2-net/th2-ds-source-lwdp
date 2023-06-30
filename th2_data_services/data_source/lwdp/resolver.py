@@ -64,10 +64,6 @@ class EventFieldsResolver(EventFieldResolver):
 
 class MessageFieldsResolver(MessageFieldResolver):
     @staticmethod
-    def get_subsequence(message):
-        raise NotImplementedError
-
-    @staticmethod
     def get_direction(message):
         return message[message_struct.DIRECTION]
 
@@ -77,23 +73,11 @@ class MessageFieldsResolver(MessageFieldResolver):
 
     @staticmethod
     def get_type(message):
-        return message[message_struct.MESSAGE_TYPE]
+        raise NotImplementedError
 
     @staticmethod
-    def get_connection_id(message):
-        return message[message_struct.BODY]["metadata"]["id"][
-            message_struct.CONNECTION_ID
-        ]
-
-    @staticmethod
-    def get_session_alias(message):
-        return message[message_struct.BODY]["metadata"]["id"][
-            message_struct.CONNECTION_ID
-        ][message_struct.SESSION_ALIAS]
-
-    @staticmethod
-    def get_sequence(message):
-        return message[message_struct.BODY]["metadata"]["id"][message_struct.SEQUENCE]
+    def get_sequence(message):  # <book>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
+        return message[message_struct.MESSAGE_ID].split(":")[4].split(".")[0]
 
     @staticmethod
     def get_timestamp(message):
@@ -115,9 +99,30 @@ class MessageFieldsResolver(MessageFieldResolver):
     def get_attached_event_ids(message):
         return message[message_struct.ATTACHED_EVENT_IDS]
 
-    @staticmethod
-    def get_fields(message):
-        return message[message_struct.BODY]["fields"]
 
+class SubMessageFieldResolver(SubMessageFieldResolver):
+    def get_metadata(sub_message):
+        return sub_message["metadata"]
+
+    @staticmethod
+    def get_subsequence(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message).get(
+            http_message_struct.SUBSEQUENCE, [1]
+        )
+
+    @staticmethod
+    def get_type(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message)[http_message_struct.MESSAGE_TYPE]
+
+    @staticmethod
+    def get_protocol(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.PROTOCOL)
+
+    @staticmethod
+    def get_fields(sub_message):
+        return sub_message["fields"]
+
+
+# TODO - for backward compatibility. Should be removed some time.
 LwdpEventFieldsResolver = EventFieldResolver
 LwdpMessageFieldsResolver = MessageFieldResolver
