@@ -12,11 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.interfaces.utils.resolver import EventFieldResolver, MessageFieldResolver
+from th2_data_services.interfaces.utils import resolver as resolver_core
 from th2_data_services.data_source.lwdp.struct import event_struct, message_struct
 
 
-class EventFieldsResolver(EventFieldResolver):
+class EventFieldResolver(resolver_core.EventFieldResolver):
     @staticmethod
     def get_id(event):
         return event[event_struct.EVENT_ID]
@@ -62,7 +62,7 @@ class EventFieldsResolver(EventFieldResolver):
         return event[event_struct.BODY]
 
 
-class MessageFieldsResolver(MessageFieldResolver):
+class MessageFieldResolver(resolver_core.MessageFieldResolver):
     @staticmethod
     def get_direction(message):
         return message[message_struct.DIRECTION]
@@ -100,23 +100,24 @@ class MessageFieldsResolver(MessageFieldResolver):
         return message[message_struct.ATTACHED_EVENT_IDS]
 
 
-class SubMessageFieldResolver(SubMessageFieldResolver):
+class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
+    @staticmethod
     def get_metadata(sub_message):
         return sub_message["metadata"]
 
     @staticmethod
     def get_subsequence(sub_message):
         return SubMessageFieldResolver.get_metadata(sub_message).get(
-            http_message_struct.SUBSEQUENCE, [1]
+            message_struct.SUBSEQUENCE, [1]
         )
 
     @staticmethod
     def get_type(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message)[http_message_struct.MESSAGE_TYPE]
+        return SubMessageFieldResolver.get_metadata(sub_message)[message_struct.MESSAGE_TYPE]
 
     @staticmethod
     def get_protocol(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.PROTOCOL)
+        return SubMessageFieldResolver.get_metadata(sub_message).get(message_struct.PROTOCOL)
 
     @staticmethod
     def get_fields(sub_message):
