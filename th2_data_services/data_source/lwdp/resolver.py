@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.interfaces.utils.resolver import EventFieldsResolver, MessageFieldsResolver
+from th2_data_services.interfaces.utils.resolver import EventFieldsResolver, MessageFieldsResolver, SubMessageFieldResolver
 from th2_data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
 
 
@@ -64,10 +64,6 @@ class LwdpEventFieldsResolver(EventFieldsResolver):
 
 class LwdpMessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
-    def get_subsequence(message):
-        raise NotImplementedError
-
-    @staticmethod
     def get_direction(message):
         return message[http_message_struct.DIRECTION]
 
@@ -77,23 +73,11 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
 
     @staticmethod
     def get_type(message):
-        return message[http_message_struct.MESSAGE_TYPE]
+        raise NotImplementedError
 
     @staticmethod
-    def get_connection_id(message):
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ]
-
-    @staticmethod
-    def get_session_alias(message):
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ][http_message_struct.SESSION_ALIAS]
-
-    @staticmethod
-    def get_sequence(message):
-        return message[http_message_struct.BODY]["metadata"]["id"][http_message_struct.SEQUENCE]
+    def get_sequence(message): # <book>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
+        return message[http_message_struct.MESSAGE_ID].split(':')[4].split('.')[0]
 
     @staticmethod
     def get_timestamp(message):
@@ -115,6 +99,24 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
     def get_attached_event_ids(message):
         return message[http_message_struct.ATTACHED_EVENT_IDS]
 
+
+class SubMessageFieldResolver(SubMessageFieldResolver):
     @staticmethod
-    def get_fields(message):
-        return message[http_message_struct.BODY]["fields"]
+    def get_metadata(sub_message):
+        return sub_message["metadata"]
+
+    @staticmethod
+    def get_subsequence(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.SUBSEQUENCE, [1])
+
+    @staticmethod
+    def get_type(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message)[http_message_struct.MESSAGE_TYPE]
+
+    @staticmethod
+    def get_protocol(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.PROTOCOL)
+
+    @staticmethod
+    def get_fields(sub_message):
+        return sub_message["fields"]

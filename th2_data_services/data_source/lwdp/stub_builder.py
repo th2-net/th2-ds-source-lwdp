@@ -111,7 +111,6 @@ class MessageStubBuilder(IMessageStub):
         return {
             self.message_fields.DIRECTION: None,
             self.message_fields.SESSION_ID: BrokenMessage(),
-            self.message_fields.MESSAGE_TYPE: BrokenMessage(),
             self.message_fields.TIMESTAMP: {"nano": 0, "epochSecond": 0},
             self.message_fields.BODY: [],
             self.message_fields.BODY_BASE64: [],
