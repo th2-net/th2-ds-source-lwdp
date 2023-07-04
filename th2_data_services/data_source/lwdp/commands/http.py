@@ -102,9 +102,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         self._current_handle_function = self._data_object
         return self
 
-    def _sse_bytes_stream(
-        self, data_source: DataSource
-    ) -> Generator[bytes, None, None]:  # noqa
+    def _sse_bytes_stream(self, data_source: DataSource) -> Generator[bytes, None, None]:  # noqa
         api: API = data_source.source_api
         urls: List[str] = self._get_urls(data_source)
         for url in urls:
@@ -1075,6 +1073,11 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
       you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
       etc., since the request might exceed url limit.
 
+    File will contain the list of messages for specified groups.
+    Each group will be requested one after another (there is no order guaranties between groups).
+    Messages for a group are not sorted by default.
+    Use sort in order to sort messages for each group
+
     Returns:
         Nothing.
     """
@@ -1149,6 +1152,10 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
       you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
       etc., since the request might exceed url limit.
 
+    File will contain the list of messages for specified groups.
+    Each group will be requested one after another (there is no order guaranties between groups).
+    Messages for a group are not sorted by default.
+    Use sort in order to sort messages for each group
 
     Returns:
         Nothing.
@@ -1231,6 +1238,10 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
       you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
       etc., since the request might exceed url limit.
 
+    File will contain the list of messages for specified groups.
+    Each group will be requested one after another (there is no order guaranties between groups).
+    Messages for a group are not sorted by default.
+    Use sort in order to sort messages for each group
 
     Returns:
         Nothing.
