@@ -21,7 +21,7 @@ from requests import Response
 from urllib3 import PoolManager, exceptions
 from urllib.parse import quote
 
-from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI 
+from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
 
 
 # LOG logger = logging.getLogger("th2_data_services")
@@ -290,6 +290,9 @@ class API(IHTTPSourceAPI):
         groups: List[str],
         sort: bool = None,
         response_formats: List[str] = None,
+        stream: List[
+            str
+        ] = None,  # TODO  TH2-4975 - implement.  stream here (not streamS) because API has such name.
         keep_open: bool = None,
         max_url_length=2048,
     ) -> List[str]:
@@ -304,6 +307,7 @@ class API(IHTTPSourceAPI):
             groups: List of groups to search messages by
             sort: Enables message sorting in the request
             response_formats: Response format
+            stream: List of streams (optionally with direction) to include in the response.
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range
             max_url_length: API request url max length.
 
