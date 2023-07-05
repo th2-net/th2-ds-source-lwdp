@@ -234,6 +234,7 @@ class API(IHTTPSourceAPI):
         end_timestamp: int,
         book_id: str,
         groups: List[str],
+        streams: List[str] = None,
         sort: bool = None,
         response_formats: List[str] = None,
         keep_open: bool = None,
@@ -248,6 +249,7 @@ class API(IHTTPSourceAPI):
                 Expected in nanoseconds.
             book_id: book ID for requested groups.
             groups: List of groups to search messages by
+            streams: List of streams to search messages by.
             sort: Enables message sorting in the request
             response_formats: Response format
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range
@@ -263,6 +265,7 @@ class API(IHTTPSourceAPI):
             "sort": sort,
             "responseFormat": response_formats,
             "keepOpen": keep_open,
+            "stream": streams,
         }
         groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
         options = []
@@ -271,7 +274,7 @@ class API(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["responseFormat"]:
+            if k in ["responseFormat","stream"]:
                 for item in v:
                     options.append(self._option(k, item))
             else:
@@ -288,6 +291,7 @@ class API(IHTTPSourceAPI):
         end_timestamp: int,
         book_id: str,
         groups: List[str],
+        streams: List[str],
         sort: bool = None,
         response_formats: List[str] = None,
         stream: List[
@@ -305,6 +309,7 @@ class API(IHTTPSourceAPI):
                 Expected in nanoseconds.
             book_id: book ID for requested groups.
             groups: List of groups to search messages by
+            stream: List of streams to search messages by.
             sort: Enables message sorting in the request
             response_formats: Response format
             stream: List of streams (optionally with direction) to include in the response.
@@ -321,6 +326,7 @@ class API(IHTTPSourceAPI):
             "sort": sort,
             "responseFormat": response_formats,
             "keepOpen": keep_open,
+            "stream": streams,
         }
         groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
         options = []
@@ -329,7 +335,7 @@ class API(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["responseFormat"]:
+            if k in ["responseFormat", "stream"]:
                 for item in v:
                     options.append(self._option(k, item))
             else:
@@ -379,7 +385,7 @@ class API(IHTTPSourceAPI):
         return requests.get(url, headers=headers, stream=stream)
 
     def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
-        if len(fixed_url) >= max_url_len:
+        if len(fixed_url + max(optional, key=len)) >= max_url_len:
             raise Exception(
                 f"Fixed url part ({len(fixed_url)}) >= than max url len ({max_url_len})"
             )
