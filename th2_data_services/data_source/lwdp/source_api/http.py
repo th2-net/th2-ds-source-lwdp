@@ -274,7 +274,7 @@ class HTTPAPI(IHTTPSourceAPI):
         for k, v in kwargs.items():
             if v is None:
                 continue
-            if k in ["responseFormat","stream"]:
+            if k in ["responseFormat", "stream"]:
                 for item in v:
                     options.append(self._option(k, item))
             else:
