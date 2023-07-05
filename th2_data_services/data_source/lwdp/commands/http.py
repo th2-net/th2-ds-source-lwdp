@@ -1306,7 +1306,6 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         _check_list_or_tuple(self._groups, var_name="groups")
         _check_list_or_tuple(self._streams, var_name="streams")
 
-
     def handle(self, data_source: DataSource):
         api = data_source.source_api
         urls = api.get_download_messages(
