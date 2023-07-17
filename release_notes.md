@@ -81,16 +81,33 @@
 ## Features
 
 1. [TH2-4924] Added GetMessagesByPage command.
+2. [TH2-4924] Added GetMessagesByPages command.
+3. [TH2-4926] Added GetEventsByPages command.
+4. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and DownloadMessagesByBookByGroups commands.
+5. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands. That allows to 
 
 ## Improvements
 
 1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
 2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
-3. [TH2-4924] Added GetMessagesByPages command.
-4. [TH2-4926] Added GetEventsByPages command.
-5. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and DownloadMessagesByBookByGroups commands.
-6. [Th2-4975] Added streams parameter to download and messages by groups sse commands.
+
 
 ## BugFixes
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
 
+
+# v3.0.1.0
+
+## User impact and migration instructions
+
+TODO
+
+## Features
+
+1. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands. That allows to 
+
+## Improvements
+
+1. [TH2-4969] - Updated MessageStubBuilder & LwdpMessageFieldsResolver
+2. [TH2-4945] - Refactoring: Remove GRPC
+3. [TH2-4959] - Added deprecation warning
