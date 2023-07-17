@@ -1313,7 +1313,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
-            sterams=self._streams,
+            stream=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
