@@ -153,8 +153,8 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
             new_msg[http_message_struct.BODY]["metadata"]["id"].update(
                 LwdpMessageFieldsResolver.get_body(message)["metadata"]["id"]
             )
-            new_msg[http_message_struct.BODY]["metadata"]["messageType"] = msg_type
-            new_msg[http_message_struct.BODY]["metadata"]["id"]["subsequence"] = [
+            new_msg[http_message_struct.BODY]["metadata"][http_message_struct.MESSAGE_TYPE] = msg_type
+            new_msg[http_message_struct.BODY]["metadata"]["id"][http_message_struct.SUBSEQUENCE] = [
                 LwdpMessageFieldsResolver.get_body(message)["metadata"]["id"][http_message_struct.SUBSEQUENCE][
                     msg_index
                 ]
