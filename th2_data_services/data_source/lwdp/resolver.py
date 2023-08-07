@@ -118,3 +118,48 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
     @staticmethod
     def get_fields(message):
         return message[http_message_struct.BODY]["fields"]
+
+    @staticmethod
+    def expand_message(message):
+        """Extract compounded message into list of individual messages.
+
+        Args:
+            message: Th2Message
+
+        Returns:
+            Iterable[Th2Message]
+        """
+        if "/" not in LwdpMessageFieldsResolver.get_type(message):
+            return [message]
+        result = []
+        fields = LwdpMessageFieldsResolver.get_body(message)["fields"]
+        for field in fields:
+            msg_index = len(result)
+            msg_type = field
+            if "-" in field:
+                msg_type = msg_type[: msg_type.index("-")]
+                # TODO: Remove or keep this line?
+                # m_index = int(k[k.index("-") + 1:])
+
+            new_msg = {}
+            new_msg.update(message)
+            new_msg[http_message_struct.MESSAGE_TYPE] = msg_type
+            new_msg[http_message_struct.BODY] = {}
+            new_msg[http_message_struct.BODY]["metadata"] = {}
+            new_msg[http_message_struct.BODY]["metadata"].update(
+                LwdpMessageFieldsResolver.get_body(message)["metadata"]
+            )
+            new_msg[http_message_struct.BODY]["metadata"]["id"] = {}
+            new_msg[http_message_struct.BODY]["metadata"]["id"].update(
+                LwdpMessageFieldsResolver.get_body(message)["metadata"]["id"]
+            )
+            new_msg[http_message_struct.BODY]["metadata"]["messageType"] = msg_type
+            new_msg[http_message_struct.BODY]["metadata"]["id"]["subsequence"] = [
+                LwdpMessageFieldsResolver.get_body(message)["metadata"]["id"][http_message_struct.SUBSEQUENCE][
+                    msg_index
+                ]
+            ]
+            new_msg[http_message_struct.BODY]["fields"] = fields[field]["messageValue"]["fields"]
+            result.append(new_msg)
+
+        return result
