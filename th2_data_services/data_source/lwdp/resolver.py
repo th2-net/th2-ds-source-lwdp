@@ -99,6 +99,51 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
     def get_attached_event_ids(message):
         return message[message_struct.ATTACHED_EVENT_IDS]
 
+    @staticmethod
+    def expand_message(message):
+        """Extract compounded message into list of individual messages.
+
+        Args:
+            message: Th2Message
+
+        Returns:
+            Iterable[Th2Message]
+        """
+        if "/" not in MessageFieldResolver.get_type(message):
+            return [message]
+        result = []
+        fields = MessageFieldResolver.get_body(message)["fields"]
+        for field in fields:
+            msg_index = len(result)
+            msg_type = field
+            if "-" in field:
+                msg_type = msg_type[: msg_type.index("-")]
+                # TODO: Remove or keep this line?
+                # m_index = int(k[k.index("-") + 1:])
+
+            new_msg = {}
+            new_msg.update(message)
+            new_msg[message_struct.MESSAGE_TYPE] = msg_type
+            new_msg[message_struct.BODY] = {}
+            new_msg[message_struct.BODY]["metadata"] = {}
+            new_msg[message_struct.BODY]["metadata"].update(
+                MessageFieldResolver.get_body(message)["metadata"]
+            )
+            new_msg[message_struct.BODY]["metadata"]["id"] = {}
+            new_msg[message_struct.BODY]["metadata"]["id"].update(
+                MessageFieldResolver.get_body(message)["metadata"]["id"]
+            )
+            new_msg[message_struct.BODY]["metadata"][message_struct.MESSAGE_TYPE] = msg_type
+            new_msg[message_struct.BODY]["metadata"]["id"][message_struct.SUBSEQUENCE] = [
+                MessageFieldResolver.get_body(message)["metadata"]["id"][message_struct.SUBSEQUENCE][
+                    msg_index
+                ]
+            ]
+            new_msg[message_struct.BODY]["fields"] = fields[field]["messageValue"]["fields"]
+            result.append(new_msg)
+
+        return result
+
 
 class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
