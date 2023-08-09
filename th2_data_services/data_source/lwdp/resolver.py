@@ -109,39 +109,20 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
         Returns:
             Iterable[Th2Message]
         """
-        if "/" not in MessageFieldResolver.get_type(message):
-            return [message]
+        # TODO 
+        #    - the version on Ilya from *** project. Should be reviewed later
+        #    - all sub-messages will have the same MessageID
         result = []
-        fields = MessageFieldResolver.get_body(message)["fields"]
-        for field in fields:
-            msg_index = len(result)
-            msg_type = field
-            if "-" in field:
-                msg_type = msg_type[: msg_type.index("-")]
-                # TODO: Remove or keep this line?
-                # m_index = int(k[k.index("-") + 1:])
-
-            new_msg = {}
-            new_msg.update(message)
-            new_msg[message_struct.MESSAGE_TYPE] = msg_type
-            new_msg[message_struct.BODY] = {}
-            new_msg[message_struct.BODY]["metadata"] = {}
-            new_msg[message_struct.BODY]["metadata"].update(
-                MessageFieldResolver.get_body(message)["metadata"]
-            )
-            new_msg[message_struct.BODY]["metadata"]["id"] = {}
-            new_msg[message_struct.BODY]["metadata"]["id"].update(
-                MessageFieldResolver.get_body(message)["metadata"]["id"]
-            )
-            new_msg[message_struct.BODY]["metadata"][message_struct.MESSAGE_TYPE] = msg_type
-            new_msg[message_struct.BODY]["metadata"]["id"][message_struct.SUBSEQUENCE] = [
-                MessageFieldResolver.get_body(message)["metadata"]["id"][message_struct.SUBSEQUENCE][
-                    msg_index
-                ]
-            ]
-            new_msg[message_struct.BODY]["fields"] = fields[field]["messageValue"]["fields"]
-            result.append(new_msg)
-
+        
+        for m in message:
+            for body in m['body']:
+                body['fields'] = dict((k, v) for k, v in body['fields'].items() if v is not None)
+                new_m = {**m, 
+                         message_struct.BODY: body, 
+                         message_struct.MESSAGE_TYPE: body['metadata']['messageType']}
+    
+                result.append(new_m)
+                
         return result
 
 
