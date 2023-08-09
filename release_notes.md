@@ -68,6 +68,12 @@
    anymore.
    Use BrokenEvent and BrokenMessage objects instead.
 
+# v2.0.3.0
+
+## Features
+
+1. [TH2-5027] `expand_message` added to LwdpMessageFieldsResolver.
+
 # v2.1.0.0
 
 ## User impact and migration instructions
@@ -90,7 +96,7 @@
 
 1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguments and returns TH2 Data object instead of a list.
 2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguments and returns TH2 Data object instead of a list.
-3. [TH2-5027] `expand_message` added to LwdpMessageFieldsResolver.
  
 ## BugFixes
+
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
