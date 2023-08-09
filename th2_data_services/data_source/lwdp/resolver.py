@@ -99,6 +99,32 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
     def get_attached_event_ids(message):
         return message[message_struct.ATTACHED_EVENT_IDS]
 
+    @staticmethod
+    def expand_message(message):
+        """Extract compounded message into list of individual messages.
+
+        Args:
+            message: Th2Message
+
+        Returns:
+            Iterable[Th2Message]
+        """
+        # TODO 
+        #    - the version on Ilya from *** project. Should be reviewed later
+        #    - all sub-messages will have the same MessageID
+        result = []
+        
+        for m in message:
+            for body in m['body']:
+                body['fields'] = dict((k, v) for k, v in body['fields'].items() if v is not None)
+                new_m = {**m, 
+                         message_struct.BODY: body, 
+                         message_struct.MESSAGE_TYPE: body['metadata']['messageType']}
+    
+                result.append(new_m)
+                
+        return result
+
 
 class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
