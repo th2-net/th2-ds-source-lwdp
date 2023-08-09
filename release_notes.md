@@ -89,6 +89,7 @@
 3. [TH2-4924] Added GetMessagesByPages command.
 4. [TH2-4926] Added GetEventsByPages command.
 5. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and DownloadMessagesByBookByGroups commands.
+6. [TH2-5027] `expand_message` added to MessageFieldResolver.
 
 ## BugFixes
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
