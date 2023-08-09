@@ -27,10 +27,8 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -r requirements.txt
-          # pip install importlib importlib-metadata
-      - name: Test with pytest
-        run: |
-          pip install pytest
+#          pip install importlib importlib-metadata
+
       - name: Build package
         run: |
           python setup.py sdist

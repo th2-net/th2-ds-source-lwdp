@@ -56,25 +56,68 @@ class HTTPAPI(IHTTPSourceAPI):
         """REST-API `books` call returns a list of books in cradleAPI."""
         return self.__encode_url(f"{self._url}/books")
 
-    def get_url_get_scopes(self, book_id: str) -> str:
-        """REST-API `book/{bookID}/event/scopes` call returns a list of scopes in book named bookID."""
-        return self.__encode_url(f"{self._url}/book/{book_id}/event/scopes")
+    def get_url_get_scopes(
+        self,
+        book_id: str,
+        start_timestamp: int = None,
+        end_timestamp: int = None,
+        chunked_size: int = None,
+    ) -> str:
+        """REST-API `book/{bookID}/event/scopes/sse` call creates an sse channel of event scopes in book named bookID."""
+        url = f"{self._url}/book/{book_id}/event/scopes/sse?"
 
-    def get_url_get_message_aliases(self, book_id: str) -> str:
-        """REST-API `book/{bookID}/message/aliases` call returns a list of message aliases in book named bookID."""
-        return self.__encode_url(f"{self._url}/book/{book_id}/message/aliases")
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "chunkedSize": chunked_size,
+        }
 
-    def get_url_get_message_groups(self, book_id: str) -> str:
-        """REST-API `book/{bookID}/message/groups` call returns a list of message groups in book named bookID."""
-        return self.__encode_url(f"{self._url}/book/{book_id}/message/groups")
+        url += "&".join(f"{k}={v}" for k, v in kwargs.items() if v is not None)
+        return self.__encode_url(url)
+
+    def get_url_get_message_aliases(
+        self,
+        book_id: str,
+        start_timestamp: int = None,
+        end_timestamp: int = None,
+        chunked_size: int = None,
+    ) -> str:
+        """REST-API `book/{bookID}/message/aliases/sse` call creates an sse channel of message aliases in book named bookID."""
+        url = f"{self._url}/book/{book_id}/message/aliases/sse?"
+
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "chunkedSize": chunked_size,
+        }
+
+        url += "&".join(f"{k}={v}" for k, v in kwargs.items() if v is not None)
+        return self.__encode_url(url)
+
+    def get_url_get_message_groups(
+        self,
+        book_id: str,
+        start_timestamp: int = None,
+        end_timestamp: int = None,
+        chunked_size: int = None,
+    ) -> str:
+        """REST-API `book/{bookID}/message/groups/sse` call creates an sse channel of message groups in book named bookID."""
+        url = f"{self._url}/book/{book_id}/message/groups/sse?"
+
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "chunkedSize": chunked_size,
+        }
+
+        url += "&".join(f"{k}={v}" for k, v in kwargs.items() if v is not None)
+        return self.__encode_url(url)
 
     def get_url_find_event_by_id(self, event_id: str) -> str:
         """REST-API `event` call returns a single event with the specified id."""
         return self.__encode_url(f"{self._url}/event/{event_id}")
 
-    def get_url_find_message_by_id(
-        self, message_id: str, only_raw: bool = False
-    ) -> str:
+    def get_url_find_message_by_id(self, message_id: str, only_raw: bool = False) -> str:
         """REST-API `message` call returns a single      message with the specified id."""
         return self.__encode_url(f"{self._url}/message/{message_id}?onlyRaw={only_raw}")
 
@@ -318,16 +361,18 @@ class HTTPAPI(IHTTPSourceAPI):
 
         response.release_conn()
 
-    def execute_request(self, url: str) -> Response:
+    def execute_request(self, url: str, headers: dict = None, stream=False) -> Response:
         """Sends a GET request to provider.
 
         Args:
             url: Url for a get request to rpt-data-provider.
+            headers: Dictionary of headers for request.
+            stream: Gets response as a stream if True.
 
         Returns:
             requests.Response: Response data.
         """
-        return requests.get(url)
+        return requests.get(url, headers=headers, stream=stream)
 
     def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
         if len(fixed_url) >= max_url_len:

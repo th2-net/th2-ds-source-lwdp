@@ -68,8 +68,29 @@
    anymore.
    Use BrokenEvent and BrokenMessage objects instead.
 
-# v2.0.3.0
+# v2.1.0.0
+
+## User impact and migration instructions
+
+1. [I] GetMessageAliases and GetMessageGroups commands now return a TH2 Data object instead of a list.
+   It means that using list functions on these commands' return values won't work anymore and must be
+   treated as Data objects.
+   [M] Update your usage of these commands' returned objects and don't use list methods on them, instead
+   use Data object's functions or cast them into a list first.
 
 ## Features
 
-1. [TH2-5027] `expand_message` added to LwdpMessageFieldsResolver.
+1. [TH2-4924] Added GetMessagesByPage command.
+2. [TH2-4924] Added GetMessagesByPages command.
+3. [TH2-4926] Added GetEventsByPages command.
+4. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and DownloadMessagesByBookByGroups commands.
+5. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands. That allows to 
+
+## Improvements
+
+1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguments and returns TH2 Data object instead of a list.
+2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguments and returns TH2 Data object instead of a list.
+3. [TH2-5027] `expand_message` added to LwdpMessageFieldsResolver.
+ 
+## BugFixes
+1. [TH2-4925] Fix BrokenEvent and BrokenMessage.

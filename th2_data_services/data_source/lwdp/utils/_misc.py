@@ -11,9 +11,11 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import List
-from th2_data_services.data_source.lwdp.utils._response_formats import ResponseFormats
+
+from th2_data_services.data_source.lwdp import ResponseFormat
+from th2_data_services.data_source.lwdp.utils._response_formats import ResponseFormatsChecker
 
 
 def _check_list_or_tuple(variable, var_name):  # noqa
@@ -23,10 +25,23 @@ def _check_list_or_tuple(variable, var_name):  # noqa
 
 def _check_datetime(dt: datetime):
     if not isinstance(dt, datetime):
-        raise TypeError("Provided timestamp should be `datetime` object")
+        raise TypeError("Provided timestamp should be `datetime` object in UTC time")
 
 
 def _check_response_formats(formats: List[str]):
-    rf = ResponseFormats()
+    rf = ResponseFormatsChecker()
     if not rf.is_valid_response_format(formats):
         raise Exception("Invalid response format")
+
+
+def _get_response_format(formats: List[str]):
+    if formats is None:
+        return [ResponseFormat.JSON_PARSED]
+    elif isinstance(formats, str):
+        return [formats]
+    else:
+        return formats
+
+
+def get_utc_datetime_now():  # noqa
+    return datetime.now(timezone.utc).replace(microsecond=0)

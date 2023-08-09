@@ -15,6 +15,7 @@ from abc import abstractmethod
 from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
+from shutil import copyfileobj
 
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
@@ -23,7 +24,6 @@ from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimest
 from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2_data_services.data_source.lwdp.data_source.http import HTTPDataSource
-from th2_data_services.data_source.lwdp.message_response_format import ResponseFormat
 from th2_data_services.data_source.lwdp.source_api.http import HTTPAPI
 from th2_data_services.data_source.lwdp.streams import Streams, Stream
 from th2_data_services.utils.sse_client import SSEClient
@@ -37,6 +37,10 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_datetime,
     _check_list_or_tuple,
     _check_response_formats,
+)
+from th2_data_services.data_source.lwdp.utils._misc import (
+    get_utc_datetime_now,
+    _get_response_format,
 )
 from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
@@ -53,9 +57,9 @@ class SSEHandlerClassBase(IHTTPCommand):
     def __init__(
         self,
         cache: bool,
-        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int,  # e.g. DEFAULT_BUFFER_LIMIT,
+        char_enc: str,  # e.g. "utf-8",
+        decode_error_handler: str,  # e.g. UNICODE_REPLACE_HANDLER,
     ):
         """SSEHandlerClassBase Constructor.
 
@@ -123,7 +127,6 @@ class SSEHandlerClassBase(IHTTPCommand):
             char_enc=self._char_enc,
             decode_errors_handler=self._decode_error_handler,
         )
-
         yield from client.events()
 
     def _data_object(self, data_source: HTTPDataSource) -> Data:
@@ -158,7 +161,7 @@ class SSEHandlerClassBase(IHTTPCommand):
         return self._current_handle_function(data_source)
 
 
-class GetEventScopes(IHTTPCommand):
+class GetEventScopes(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of event scopes in book.
@@ -167,25 +170,71 @@ class GetEventScopes(IHTTPCommand):
         dict: List[str].
     """
 
-    def __init__(self, book_id: str):
-        """GetEventScopes constructor.
+    def __init__(
+        self,
+        book_id: str,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+    ) -> None:
+        """GetEventScopes Constructor.
+
+        If start_timestamp and end_timestamp are not provided, it returns all aliases.
 
         Args:
-            book_id: Name of book to search in.
+            book_id (str): Book ID.
+            start_timestamp (datetime): Start Timestamp.
+            end_timestamp (datetime): End Timestamp.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__()
+        super().__init__(
+            cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
+        if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
+            self._all_results = True
+        else:
+            _check_datetime(start_timestamp)
+            _check_datetime(end_timestamp)
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            self._all_results = False
         self._book_id = book_id
 
-    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
-        api: HTTPAPI = data_source.source_api
-        url = api.get_url_get_scopes(self._book_id)
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
+        if self._all_results:
+            return [api.get_url_get_scopes(book_id=self._book_id)]
+        else:
+            return [
+                api.get_url_get_scopes(self._book_id, self._start_timestamp, self._end_timestamp)
+            ]
 
-        # LOG         logger.info(url)
+    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+        """Parses SSEEvents Into Data Object.
 
-        return api.execute_request(url).json()
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Data
+        """
+        sse_events_stream = partial(self._sse_events_stream, data_source)
+        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
+        data.metadata["urls"] = self._get_urls(data_source)
+        return data
 
 
-class GetMessageAliases(IHTTPCommand):
+class GetMessageAliases(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of message aliases in book.
@@ -194,25 +243,73 @@ class GetMessageAliases(IHTTPCommand):
         dict: List[str].
     """
 
-    def __init__(self, book_id: str):
-        """GetMessageAliases constructor.
+    def __init__(
+        self,
+        book_id: str,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+    ) -> None:
+        """GetMessageAliases Constructor.
+
+        If start_timestamp and end_timestamp are not provided, it returns all aliases.
 
         Args:
-            book_id: Name of book to search in.
+            book_id (str): Book ID.
+            start_timestamp (datetime): Start Timestamp.
+            end_timestamp (datetime): End Timestamp.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__()
+        super().__init__(
+            cache=cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
+        if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
+            self._all_results = True
+        else:
+            _check_datetime(start_timestamp)
+            _check_datetime(end_timestamp)
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            self._all_results = False
         self._book_id = book_id
 
-    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
-        api: HTTPAPI = data_source.source_api
-        url = api.get_url_get_message_aliases(self._book_id)
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
+        if self._all_results:
+            return [api.get_url_get_message_aliases(book_id=self._book_id)]
+        else:
+            return [
+                api.get_url_get_message_aliases(
+                    self._book_id, self._start_timestamp, self._end_timestamp
+                )
+            ]
 
-        # LOG         logger.info(url)
+    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+        """Parses SSEEvents Into Data Object.
 
-        return api.execute_request(url).json()
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Data
+        """
+        sse_events_stream = partial(self._sse_events_stream, data_source)
+        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
+        data.metadata["urls"] = self._get_urls(data_source)
+        return data
 
 
-class GetMessageGroups(IHTTPCommand):
+class GetMessageGroups(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of message groups in book.
@@ -221,22 +318,70 @@ class GetMessageGroups(IHTTPCommand):
         dict: List[str].
     """
 
-    def __init__(self, book_id: str):
-        """GetMessageGroups constructor.
+    def __init__(
+        self,
+        book_id: str,
+        start_timestamp: datetime = None,
+        end_timestamp: datetime = None,
+        cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+    ) -> None:
+        """GetMessageGroups Constructor.
+
+        If start_timestamp and end_timestamp are not provided, it returns all aliases.
 
         Args:
-            book_id: Name of book to search in.
+            book_id (str): Book ID.
+            start_timestamp (datetime): Start Timestamp.
+            end_timestamp (datetime): End Timestamp.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__()
+        super().__init__(
+            cache=cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
+        if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
+            self._all_results = True
+        else:
+            _check_datetime(start_timestamp)
+            _check_datetime(end_timestamp)
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            self._all_results = False
         self._book_id = book_id
 
-    def handle(self, data_source: HTTPDataSource) -> List[str]:  # noqa: D102
-        api: HTTPAPI = data_source.source_api
-        url = api.get_url_get_message_groups(self._book_id)
+    def _get_urls(self, data_source: HTTPDataSource):
+        api = data_source.source_api
+        if self._all_results:
+            return [api.get_url_get_message_groups(book_id=self._book_id)]
+        else:
+            return [
+                api.get_url_get_message_groups(
+                    self._book_id, self._start_timestamp, self._end_timestamp
+                )
+            ]
 
-        # LOG         logger.info(url)
+    def _data_object(self, data_source: HTTPDataSource) -> Data[Page]:
+        """Parses SSEEvents Into Data Object.
 
-        return api.execute_request(url).json()
+        Args:
+            data_source: HTTPDataSource
+
+        Returns:
+             Data
+        """
+        sse_events_stream = partial(self._sse_events_stream, data_source)
+        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
+        data.metadata["urls"] = self._get_urls(data_source)
+        return data
 
 
 class GetBooks(IHTTPCommand):
@@ -301,20 +446,26 @@ class GetPages(SSEHandlerClassBase):
         start_timestamp: datetime = None,
         end_timestamp: datetime = None,
         result_limit: int = None,
-        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
         cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
     ) -> None:
         """GetPages Constructor.
+
+        If start_timestamp and end_timestamp are not provided, it returns all Pages.
 
         Args:
             book_id (str): Book ID.
             start_timestamp (datetime): Start Timestamp.
             end_timestamp (datetime): End Timestamp.
             result_limit (Optional, int): Return Result Limit.
-            cache (Optional, bool): Cache Status. Defaults To `False`.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        super().__init__(cache, buffer_limit=buffer_limit)
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
@@ -323,7 +474,12 @@ class GetPages(SSEHandlerClassBase):
             self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
             self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
-        super().__init__(cache, buffer_limit=buffer_limit)
+        super().__init__(
+            cache=cache,
+            buffer_limit=buffer_limit,
+            char_enc=char_enc,
+            decode_error_handler=decode_error_handler,
+        )
         self._book_id = book_id
         self._result_limit = result_limit
 
@@ -401,7 +557,7 @@ class GetEventById(IHTTPCommand):
             return stub
         elif response.status_code == 404:
             # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-            raise EventNotFound(self._id)
+            raise EventNotFound(self._id, "Unable to find the event")
         else:
             return response.json()
 
@@ -437,6 +593,89 @@ class GetEventsById(IHTTPCommand):
             result.append(event)
 
         return result
+
+
+class GetEventsByPage(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches events stream by page.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
+    """
+
+    def __init__(
+        self,
+        page: Union[Page, str],
+        book_id: str = None,
+        parent_event: str = None,
+        search_direction: str = "next",
+        result_count_limit: int = None,
+        filters: Union[LwDPEventFilter, List[LwDPEventFilter]] = None,
+        cache: bool = False,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        buffer_limit=DEFAULT_BUFFER_LIMIT,
+    ):
+        """GetEventsByPage Constructor.
+
+        Args:
+            page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            parent_event: Match events to the specified parent.
+            search_direction: Search direction.
+            result_count_limit: Result count limit.
+            filters: Filters using in search for messages.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+        """
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._buffer_limit = buffer_limit
+        self._cache = cache
+        self._page = page
+        self._book_id = book_id
+        self._parent_event = parent_event
+        self._result_count_limit = result_count_limit
+        self._search_direction = search_direction
+        self._filters = filters
+        self._cache = cache
+
+    def handle(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
+        self._end_timestamp = (
+            get_utc_datetime_now()
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
+        )
+        self._scopes = list(
+            data_source.command(
+                GetEventScopes(
+                    self._book_id,
+                    self._start_timestamp,
+                    self._end_timestamp,
+                )
+            )
+        )
+        self._book_id = page.book
+        return data_source.command(
+            GetEventsByPageByScopes(
+                page=self._page,
+                scopes=self._scopes,
+                book_id=self._book_id,
+                parent_event=self._parent_event,
+                search_direction=self._search_direction,
+                result_count_limit=self._result_count_limit,
+                filters=self._filters,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
+            )
+        )
 
 
 class GetEventsByBookByScopes(SSEHandlerClassBase):
@@ -600,7 +839,7 @@ class GetEventsByPageByScopes(SSEHandlerClassBase):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            get_utc_datetime_now()
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
@@ -633,7 +872,7 @@ class GetMessageById(IHTTPCommand):
         MessageNotFound: If message by id wasn't found.
     """
 
-    def __init__(self, id: str, use_stub=False, response_formats: List[str] = None):
+    def __init__(self, id: str, use_stub=False, response_formats: Union[List[str], str] = None):
         """GetMessageById constructor.
 
         Args:
@@ -685,7 +924,9 @@ class GetMessagesById(IHTTPCommand):
         MessageNotFound: If any message by id wasn't found.
     """
 
-    def __init__(self, ids: List[str], use_stub=False, response_formats: List[str] = None):
+    def __init__(
+        self, ids: List[str], use_stub=False, response_formats: Union[List[str], str] = None
+    ):
         """GetMessagesById constructor.
 
         Args:
@@ -730,7 +971,7 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         search_direction: str = "next",
         result_count_limit: int = None,
         end_timestamp: datetime = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = False,
         # Non-data source args.
         # +TODO - we often repeat these args. Perhaps it's better to move them to some class.
@@ -760,12 +1001,11 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
         _check_datetime(start_timestamp)
         if end_timestamp:
             _check_datetime(end_timestamp)
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -827,6 +1067,244 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         )
 
 
+class DownloadMessagesByPageGzip(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by page and downloads them.
+    Beware that if you request this command with long list of groups,
+      you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
+      etc., since the request might exceed url limit.
+
+    Returns:
+        Nothing.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        page: Union[Page, str],
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        # Non-data source args.
+        max_url_length: int = 2048,
+    ):
+        """DownloadMessagesByPageGzip Constructor.
+
+        Args:
+            filename: Filename of downloaded files.
+            page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            max_url_length: API request url max length.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        self._filename = filename
+        self._page = page
+        self._book_id = book_id
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+
+    def handle(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
+        end_timestamp = (
+            get_utc_datetime_now()
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
+        )
+        groups = list(
+            data_source.command(
+                GetMessageGroups(
+                    self._book_id,
+                    start_timestamp,
+                    end_timestamp,
+                )
+            )
+        )
+        self._book_id = page.book
+        return DownloadMessagesByPageByGroupsGzip(
+            filename=self._filename,
+            page=page,
+            groups=groups,
+            book_id=self._book_id,
+            sort=self._sort,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            max_url_length=self._max_url_length,
+        )
+
+
+class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by page & groups and downloads them.
+    Beware that if you request this command with long list of groups,
+      you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
+      etc., since the request might exceed url limit.
+
+
+    Returns:
+        Nothing.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        page: Union[Page, str],
+        groups: List[str],
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        # Non-data source args.
+        max_url_length: int = 2048,
+    ):
+        """DownloadMessagesByPageByGroupsGzip Constructor.
+
+        Args:
+            filename: Filename of downloaded files.
+            page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            max_url_length: API request url max length.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        self._filename = filename
+        self._page = page
+        self._book_id = book_id
+        self._groups = groups
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+
+        _check_list_or_tuple(self._groups, var_name="groups")
+
+    def handle(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        self._end_timestamp = (
+            get_utc_datetime_now()
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+        )
+        self._book_id = page.book
+        api = data_source.source_api
+        urls = api.get_download_messages(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            book_id=self._book_id,
+            groups=self._groups,
+            sort=self._sort,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            max_url_length=self._max_url_length,
+        )
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+        if len(urls) == 1:
+            with open(f"{self._filename}.gz", "wb") as file:
+                response = api.execute_request(urls[0], headers=headers, stream=True)
+                copyfileobj(response.raw, file)
+        else:
+            for num, url in enumerate(urls):
+                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
+                    response = api.execute_request(url, headers=headers, stream=True)
+                    copyfileobj(response.raw, file)
+
+
+class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by page & groups and downloads them.
+    Beware that if you request this command with long list of groups,
+      you will get multiple files: ‘{filename}.1.gz’, ‘{filename}.2.gz’,
+      etc., since the request might exceed url limit.
+
+
+    Returns:
+        Nothing.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        start_timestamp: datetime,
+        end_timestamp: datetime,
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        # Non-data source args.
+        max_url_length: int = 2048,
+    ):
+        """DownloadMessagesByBookByGroupsGzip Constructor.
+
+        Args:
+            filename: Filename of downloaded files.
+            start_timestamp: Sets the search starting point.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+                  (You cannot specify a direction in groups unlike streams.
+                  It's possible to add it to the CradleAPI by request to dev team.)
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            max_url_length: API request url max length.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        _check_datetime(start_timestamp)
+        _check_datetime(end_timestamp)
+        self._filename = filename
+        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        self._groups = groups
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._book_id = book_id
+        self._max_url_length = max_url_length
+
+        _check_list_or_tuple(self._groups, var_name="groups")
+
+    def handle(self, data_source: HTTPDataSource):
+        api = data_source.source_api
+        urls = api.get_download_messages(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            book_id=self._book_id,
+            groups=self._groups,
+            sort=self._sort,
+            response_formats=self._response_formats,
+            keep_open=self._keep_open,
+            max_url_length=self._max_url_length,
+        )
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+        if len(urls) == 1:
+            with open(f"{self._filename}.gz", "wb") as file:
+                response = api.execute_request(urls[0], headers=headers, stream=True)
+                copyfileobj(response.raw, file)
+        else:
+            for num, url in enumerate(urls):
+                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
+                    response = api.execute_request(url, headers=headers, stream=True)
+                    copyfileobj(response.raw, file)
+
+
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
@@ -843,7 +1321,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         book_id: str,
         groups: List[str],
         sort: bool = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         # Non-data source args.
         max_url_length: int = 2048,
@@ -861,6 +1339,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
+                  (You cannot specify a direction in groups unlike streams.
+                  It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             char_enc: Encoding for the byte stream.
@@ -869,11 +1349,10 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
         _check_datetime(start_timestamp)
         _check_datetime(end_timestamp)
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -909,6 +1388,93 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         )
 
 
+class GetMessagesByPage(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches messages stream by page.
+
+    Returns:
+        Iterable[dict]: Stream of Th2 messages.
+    """
+
+    def __init__(
+        self,
+        page: Union[Page, str],
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        max_url_length: int = 2048,
+        char_enc: str = "utf-8",
+        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        cache: bool = False,
+        buffer_limit: int = DEFAULT_BUFFER_LIMIT,
+    ):
+        """GetMessagesByPage Constructor.
+
+        Args:
+            page: Page to search with.
+            book_id: Book to search page by name.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            max_url_length: API request url max length.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._buffer_limit = buffer_limit
+        self._cache = cache
+        self._page = page
+        self._book_id = book_id
+        self._sort = sort
+        self._response_formats = response_formats
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+        self._cache = cache
+
+    def handle(self, data_source: HTTPDataSource):
+        page = _get_page_object(self._book_id, self._page, data_source)
+        start_timestamp = ProtobufTimestampConverter.to_datetime(page.start_timestamp)
+        end_timestamp = (
+            get_utc_datetime_now()
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_datetime(page.end_timestamp)
+        )
+        groups = list(
+            data_source.command(
+                GetMessageGroups(
+                    self._book_id,
+                    start_timestamp,
+                    end_timestamp,
+                    char_enc=self._char_enc,
+                    decode_error_handler=self._decode_error_handler,
+                )
+            )
+        )
+        self._book_id = page.book
+        return data_source.command(
+            GetMessagesByPageByGroups(
+                page=self._page,
+                groups=groups,
+                book_id=self._book_id,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                keep_open=self._keep_open,
+                max_url_length=self._max_url_length,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
+            )
+        )
+
+
 class GetMessagesByPageByStreams(SSEHandlerClassBase):
     def __init__(
         self,
@@ -918,7 +1484,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         message_ids: List[None] = None,
         search_direction: Optional[str] = "next",
         result_count_limit: int = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -943,15 +1509,14 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
@@ -969,7 +1534,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            get_utc_datetime_now()
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
@@ -1004,7 +1569,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         groups: List[str],
         book_id: str = None,
         sort: bool = None,
-        response_formats: List[str] = None,
+        response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         # Non-data source args.
         max_url_length: int = 2048,
@@ -1028,15 +1593,14 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_response_formats(response_formats)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
             char_enc=char_enc,
             decode_error_handler=decode_error_handler,
         )
-        if response_formats is None:
-            response_formats = [ResponseFormat.JSON_PARSED]
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
 
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
@@ -1055,7 +1619,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(datetime.now().replace(microsecond=0))
+            get_utc_datetime_now()
             if page.end_timestamp is None
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
@@ -1078,7 +1642,7 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         if book_id is None:
             raise Exception("If page name is passed then book_id should be passed too!")
         else:
-            return data_source.command(http.GetPageByName(book_id, page))
+            return data_source.command(GetPageByName(book_id, page))
     elif isinstance(page, Page):
         return page
     else:
