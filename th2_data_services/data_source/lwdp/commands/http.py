@@ -1097,6 +1097,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
+        streams: List[str] = None,
         # Non-data source args.
         max_url_length: int = 2048,
     ):
@@ -1109,6 +1110,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            streams: List of streams to search messages from.
             max_url_length: API request url max length.
         """
         response_formats = _get_response_format(response_formats)
@@ -1119,7 +1121,9 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         self._sort = sort
         self._response_formats = response_formats
         self._keep_open = keep_open
+        self._streams = streams
         self._max_url_length = max_url_length
+        _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1143,6 +1147,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             filename=self._filename,
             page=page,
             groups=groups,
+            streams=self._streams,
             book_id=self._book_id,
             sort=self._sort,
             response_formats=self._response_formats,
@@ -1177,6 +1182,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
+        streams: List[str] = None,
         # Non-data source args.
         max_url_length: int = 2048,
     ):
@@ -1190,6 +1196,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            streams: List of streams to search messages from.
             max_url_length: API request url max length.
         """
         response_formats = _get_response_format(response_formats)
@@ -1198,12 +1205,14 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._page = page
         self._book_id = book_id
         self._groups = groups
+        self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
+        _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1220,6 +1229,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
+            streams=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
@@ -1264,6 +1274,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
+        streams: List[str] = None,
         # Non-data source args.
         max_url_length: int = 2048,
     ):
@@ -1281,6 +1292,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            streams: List of streams to search messages from.
             max_url_length: API request url max length.
         """
         response_formats = _get_response_format(response_formats)
@@ -1291,6 +1303,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
         self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
+        self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
         self._keep_open = keep_open
@@ -1298,6 +1311,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
+        _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: DataSource):
         api = data_source.source_api
@@ -1306,6 +1320,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
+            stream=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
@@ -1341,6 +1356,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
+        streams: List[str] = None,
         # Non-data source args.
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -1361,6 +1377,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            streams: List of streams to search messages from.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
@@ -1384,6 +1401,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
         self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
+        self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
         self._keep_open = keep_open
@@ -1391,6 +1409,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
+        _check_list_or_tuple(self._streams, var_name="streams")
 
     def _get_urls(self, data_source: DataSource):
         api = data_source.source_api
@@ -1398,6 +1417,7 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             groups=self._groups,
+            streams=self._streams,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             sort=self._sort,
@@ -1594,6 +1614,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
+        streams: List[str] = None,
         # Non-data source args.
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -1610,6 +1631,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            streams: List of streams to search messages from.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
@@ -1631,12 +1653,14 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._page = page
         self._book_id = book_id
         self._groups = groups
+        self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
+        _check_list_or_tuple(self._streams, var_name="streams")
 
     def _get_urls(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1652,6 +1676,7 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             groups=self._groups,
+            streams=self._streams,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             sort=self._sort,
