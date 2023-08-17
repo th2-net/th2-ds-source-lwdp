@@ -291,12 +291,11 @@ class API(IHTTPSourceAPI):
         end_timestamp: int,
         book_id: str,
         groups: List[str],
-        streams: List[str],
         sort: bool = None,
         response_formats: List[str] = None,
         stream: List[
             str
-        ] = None,  # TODO  TH2-4975 - implement.  stream here (not streamS) because API has such name.
+        ] = None,
         keep_open: bool = None,
         max_url_length=2048,
     ) -> List[str]:
@@ -326,7 +325,7 @@ class API(IHTTPSourceAPI):
             "sort": sort,
             "responseFormat": response_formats,
             "keepOpen": keep_open,
-            "stream": streams,
+            "stream": stream,
         }
         groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
         options = []
