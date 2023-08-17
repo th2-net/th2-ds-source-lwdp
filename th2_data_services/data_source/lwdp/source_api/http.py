@@ -291,7 +291,7 @@ class HTTPAPI(IHTTPSourceAPI):
         end_timestamp: int,
         book_id: str,
         groups: List[str],
-        streams: List[str],
+        stream: List[str],
         sort: bool = None,
         response_formats: List[str] = None,
         keep_open: bool = None,
@@ -322,7 +322,7 @@ class HTTPAPI(IHTTPSourceAPI):
             "sort": sort,
             "responseFormat": response_formats,
             "keepOpen": keep_open,
-            "stream": streams,
+            "stream": stream,
         }
         groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
         options = []
