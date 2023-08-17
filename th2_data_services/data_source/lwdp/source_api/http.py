@@ -308,7 +308,6 @@ class API(IHTTPSourceAPI):
                 Expected in nanoseconds.
             book_id: book ID for requested groups.
             groups: List of groups to search messages by
-            stream: List of streams to search messages by.
             sort: Enables message sorting in the request
             response_formats: Response format
             stream: List of streams (optionally with direction) to include in the response.
