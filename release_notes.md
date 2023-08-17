@@ -68,6 +68,12 @@
    anymore.
    Use BrokenEvent and BrokenMessage objects instead.
 
+# v2.0.3.0
+
+## Features
+
+1. [TH2-5027] `expand_message` added to LwdpMessageFieldsResolver.
+
 # v2.1.0.0
 
 ## User impact and migration instructions
@@ -81,6 +87,10 @@
 ## Features
 
 1. [TH2-4924] Added GetMessagesByPage command.
+2. [TH2-4924] Added GetMessagesByPages command.
+3. [TH2-4926] Added GetEventsByPages command.
+4. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and DownloadMessagesByBookByGroups commands.
+5. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands. That allows to 
 
 ## Improvements
 
@@ -92,5 +102,5 @@
 6. [Th2-4975] Added streams parameter to download and messages by groups sse commands.
 
 ## BugFixes
-1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
 
+1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
