@@ -16,6 +16,7 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
+from deprecated.classic import deprecated
 
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
@@ -951,6 +952,12 @@ class GetMessagesById(IHTTPCommand):
         return result
 
 
+@deprecated(
+    """This is depricated command because LwDP3 was developed for th2-transport (intead of protobuf transport). 
+To speed up the whole chain, all messages are stored in DB by groups but not by session alias.
+It means that you'll get nothing by your alias, because the data in DB is in another table (for groups).
+Use the commands that get messages by Groups instead."""
+)
 class GetMessagesByBookByStreams(SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
@@ -1505,7 +1512,12 @@ class GetMessagesByPage(IHTTPCommand):
             )
         )
 
-
+@deprecated(
+    """This is depricated command because LwDP3 was developed for th2-transport (intead of protobuf transport). 
+To speed up the whole chain, all messages are stored in DB by groups but not by session alias.
+It means that you'll get nothing by your alias, because the data in DB is in another table (for groups).
+Use the commands that get messages by Groups instead."""
+)
 class GetMessagesByPageByStreams(SSEHandlerClassBase):
     def __init__(
         self,
