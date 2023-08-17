@@ -94,9 +94,13 @@
 
 ## Improvements
 
-1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguments and returns TH2 Data object instead of a list.
-2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguments and returns TH2 Data object instead of a list.
- 
+1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
+2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
+3. [TH2-4924] Added GetMessagesByPages command.
+4. [TH2-4926] Added GetEventsByPages command.
+5. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and DownloadMessagesByBookByGroups commands.
+6. [Th2-4975] Added streams parameter to download and messages by groups sse commands.
+
 ## BugFixes
 
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
