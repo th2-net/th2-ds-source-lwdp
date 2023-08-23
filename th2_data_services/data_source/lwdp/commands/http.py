@@ -1293,7 +1293,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
-        _check_list_or_tuple(self._streams, var_name="streams")
+        # default value for streams is None, check will fail for default value
+        #_check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: HTTPDataSource):
         api = data_source.source_api
@@ -1302,7 +1303,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
-            sterams=self._streams,
+            stream=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
