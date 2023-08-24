@@ -109,20 +109,21 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
         Returns:
             Iterable[Th2Message]
         """
-        # TODO 
+        # TODO
         #    - the version on Ilya from *** project. Should be reviewed later
         #    - all sub-messages will have the same MessageID
         result = []
-        
-        for m in message:
-            for body in m['body']:
-                body['fields'] = dict((k, v) for k, v in body['fields'].items() if v is not None)
-                new_m = {**m, 
-                         message_struct.BODY: body, 
-                         message_struct.MESSAGE_TYPE: body['metadata']['messageType']}
-    
-                result.append(new_m)
-                
+
+        for body in message["body"]:
+            body["fields"] = dict((k, v) for k, v in body["fields"].items() if v is not None)
+            new_m = {
+                **message,
+                message_struct.BODY: body,
+                message_struct.MESSAGE_TYPE: body["metadata"]["messageType"],
+            }
+
+            result.append(new_m)
+
         return result
 
 
