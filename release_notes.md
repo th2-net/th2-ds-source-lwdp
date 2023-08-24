@@ -109,3 +109,9 @@ BugFixes without ticket
 ## BugFixes
 
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
+
+# v2.1.0.1
+
+## BugFixes
+
+1. Fix DownloadMessages commands

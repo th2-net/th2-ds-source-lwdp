@@ -1113,7 +1113,9 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         self._keep_open = keep_open
         self._streams = streams
         self._max_url_length = max_url_length
-        _check_list_or_tuple(self._streams, var_name="streams")
+
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1198,7 +1200,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
-        _check_list_or_tuple(self._streams, var_name="streams")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1293,7 +1296,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
-        _check_list_or_tuple(self._streams, var_name="streams")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: HTTPDataSource):
         api = data_source.source_api
