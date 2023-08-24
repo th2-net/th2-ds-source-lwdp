@@ -1350,15 +1350,16 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
         Args:
             start_timestamp: Sets the search starting point.
-            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
-
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with
+                'start_timestamp'.
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
                   (You cannot specify a direction in groups unlike streams.
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            keep_open: If true, keeps pulling for new message until don't have one outside the
+                requested range.
             streams: List of streams to search messages from.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -1607,7 +1608,8 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            keep_open: If true, keeps pulling for new message until don't have one outside the
+                requested range.
             streams: List of streams to search messages from.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
