@@ -73,3 +73,7 @@
 ## Features
 
 1. [TH2-5027] `expand_message` added to LwdpMessageFieldsResolver.
+
+# v2.0.3.1
+
+BugFixes without ticket
