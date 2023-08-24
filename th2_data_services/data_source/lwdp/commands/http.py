@@ -856,13 +856,14 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
         Args:
             start_timestamp: Sets the search starting point.
-            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
-
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with
+                'start_timestamp'.
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            keep_open: If true, keeps pulling for new message until don't have one outside the
+                requested range.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
@@ -1021,7 +1022,8 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            keep_open: If true, keeps pulling for new message until don't have one outside the
+                requested range.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
@@ -1078,7 +1080,7 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         if book_id is None:
             raise Exception("If page name is passed then book_id should be passed too!")
         else:
-            return data_source.command(http.GetPageByName(book_id, page))
+            return data_source.command(GetPageByName(book_id, page))
     elif isinstance(page, Page):
         return page
     else:
