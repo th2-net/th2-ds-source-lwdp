@@ -12,11 +12,11 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.interfaces.utils.resolver import EventFieldsResolver, MessageFieldsResolver
+from th2_data_services.interfaces.utils import resolver as resolver_core
 from th2_data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
 
 
-class LwdpEventFieldsResolver(EventFieldsResolver):
+class LwdpEventFieldsResolver(resolver_core.EventFieldsResolver):
     @staticmethod
     def get_id(event):
         return event[http_event_struct.EVENT_ID]
@@ -62,7 +62,7 @@ class LwdpEventFieldsResolver(EventFieldsResolver):
         return event[http_event_struct.BODY]
 
 
-class LwdpMessageFieldsResolver(MessageFieldsResolver):
+class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
     @staticmethod
     def get_subsequence(message):
         raise NotImplementedError
@@ -117,13 +117,27 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
 
     @staticmethod
     def get_fields(message):
+        """This method is not in the DS-core v2.0.0 Interface.
+
+        Warnings:
+            We leave it here just for backward compatibility with current scripts.
+            Try to don't use it.
+        """
         return message[http_message_struct.BODY]["fields"]
 
     @staticmethod
     def expand_message(message):
         """Extract compounded message into list of individual messages.
+
+        Warnings:
+            expand_message function is not backward-compatible.
+            If you use it in your scripts, there is no guarantee that everything will
+            work if you change data-source because different data-sources has different
+            messages structure.
+
         Args:
             message: Th2Message
+
         Returns:
             Iterable[Th2Message]
         """
@@ -136,8 +150,6 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
             msg_type = field
             if "-" in field:
                 msg_type = msg_type[: msg_type.index("-")]
-                # TODO: Remove or keep this line?
-                # m_index = int(k[k.index("-") + 1:])
 
             new_msg = {}
             new_msg.update(message)
@@ -151,13 +163,49 @@ class LwdpMessageFieldsResolver(MessageFieldsResolver):
             new_msg[http_message_struct.BODY]["metadata"]["id"].update(
                 LwdpMessageFieldsResolver.get_body(message)["metadata"]["id"]
             )
-            new_msg[http_message_struct.BODY]["metadata"][http_message_struct.MESSAGE_TYPE] = msg_type
+            new_msg[http_message_struct.BODY]["metadata"][
+                http_message_struct.MESSAGE_TYPE
+            ] = msg_type
             new_msg[http_message_struct.BODY]["metadata"]["id"][http_message_struct.SUBSEQUENCE] = [
-                LwdpMessageFieldsResolver.get_body(message)["metadata"]["id"][http_message_struct.SUBSEQUENCE][
-                    msg_index
-                ]
+                LwdpMessageFieldsResolver.get_body(message)["metadata"]["id"][
+                    http_message_struct.SUBSEQUENCE
+                ][msg_index]
             ]
-            new_msg[http_message_struct.BODY]["fields"] = fields[field]["messageValue"]["fields"]
+            new_msg[http_message_struct.BODY]["fields"] = fields[field]
             result.append(new_msg)
 
         return result
+
+
+class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
+    @staticmethod
+    def get_metadata(sub_message):
+        # Will return something like
+        # {"id":{"connectionId":{"sessionAlias":"ouch"},  # removed in 3.0
+        #        "direction":"FIRST",
+        #        "sequence":1682680778806000001,   # removed in 3.0
+        #        "timestamp":{"seconds":1682680778,"nanos":807953000},
+        #        "subsequence":[1]
+        #        },
+        #  "messageType":"SequencedDataPacket",
+        #  "protocol":"protocol"
+        # },
+        return sub_message["metadata"]
+
+    @staticmethod
+    def get_subsequence(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message)["id"].get(
+            http_message_struct.SUBSEQUENCE, [1]
+        )
+
+    @staticmethod
+    def get_type(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message)[http_message_struct.MESSAGE_TYPE]
+
+    @staticmethod
+    def get_protocol(sub_message):
+        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.PROTOCOL)
+
+    @staticmethod
+    def get_fields(sub_message):
+        return sub_message["fields"]
