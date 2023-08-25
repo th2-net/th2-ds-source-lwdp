@@ -177,7 +177,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         return result
 
 
-class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
+class LwdpSubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
     def get_metadata(sub_message):
         # Will return something like
@@ -194,17 +194,21 @@ class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
 
     @staticmethod
     def get_subsequence(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message)["id"].get(
+        return LwdpSubMessageFieldResolver.get_metadata(sub_message)["id"].get(
             http_message_struct.SUBSEQUENCE, [1]
         )
 
     @staticmethod
     def get_type(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message)[http_message_struct.MESSAGE_TYPE]
+        return LwdpSubMessageFieldResolver.get_metadata(sub_message)[
+            http_message_struct.MESSAGE_TYPE
+        ]
 
     @staticmethod
     def get_protocol(sub_message):
-        return SubMessageFieldResolver.get_metadata(sub_message).get(http_message_struct.PROTOCOL)
+        return LwdpSubMessageFieldResolver.get_metadata(sub_message).get(
+            http_message_struct.PROTOCOL
+        )
 
     @staticmethod
     def get_fields(sub_message):

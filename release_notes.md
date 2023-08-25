@@ -115,3 +115,10 @@ BugFixes without ticket
 ## BugFixes
 
 1. Fix DownloadMessages commands
+
+
+# v2.1.0.2
+
+## BugFixes
+
+1. Use options.setup_resolvers function instead of strict variable assignment
