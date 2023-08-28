@@ -122,3 +122,11 @@ BugFixes without ticket
 ## BugFixes
 
 1. Use options.setup_resolvers function instead of strict variable assignment
+
+
+# v2.1.0.3
+
+## BugFixes
+
+1. Raise exception if LwDP returns Error HTTP status in Download commands. 
+

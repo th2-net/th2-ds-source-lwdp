@@ -17,6 +17,7 @@ from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
 
+import requests
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
@@ -1105,6 +1106,8 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
+        # TODO - check if filename is valid
+        # check_if_filename_valid
         self._filename = filename
         self._page = page
         self._book_id = book_id
@@ -1146,6 +1149,38 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
         )
+
+
+def _download_messages(api, urls, headers, filename):
+    """Downloads messages from LwDP and store to jsons.gz files.
+
+    Args:
+        api:
+        urls:
+        headers:
+        filename:
+
+    Returns:
+        None
+    """
+
+    def do_req_and_store(fn, headers, url):
+        with open(fn, "wb") as file:
+            try:
+                response = api.execute_request(url, headers=headers, stream=True)
+                response.raise_for_status()
+
+                copyfileobj(response.raw, file)
+            except requests.exceptions.HTTPError as e:
+                print(e)
+                print()
+
+    if len(urls) == 1:
+        do_req_and_store(f"{filename}.gz", headers, urls[0])
+
+    else:
+        for num, url in enumerate(urls):
+            do_req_and_store(f"{filename}.{num + 1}.gz", headers, url)
 
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1224,16 +1259,10 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
         )
+
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-        if len(urls) == 1:
-            with open(f"{self._filename}.gz", "wb") as file:
-                response = api.execute_request(urls[0], headers=headers, stream=True)
-                copyfileobj(response.raw, file)
-        else:
-            for num, url in enumerate(urls):
-                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
-                    response = api.execute_request(url, headers=headers, stream=True)
-                    copyfileobj(response.raw, file)
+
+        _download_messages(api, urls, headers, self._filename)
 
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
@@ -1313,15 +1342,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             max_url_length=self._max_url_length,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-        if len(urls) == 1:
-            with open(f"{self._filename}.gz", "wb") as file:
-                response = api.execute_request(urls[0], headers=headers, stream=True)
-                copyfileobj(response.raw, file)
-        else:
-            for num, url in enumerate(urls):
-                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
-                    response = api.execute_request(url, headers=headers, stream=True)
-                    copyfileobj(response.raw, file)
+
+        _download_messages(api, urls, headers, self._filename)
 
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
