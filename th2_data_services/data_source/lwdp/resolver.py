@@ -103,6 +103,9 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
     def expand_message(message):
         """Extract compounded message into list of individual messages.
 
+        2023.08.29 -- decided that this function should return the same structure of the message
+            but with single body = {}.
+
         Args:
             message: Th2Message
 
@@ -114,12 +117,10 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
         #    - all sub-messages will have the same MessageID
         result = []
 
-        for body in message["body"]:
-            body["fields"] = dict((k, v) for k, v in body["fields"].items() if v is not None)
+        for msg_in_body in message["body"]:
             new_m = {
                 **message,
-                message_struct.BODY: body,
-                message_struct.MESSAGE_TYPE: body["metadata"]["messageType"],
+                message_struct.BODY: msg_in_body,
             }
 
             result.append(new_m)
