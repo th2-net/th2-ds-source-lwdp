@@ -1175,6 +1175,9 @@ def _download_messages(api, urls, headers, filename):
                 print(e)
                 print()
 
+    if filename.endswith('.gz'):
+        filename = filename[:-3]
+
     if len(urls) == 1:
         do_req_and_store(f"{filename}.gz", headers, urls[0])
 
