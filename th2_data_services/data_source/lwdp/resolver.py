@@ -76,8 +76,12 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
         raise NotImplementedError
 
     @staticmethod
-    def get_sequence(message):  # <book>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
-        return message[message_struct.MESSAGE_ID].split(":")[4].split(".")[0]
+    def get_sequence(message):  # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
+        return message[message_struct.MESSAGE_ID].split(":")[5].split(".")[0]
+    
+    @staticmethod
+    def get_group(message):  # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
+        return message[message_struct.MESSAGE_ID].split(":")[1]
 
     @staticmethod
     def get_timestamp(message):
