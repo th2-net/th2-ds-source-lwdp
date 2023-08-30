@@ -54,12 +54,12 @@
    [M] Update your string `Broken_Event` check to class BrokenEvent. The same for messages.
 
 ## Features
+
 1. [TH2-4869] Added ResponseFormat class to provide possible values for response_formats commands
    parameter.
 2. [TH2-4692] Added response_formats for GetMessageById and GetMessagesById and fixed for SSE
    commands.
 3. [TH2-4882] Added get_download_messages API.
-
 
 ## Improvements
 
@@ -72,10 +72,13 @@
 
 ## User impact and migration instructions
 
-1. [I] GetMessageAliases and GetMessageGroups commands now return a TH2 Data object instead of a list.
-   It means that using list functions on these commands' return values won't work anymore and must be
+1. [I] GetMessageAliases and GetMessageGroups commands now return a TH2 Data object instead of a
+   list.
+   It means that using list functions on these commands' return values won't work anymore and must
+   be
    treated as Data objects.
-   [M] Update your usage of these commands' returned objects and don't use list methods on them, instead
+   [M] Update your usage of these commands' returned objects and don't use list methods on them,
+   instead
    use Data object's functions or cast them into a list first.
 
 ## Features
@@ -83,18 +86,47 @@
 1. [TH2-4924] Added GetMessagesByPage command.
 2. [TH2-4924] Added GetMessagesByPages command.
 3. [TH2-4926] Added GetEventsByPages command.
-4. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and DownloadMessagesByBookByGroups commands.
-5. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands. That allows to 
+4. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and
+   DownloadMessagesByBookByGroups commands.
+5. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands.
+   That allows to
 
 ## Improvements
 
-1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
-2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp arguements and returns TH2 Data object instead of a list.
-3. [TH2-5027] `expand_message` added to MessageFieldResolver.
+1. [TH2-4922] GetMessageAliases command now takes optional start_timestamp and end_timestamp
+   arguements and returns TH2 Data object instead of a list.
+2. [TH2-4923] GetMessageGroups command now takes optional start_timestamp and end_timestamp
+   arguements and returns TH2 Data object instead of a list.
+3. [TH2-4924] Added GetMessagesByPages command.
+4. [TH2-4926] Added GetEventsByPages command.
+5. [TH2-4952] Added DownloadMessagesByPageByGroups, DownloadMessagesByPage and
+   DownloadMessagesByBookByGroups commands.
+6. [Th2-4975] Added streams parameter to download and messages by groups sse commands.
+7. [TH2-5027] `expand_message` added to MessageFieldResolver.
 
 ## BugFixes
+
 1. [TH2-4925] Fix BrokenEvent and BrokenMessage.
 
+# v2.1.0.1
+
+## BugFixes
+
+1. Fix DownloadMessages commands
+
+# v2.1.0.2
+
+## BugFixes
+
+1. Use options.setup_resolvers function instead of strict variable assignment
+
+# v2.1.0.3
+
+## BugFixes
+
+1. Raise exception if LwDP returns Error HTTP status in Download commands.
+2. Added check for gzip commands filename arguments, checks if filename already has .gz at the end
+   doesn't add second extension if so.
 
 # v3.0.1.0
 

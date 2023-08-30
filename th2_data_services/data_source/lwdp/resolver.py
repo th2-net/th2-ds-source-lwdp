@@ -11,6 +11,7 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from typing import List
 
 from th2_data_services.interfaces.utils import resolver as resolver_core
 from th2_data_services.data_source.lwdp.struct import event_struct, message_struct
@@ -105,28 +106,25 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
     def expand_message(message) -> List[dict]:
         """Extract compounded message into list of individual messages.
 
+        2023.08.29 -- decided that this function should return the same structure of the message
+            but with single body = {}.
+
         Args:
             message: Th2Message
 
         Returns:
-            Iterable[Th2Message]
+            List[updated Th2Message]
         """
-        # TODO
-        #    - the version on Ilya from *** project. Should be reviewed later
-        #    - all sub-messages will have the same MessageID
-        result = []
-
-        for body in message["body"]:
-            body["fields"] = dict((k, v) for k, v in body["fields"].items() if v is not None)
-            new_m = {
-                **message,
-                message_struct.BODY: body,
-                message_struct.MESSAGE_TYPE: body["metadata"]["messageType"],
-            }
-
-            result.append(new_m)
-
-        return result
+        if isinstance(message[message_struct.BODY], list):
+            return [
+                {
+                    **message,
+                    message_struct.BODY: msg_in_body,
+                }
+                for msg_in_body in message[message_struct.BODY]
+            ]
+        else:
+            return [message]
 
 
 class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
