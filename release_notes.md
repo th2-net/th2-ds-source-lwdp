@@ -144,3 +144,4 @@ TODO
 1. [TH2-4969] - Updated MessageStubBuilder & LwdpMessageFieldsResolver
 2. [TH2-4945] - Refactoring: Remove GRPC
 3. [TH2-4959] - Added deprecation warning
+4. [TH2-4974] - Added resolver for getting group in message.
