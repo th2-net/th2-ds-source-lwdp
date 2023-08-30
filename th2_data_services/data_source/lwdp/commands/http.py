@@ -18,6 +18,7 @@ from functools import partial
 from shutil import copyfileobj
 from deprecated.classic import deprecated
 
+import requests
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
 from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
@@ -1115,6 +1116,8 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
+        # TODO - check if filename is valid
+        # check_if_filename_valid
         self._filename = filename
         self._page = page
         self._book_id = book_id
@@ -1123,7 +1126,9 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         self._keep_open = keep_open
         self._streams = streams
         self._max_url_length = max_url_length
-        _check_list_or_tuple(self._streams, var_name="streams")
+
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1154,6 +1159,41 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
         )
+
+
+def _download_messages(api, urls, headers, filename):
+    """Downloads messages from LwDP and store to jsons.gz files.
+
+    Args:
+        api:
+        urls:
+        headers:
+        filename:
+
+    Returns:
+        None
+    """
+
+    def do_req_and_store(fn, headers, url):
+        with open(fn, "wb") as file:
+            try:
+                response = api.execute_request(url, headers=headers, stream=True)
+                response.raise_for_status()
+
+                copyfileobj(response.raw, file)
+            except requests.exceptions.HTTPError as e:
+                print(e)
+                print()
+
+    if filename.endswith(".gz"):
+        filename = filename[:-3]
+
+    if len(urls) == 1:
+        do_req_and_store(f"{filename}.gz", headers, urls[0])
+
+    else:
+        for num, url in enumerate(urls):
+            do_req_and_store(f"{filename}.{num + 1}.gz", headers, url)
 
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1212,7 +1252,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
-        _check_list_or_tuple(self._streams, var_name="streams")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: DataSource):
         page = _get_page_object(self._book_id, self._page, data_source)
@@ -1229,22 +1270,16 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
-            streams=self._streams,
+            stream=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
             max_url_length=self._max_url_length,
         )
+
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-        if len(urls) == 1:
-            with open(f"{self._filename}.gz", "wb") as file:
-                response = api.execute_request(urls[0], headers=headers, stream=True)
-                copyfileobj(response.raw, file)
-        else:
-            for num, url in enumerate(urls):
-                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
-                    response = api.execute_request(url, headers=headers, stream=True)
-                    copyfileobj(response.raw, file)
+
+        _download_messages(api, urls, headers, self._filename)
 
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
@@ -1311,7 +1346,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
-        _check_list_or_tuple(self._streams, var_name="streams")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def handle(self, data_source: DataSource):
         api = data_source.source_api
@@ -1327,15 +1363,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             max_url_length=self._max_url_length,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-        if len(urls) == 1:
-            with open(f"{self._filename}.gz", "wb") as file:
-                response = api.execute_request(urls[0], headers=headers, stream=True)
-                copyfileobj(response.raw, file)
-        else:
-            for num, url in enumerate(urls):
-                with open(f"{self._filename}.{num+1}.gz", "wb") as file:
-                    response = api.execute_request(url, headers=headers, stream=True)
-                    copyfileobj(response.raw, file)
+
+        _download_messages(api, urls, headers, self._filename)
 
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
@@ -1511,6 +1540,7 @@ class GetMessagesByPage(IHTTPCommand):
                 buffer_limit=self._buffer_limit,
             )
         )
+
 
 @deprecated(
     """This is depricated command because LwDP3 was developed for th2-transport (intead of protobuf transport). 
