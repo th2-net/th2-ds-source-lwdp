@@ -15,7 +15,7 @@
 from th2_data_services.interfaces.utils import resolver as resolver_core
 from th2_data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Union
 
 
 class LwdpEventFieldsResolver(resolver_core.EventFieldsResolver):
@@ -251,7 +251,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> Dict[str, Any]:
+    def get_body(message) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
         return message[http_message_struct.BODY]
 
     @staticmethod
