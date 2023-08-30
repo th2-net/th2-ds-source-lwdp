@@ -145,3 +145,4 @@ TODO
 2. [TH2-4945] - Refactoring: Remove GRPC
 3. [TH2-4959] - Added deprecation warning
 4. [TH2-5048] - Added typing hints for resolver methods
+5. [TH2-4974] - Added resolver for getting group in message.
