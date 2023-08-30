@@ -105,9 +105,11 @@ TODO
 ## Features
 
 1. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands. That allows to 
+2. [TH2-5049] Added ExpandedMessageFieldResolver
 
 ## Improvements
 
 1. [TH2-4969] - Updated MessageStubBuilder & LwdpMessageFieldsResolver
 2. [TH2-4945] - Refactoring: Remove GRPC
 3. [TH2-4959] - Added deprecation warning
+4. [TH2-5048] - Added typing hints for resolver methods
