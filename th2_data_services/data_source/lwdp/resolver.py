@@ -87,7 +87,7 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
         return message[message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> List[dict]:
+    def get_body(message) -> List[Dict[str, Any]]:
         return message[message_struct.BODY]
 
     @staticmethod
@@ -103,7 +103,7 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
         return message[message_struct.ATTACHED_EVENT_IDS]
 
     @staticmethod
-    def expand_message(message) -> List[dict]:
+    def expand_message(message) -> List[Dict[str, Any]]:
         """Extract compounded message into list of individual messages.
 
         2023.08.29 -- decided that this function should return the same structure of the message
@@ -129,7 +129,7 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
 
 class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
-    def get_metadata(sub_message) -> dict:
+    def get_metadata(sub_message) -> Dict[str, Any]:
         return sub_message["metadata"]
 
     @staticmethod
@@ -147,9 +147,9 @@ class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
         return SubMessageFieldResolver.get_metadata(sub_message).get(message_struct.PROTOCOL)
 
     @staticmethod
-    def get_fields(sub_message) -> dict:
+    def get_fields(sub_message) -> Dict[str, Any]:
         return sub_message["fields"]
-    
+
 
 class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
     @staticmethod
@@ -173,7 +173,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> List[dict]:
+    def get_body(message) -> List[Dict[str, Any]]:
         return message[message_struct.BODY]
 
     @staticmethod
@@ -187,9 +187,9 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
     @staticmethod
     def get_attached_event_ids(message) -> List[str]:
         return message[message_struct.ATTACHED_EVENT_IDS]
-    
+
     @staticmethod
-    def get_metadata(sub_message) -> dict:
+    def get_metadata(sub_message) -> Dict[str, Any]:
         return sub_message["metadata"]
 
     @staticmethod
@@ -207,9 +207,8 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return SubMessageFieldResolver.get_metadata(sub_message).get(message_struct.PROTOCOL)
 
     @staticmethod
-    def get_fields(sub_message) -> dict:
+    def get_fields(sub_message) -> Dict[str, Any]:
         return sub_message["fields"]
-
 
 
 # TODO - for backward compatibility. Should be removed some time.
