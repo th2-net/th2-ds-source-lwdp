@@ -82,7 +82,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         return message[http_message_struct.MESSAGE_TYPE]
 
     @staticmethod
-    def get_connection_id(message) -> dict:
+    def get_connection_id(message) -> Dict[str, Any]:
         return message[http_message_struct.BODY]["metadata"]["id"][
             http_message_struct.CONNECTION_ID
         ]
@@ -102,7 +102,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         return message[http_message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> dict:
+    def get_body(message) -> List[Dict[str, Any]]:
         return message[http_message_struct.BODY]
 
     @staticmethod
@@ -118,7 +118,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         return message[http_message_struct.ATTACHED_EVENT_IDS]
 
     @staticmethod
-    def get_fields(message) -> dict:
+    def get_fields(message) -> Dict[str, Any]:
         """This method is not in the DS-core v2.0.0 Interface.
 
         Warnings:
@@ -128,7 +128,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         return message[http_message_struct.BODY]["fields"]
 
     @staticmethod
-    def expand_message(message) -> List[dict]:
+    def expand_message(message) -> List[Dict[str, Any]]:
         """Extract compounded message into list of individual messages.
 
         Warnings:
@@ -181,7 +181,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
 
 class LwdpSubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
-    def get_metadata(sub_message) -> dict:
+    def get_metadata(sub_message) -> Dict[str, Any]:
         # Will return something like
         # {"id":{"connectionId":{"sessionAlias":"ouch"},  # removed in 3.0
         #        "direction":"FIRST",
@@ -213,7 +213,7 @@ class LwdpSubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
         )
 
     @staticmethod
-    def get_fields(sub_message) -> dict:
+    def get_fields(sub_message) -> Dict[str, Any]:
         return sub_message["fields"]
 
 
@@ -231,7 +231,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.MESSAGE_TYPE]
 
     @staticmethod
-    def get_connection_id(message) -> dict:
+    def get_connection_id(message) -> Dict[str, Any]:
         return message[http_message_struct.BODY]["metadata"]["id"][
             http_message_struct.CONNECTION_ID
         ]
@@ -251,7 +251,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> dict:
+    def get_body(message) -> Dict[str, Any]:
         return message[http_message_struct.BODY]
 
     @staticmethod
@@ -267,7 +267,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.ATTACHED_EVENT_IDS]
 
     @staticmethod
-    def get_fields(message) -> dict:
+    def get_fields(message) -> Dict[str, Any]:
         """This method is not in the DS-core v2.0.0 Interface.
 
         Warnings:
@@ -277,7 +277,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.BODY]["fields"]
 
     @staticmethod
-    def get_metadata(sub_message) -> dict:
+    def get_metadata(sub_message) -> Dict[str, Any]:
         # Will return something like
         # {"id":{"connectionId":{"sessionAlias":"ouch"},  # removed in 3.0
         #        "direction":"FIRST",
