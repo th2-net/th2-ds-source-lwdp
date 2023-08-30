@@ -15,50 +15,52 @@
 from th2_data_services.interfaces.utils import resolver as resolver_core
 from th2_data_services.data_source.lwdp.struct import http_event_struct, http_message_struct
 
+from typing import List, Dict, Any
+
 
 class LwdpEventFieldsResolver(resolver_core.EventFieldsResolver):
     @staticmethod
-    def get_id(event):
+    def get_id(event) -> str:
         return event[http_event_struct.EVENT_ID]
 
     @staticmethod
-    def get_parent_id(event):
+    def get_parent_id(event) -> str:
         return event[http_event_struct.PARENT_EVENT_ID]
 
     @staticmethod
-    def get_status(event):
+    def get_status(event) -> str:
         return event[http_event_struct.STATUS]
 
     @staticmethod
-    def get_name(event):
+    def get_name(event) -> str:
         return event[http_event_struct.NAME]
 
     @staticmethod
-    def get_batch_id(event):
+    def get_batch_id(event) -> str:
         return event[http_event_struct.BATCH_ID]
 
     @staticmethod
-    def get_is_batched(event):
+    def get_is_batched(event) -> bool:
         return event[http_event_struct.IS_BATCHED]
 
     @staticmethod
-    def get_type(event):
+    def get_type(event) -> str:
         return event[http_event_struct.EVENT_TYPE]
 
     @staticmethod
-    def get_start_timestamp(event):
+    def get_start_timestamp(event) -> Dict[str, int]:
         return event[http_event_struct.START_TIMESTAMP]
 
     @staticmethod
-    def get_end_timestamp(event):
+    def get_end_timestamp(event) -> Dict[str, int]:
         return event[http_event_struct.END_TIMESTAMP]
 
     @staticmethod
-    def get_attached_messages_ids(event):
+    def get_attached_messages_ids(event) -> List[str]:
         return event[http_event_struct.ATTACHED_MESSAGES_IDS]
 
     @staticmethod
-    def get_body(event):
+    def get_body(event) -> Any:
         return event[http_event_struct.BODY]
 
 
@@ -68,55 +70,55 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         raise NotImplementedError
 
     @staticmethod
-    def get_direction(message):
+    def get_direction(message) -> str:
         return message[http_message_struct.DIRECTION]
 
     @staticmethod
-    def get_session_id(message):
+    def get_session_id(message) -> str:
         return message[http_message_struct.SESSION_ID]
 
     @staticmethod
-    def get_type(message):
+    def get_type(message) -> str:
         return message[http_message_struct.MESSAGE_TYPE]
 
     @staticmethod
-    def get_connection_id(message):
+    def get_connection_id(message) -> dict:
         return message[http_message_struct.BODY]["metadata"]["id"][
             http_message_struct.CONNECTION_ID
         ]
 
     @staticmethod
-    def get_session_alias(message):
+    def get_session_alias(message) -> str:
         return message[http_message_struct.BODY]["metadata"]["id"][
             http_message_struct.CONNECTION_ID
         ][http_message_struct.SESSION_ALIAS]
 
     @staticmethod
-    def get_sequence(message):
+    def get_sequence(message) -> str:
         return message[http_message_struct.BODY]["metadata"]["id"][http_message_struct.SEQUENCE]
 
     @staticmethod
-    def get_timestamp(message):
+    def get_timestamp(message) -> Dict[str, int]:
         return message[http_message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message):
+    def get_body(message) -> dict:
         return message[http_message_struct.BODY]
 
     @staticmethod
-    def get_body_base64(message):
+    def get_body_base64(message) -> str:
         return message[http_message_struct.BODY_BASE64]
 
     @staticmethod
-    def get_id(message):
+    def get_id(message) -> str:
         return message[http_message_struct.MESSAGE_ID]
 
     @staticmethod
-    def get_attached_event_ids(message):
+    def get_attached_event_ids(message) -> List[str]:
         return message[http_message_struct.ATTACHED_EVENT_IDS]
 
     @staticmethod
-    def get_fields(message):
+    def get_fields(message) -> dict:
         """This method is not in the DS-core v2.0.0 Interface.
 
         Warnings:
@@ -126,7 +128,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         return message[http_message_struct.BODY]["fields"]
 
     @staticmethod
-    def expand_message(message):
+    def expand_message(message) -> List[dict]:
         """Extract compounded message into list of individual messages.
 
         Warnings:
@@ -179,7 +181,7 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
 
 class LwdpSubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
-    def get_metadata(sub_message):
+    def get_metadata(sub_message) -> dict:
         # Will return something like
         # {"id":{"connectionId":{"sessionAlias":"ouch"},  # removed in 3.0
         #        "direction":"FIRST",
@@ -193,23 +195,109 @@ class LwdpSubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
         return sub_message["metadata"]
 
     @staticmethod
-    def get_subsequence(sub_message):
+    def get_subsequence(sub_message) -> List[int]:
         return LwdpSubMessageFieldResolver.get_metadata(sub_message)["id"].get(
             http_message_struct.SUBSEQUENCE, [1]
         )
 
     @staticmethod
-    def get_type(sub_message):
+    def get_type(sub_message) -> str:
         return LwdpSubMessageFieldResolver.get_metadata(sub_message)[
             http_message_struct.MESSAGE_TYPE
         ]
 
     @staticmethod
-    def get_protocol(sub_message):
+    def get_protocol(sub_message) -> str:
         return LwdpSubMessageFieldResolver.get_metadata(sub_message).get(
             http_message_struct.PROTOCOL
         )
 
     @staticmethod
-    def get_fields(sub_message):
+    def get_fields(sub_message) -> dict:
         return sub_message["fields"]
+
+
+class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
+    @staticmethod
+    def get_direction(message) -> str:
+        return message[http_message_struct.DIRECTION]
+
+    @staticmethod
+    def get_session_id(message) -> str:
+        return message[http_message_struct.SESSION_ID]
+
+    @staticmethod
+    def get_type(message) -> str:
+        return message[http_message_struct.MESSAGE_TYPE]
+
+    @staticmethod
+    def get_connection_id(message) -> dict:
+        return message[http_message_struct.BODY]["metadata"]["id"][
+            http_message_struct.CONNECTION_ID
+        ]
+
+    @staticmethod
+    def get_session_alias(message) -> str:
+        return message[http_message_struct.BODY]["metadata"]["id"][
+            http_message_struct.CONNECTION_ID
+        ][http_message_struct.SESSION_ALIAS]
+
+    @staticmethod
+    def get_sequence(message) -> str:
+        return message[http_message_struct.BODY]["metadata"]["id"][http_message_struct.SEQUENCE]
+
+    @staticmethod
+    def get_timestamp(message) -> Dict[str, int]:
+        return message[http_message_struct.TIMESTAMP]
+
+    @staticmethod
+    def get_body(message) -> dict:
+        return message[http_message_struct.BODY]
+
+    @staticmethod
+    def get_body_base64(message) -> str:
+        return message[http_message_struct.BODY_BASE64]
+
+    @staticmethod
+    def get_id(message) -> str:
+        return message[http_message_struct.MESSAGE_ID]
+
+    @staticmethod
+    def get_attached_event_ids(message) -> List[str]:
+        return message[http_message_struct.ATTACHED_EVENT_IDS]
+
+    @staticmethod
+    def get_fields(message) -> dict:
+        """This method is not in the DS-core v2.0.0 Interface.
+
+        Warnings:
+            We leave it here just for backward compatibility with current scripts.
+            Try to don't use it.
+        """
+        return message[http_message_struct.BODY]["fields"]
+
+    @staticmethod
+    def get_metadata(sub_message) -> dict:
+        # Will return something like
+        # {"id":{"connectionId":{"sessionAlias":"ouch"},  # removed in 3.0
+        #        "direction":"FIRST",
+        #        "sequence":1682680778806000001,   # removed in 3.0
+        #        "timestamp":{"seconds":1682680778,"nanos":807953000},
+        #        "subsequence":[1]
+        #        },
+        #  "messageType":"SequencedDataPacket",
+        #  "protocol":"protocol"
+        # },
+        return sub_message["metadata"]
+
+    @staticmethod
+    def get_subsequence(sub_message) -> List[int]:
+        return LwdpSubMessageFieldResolver.get_metadata(sub_message)["id"].get(
+            http_message_struct.SUBSEQUENCE, [1]
+        )
+
+    @staticmethod
+    def get_protocol(sub_message) -> str:
+        return LwdpSubMessageFieldResolver.get_metadata(sub_message).get(
+            http_message_struct.PROTOCOL
+        )
