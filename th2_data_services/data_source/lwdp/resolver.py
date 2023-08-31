@@ -66,10 +66,6 @@ class LwdpEventFieldsResolver(resolver_core.EventFieldsResolver):
 
 class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
     @staticmethod
-    def get_subsequence(message):
-        raise NotImplementedError
-
-    @staticmethod
     def get_direction(message) -> str:
         return message[http_message_struct.DIRECTION]
 
@@ -79,19 +75,11 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
 
     @staticmethod
     def get_type(message) -> str:
+        """This field was removed since LwDP3.
+
+        Don't use it in new scripts.
+        """
         return message[http_message_struct.MESSAGE_TYPE]
-
-    @staticmethod
-    def get_connection_id(message) -> Dict[str, Any]:
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ]
-
-    @staticmethod
-    def get_session_alias(message) -> str:
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ][http_message_struct.SESSION_ALIAS]
 
     @staticmethod
     def get_sequence(message) -> str:
@@ -124,6 +112,8 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         Warnings:
             We leave it here just for backward compatibility with current scripts.
             Try to don't use it.
+
+        Removed since LwDP3.
         """
         return message[http_message_struct.BODY]["fields"]
 
@@ -132,10 +122,14 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
         """Extract compounded message into list of individual messages.
 
         Warnings:
-            expand_message function is not backward-compatible.
+            `expand_message` function is NOT backward-compatible (If you get th2-message
+            fields directly by their name).
             If you use it in your scripts, there is no guarantee that everything will
             work if you change data-source because different data-sources has different
             messages structure.
+
+            It expects that your code should be backward-compatible if you use Resolver
+            classes together with `expand_message`.
 
         Args:
             message: Th2Message
@@ -178,6 +172,20 @@ class LwdpMessageFieldsResolver(resolver_core.MessageFieldsResolver):
 
         return result
 
+    @staticmethod
+    def get_connection_id(message) -> Dict[str, Any]:
+        """Non-interface method."""
+        return message[http_message_struct.BODY]["metadata"]["id"][
+            http_message_struct.CONNECTION_ID
+        ]
+
+    @staticmethod
+    def get_session_alias(message) -> str:
+        """Non-interface method."""
+        return message[http_message_struct.BODY]["metadata"]["id"][
+            http_message_struct.CONNECTION_ID
+        ][http_message_struct.SESSION_ALIAS]
+
 
 class LwdpSubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
@@ -208,6 +216,7 @@ class LwdpSubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
 
     @staticmethod
     def get_protocol(sub_message) -> str:
+        """Returns None if no Protocol in the message."""
         return LwdpSubMessageFieldResolver.get_metadata(sub_message).get(
             http_message_struct.PROTOCOL
         )
@@ -231,18 +240,6 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.MESSAGE_TYPE]
 
     @staticmethod
-    def get_connection_id(message) -> Dict[str, Any]:
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ]
-
-    @staticmethod
-    def get_session_alias(message) -> str:
-        return message[http_message_struct.BODY]["metadata"]["id"][
-            http_message_struct.CONNECTION_ID
-        ][http_message_struct.SESSION_ALIAS]
-
-    @staticmethod
     def get_sequence(message) -> str:
         return message[http_message_struct.BODY]["metadata"]["id"][http_message_struct.SEQUENCE]
 
@@ -251,7 +248,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> Union[Dict[str, Any], List[Dict[str, Any]]]:
+    def get_body(message) -> Union[Dict[str, Any]]:
         return message[http_message_struct.BODY]
 
     @staticmethod
@@ -265,6 +262,12 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
     @staticmethod
     def get_attached_event_ids(message) -> List[str]:
         return message[http_message_struct.ATTACHED_EVENT_IDS]
+
+    @staticmethod
+    def get_subsequence(message) -> List[int]:
+        return ExpandedMessageFieldResolver.get_metadata(message)["id"].get(
+            http_message_struct.SUBSEQUENCE, [1]
+        )
 
     @staticmethod
     def get_fields(message) -> Dict[str, Any]:
@@ -283,12 +286,6 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         #  "protocol":"protocol"
         # },
         return ExpandedMessageFieldResolver.get_body(message)["metadata"]
-
-    @staticmethod
-    def get_subsequence(message) -> List[int]:
-        return ExpandedMessageFieldResolver.get_metadata(message)["id"].get(
-            http_message_struct.SUBSEQUENCE, [1]
-        )
 
     @staticmethod
     def get_protocol(message) -> str:
