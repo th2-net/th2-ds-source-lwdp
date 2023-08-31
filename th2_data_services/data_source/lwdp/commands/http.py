@@ -1184,6 +1184,7 @@ def _download_messages(api, urls, headers, filename):
             except requests.exceptions.HTTPError as e:
                 print(e)
                 print()
+                raise
 
     if filename.endswith(".gz"):
         filename = filename[:-3]
