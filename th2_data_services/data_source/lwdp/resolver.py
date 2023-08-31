@@ -268,16 +268,10 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
 
     @staticmethod
     def get_fields(message) -> Dict[str, Any]:
-        """This method is not in the DS-core v2.0.0 Interface.
-
-        Warnings:
-            We leave it here just for backward compatibility with current scripts.
-            Try to don't use it.
-        """
         return message[http_message_struct.BODY]["fields"]
 
     @staticmethod
-    def get_metadata(sub_message) -> Dict[str, Any]:
+    def get_metadata(message) -> Dict[str, Any]:
         # Will return something like
         # {"id":{"connectionId":{"sessionAlias":"ouch"},  # removed in 3.0
         #        "direction":"FIRST",
@@ -288,16 +282,14 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         #  "messageType":"SequencedDataPacket",
         #  "protocol":"protocol"
         # },
-        return sub_message["metadata"]
+        return ExpandedMessageFieldResolver.get_body(message)["metadata"]
 
     @staticmethod
-    def get_subsequence(sub_message) -> List[int]:
-        return LwdpSubMessageFieldResolver.get_metadata(sub_message)["id"].get(
+    def get_subsequence(message) -> List[int]:
+        return ExpandedMessageFieldResolver.get_metadata(message)["id"].get(
             http_message_struct.SUBSEQUENCE, [1]
         )
 
     @staticmethod
-    def get_protocol(sub_message) -> str:
-        return LwdpSubMessageFieldResolver.get_metadata(sub_message).get(
-            http_message_struct.PROTOCOL
-        )
+    def get_protocol(message) -> str:
+        return ExpandedMessageFieldResolver.get_metadata(message).get(http_message_struct.PROTOCOL)
