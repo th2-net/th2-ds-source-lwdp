@@ -203,26 +203,22 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[message_struct.ATTACHED_EVENT_IDS]
 
     @staticmethod
-    def get_metadata(sub_message) -> Dict[str, Any]:
-        return sub_message["metadata"]
+    def get_metadata(message) -> Dict[str, Any]:
+        return ExpandedMessageFieldResolver.get_body(message)["metadata"]
 
     @staticmethod
-    def get_subsequence(sub_message) -> List[int]:
-        return SubMessageFieldResolver.get_metadata(sub_message).get(
+    def get_subsequence(message) -> List[int]:
+        return ExpandedMessageFieldResolver.get_metadata(message).get(
             message_struct.SUBSEQUENCE, [1]
         )
 
     @staticmethod
-    def get_type(sub_message) -> str:
-        return SubMessageFieldResolver.get_metadata(sub_message)[message_struct.MESSAGE_TYPE]
+    def get_protocol(message) -> str:
+        return ExpandedMessageFieldResolver.get_metadata(message).get(message_struct.PROTOCOL)
 
     @staticmethod
-    def get_protocol(sub_message) -> str:
-        return SubMessageFieldResolver.get_metadata(sub_message).get(message_struct.PROTOCOL)
-
-    @staticmethod
-    def get_fields(sub_message) -> Dict[str, Any]:
-        return sub_message["fields"]
+    def get_fields(message) -> Dict[str, Any]:
+        return ExpandedMessageFieldResolver.get_body(message)["fields"]
 
 
 # TODO - for backward compatibility. Should be removed some time.
