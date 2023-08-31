@@ -76,19 +76,13 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
 
     @staticmethod
     def get_type(message):
+        """This field was removed since LwDP3."""
         raise NotImplementedError
 
     @staticmethod
-    def get_sequence(
-        message,
-    ) -> str:  # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
+    def get_sequence(message) -> str:
+        # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>
         return message[message_struct.MESSAGE_ID].split(":")[5].split(".")[0]
-
-    @staticmethod
-    def get_group(
-        message,
-    ) -> str:  # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
-        return message[message_struct.MESSAGE_ID].split(":")[1]
 
     @staticmethod
     def get_timestamp(message) -> Dict[str, int]:
@@ -134,6 +128,12 @@ class MessageFieldResolver(resolver_core.MessageFieldResolver):
         else:
             return [message]
 
+    @staticmethod
+    def get_group(message) -> str:
+        """Non-interface method."""
+        # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>
+        return message[message_struct.MESSAGE_ID].split(":")[1]
+
 
 class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
     @staticmethod
@@ -152,6 +152,7 @@ class SubMessageFieldResolver(resolver_core.SubMessageFieldResolver):
 
     @staticmethod
     def get_protocol(sub_message) -> str:
+        """Returns None if no Protocol in the message."""
         return SubMessageFieldResolver.get_metadata(sub_message).get(message_struct.PROTOCOL)
 
     @staticmethod
@@ -169,25 +170,20 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[message_struct.SESSION_ID]
 
     @staticmethod
-    def get_type(message):
-        raise NotImplementedError
+    def get_type(message) -> str:
+        return ExpandedMessageFieldResolver.get_metadata(message)[message_struct.MESSAGE_TYPE]
 
     @staticmethod
-    def get_sequence(message) -> str:  # <book>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
+    def get_sequence(message) -> str:
+        # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>
         return message[message_struct.MESSAGE_ID].split(":")[5].split(".")[0]
-
-    @staticmethod
-    def get_group(
-        message,
-    ) -> str:  # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>.<\d>.<\d>
-        return message[message_struct.MESSAGE_ID].split(":")[1]
 
     @staticmethod
     def get_timestamp(message) -> Dict[str, int]:
         return message[message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> List[Dict[str, Any]]:
+    def get_body(message) -> Dict[str, Any]:
         return message[message_struct.BODY]
 
     @staticmethod
@@ -203,22 +199,28 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[message_struct.ATTACHED_EVENT_IDS]
 
     @staticmethod
-    def get_metadata(message) -> Dict[str, Any]:
-        return ExpandedMessageFieldResolver.get_body(message)["metadata"]
-
-    @staticmethod
     def get_subsequence(message) -> List[int]:
         return ExpandedMessageFieldResolver.get_metadata(message).get(
             message_struct.SUBSEQUENCE, [1]
         )
 
     @staticmethod
+    def get_fields(message) -> Dict[str, Any]:
+        return ExpandedMessageFieldResolver.get_body(message)["fields"]
+
+    @staticmethod
+    def get_metadata(message) -> Dict[str, Any]:
+        return ExpandedMessageFieldResolver.get_body(message)["metadata"]
+
+    @staticmethod
     def get_protocol(message) -> str:
         return ExpandedMessageFieldResolver.get_metadata(message).get(message_struct.PROTOCOL)
 
     @staticmethod
-    def get_fields(message) -> Dict[str, Any]:
-        return ExpandedMessageFieldResolver.get_body(message)["fields"]
+    def get_group(message) -> str:
+        """Non-interface method."""
+        # <book>:<group>:<alias>:<direction>:<timestamp>:<sequence>
+        return message[message_struct.MESSAGE_ID].split(":")[1]
 
 
 # TODO - for backward compatibility. Should be removed some time.
