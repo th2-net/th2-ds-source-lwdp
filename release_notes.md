@@ -129,5 +129,12 @@ BugFixes without ticket
 ## BugFixes
 
 1. Raise exception if LwDP returns Error HTTP status in Download commands. 
-
 2. Added check for gzip commands filename arguements, checks if filename already has .gz at the end doesn't add second extension if so.
+
+## Features
+
+1. [TH2-5049] Added ExpandedMessageFieldResolver
+
+## Improvements
+
+1. [TH2-5048] - Added typing hints for resolver methods
