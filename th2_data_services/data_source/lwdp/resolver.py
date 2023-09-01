@@ -248,7 +248,7 @@ class ExpandedMessageFieldResolver(resolver_core.ExpandedMessageFieldResolver):
         return message[http_message_struct.TIMESTAMP]
 
     @staticmethod
-    def get_body(message) -> Union[Dict[str, Any]]:
+    def get_body(message) -> Dict[str, Any]:
         return message[http_message_struct.BODY]
 
     @staticmethod
