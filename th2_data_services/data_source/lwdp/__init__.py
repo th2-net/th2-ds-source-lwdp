@@ -23,6 +23,12 @@ from th2_data_services.data_source.lwdp.resolver import (
     EventFieldResolver,
     MessageFieldResolver,
     SubMessageFieldResolver,
+    ExpandedMessageFieldResolver,
 )
 
-_o.setup_resolvers(EventFieldResolver(), MessageFieldResolver(), SubMessageFieldResolver())
+_o.setup_resolvers(
+    EventFieldResolver(),
+    MessageFieldResolver(),
+    SubMessageFieldResolver(),
+    ExpandedMessageFieldResolver(),
+)
