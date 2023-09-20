@@ -68,6 +68,17 @@
    anymore.
    Use BrokenEvent and BrokenMessage objects instead.
 
+# v2.0.3.0
+
+## Features
+
+1. [TH2-5027] `expand_message` added to LwdpMessageFieldsResolver.
+
+# v2.0.3.1
+
+BugFixes without ticket
+
+
 # v2.1.0.0
 
 ## User impact and migration instructions
@@ -127,6 +138,22 @@
 1. Raise exception if LwDP returns Error HTTP status in Download commands.
 2. Added check for gzip commands filename arguments, checks if filename already has .gz at the end
    doesn't add second extension if so.
+
+## Features
+
+1. [TH2-5049] Added ExpandedMessageFieldResolver
+
+## Improvements
+
+1. [TH2-5048] - Added typing hints for resolver methods
+
+
+# v2.1.0.4
+
+## BugFixes
+
+1. [TH2-5077] - Fix wrong check that breaks GetMessagesByBookByGroups & GetMessagesByPageByGroups commands.
+
 
 # v3.0.1.0
 
