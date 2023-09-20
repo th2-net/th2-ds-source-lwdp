@@ -1175,7 +1175,7 @@ def _download_messages(api, urls, headers, filename):
                 print(e)
                 print()
 
-    if filename.endswith('.gz'):
+    if filename.endswith(".gz"):
         filename = filename[:-3]
 
     if len(urls) == 1:
@@ -1421,7 +1421,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
-        _check_list_or_tuple(self._streams, var_name="streams")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def _get_urls(self, data_source: HTTPDataSource):
         api = data_source.source_api
@@ -1668,7 +1669,8 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
         self._max_url_length = max_url_length
 
         _check_list_or_tuple(self._groups, var_name="groups")
-        _check_list_or_tuple(self._streams, var_name="streams")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
 
     def _get_urls(self, data_source: HTTPDataSource):
         page = _get_page_object(self._book_id, self._page, data_source)

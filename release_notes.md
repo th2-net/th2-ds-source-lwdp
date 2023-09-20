@@ -138,3 +138,10 @@ BugFixes without ticket
 ## Improvements
 
 1. [TH2-5048] - Added typing hints for resolver methods
+
+
+# v2.1.0.4
+
+## BugFixes
+
+1. [TH2-5077] - Fix wrong check that breaks GetMessagesByBookByGroups & GetMessagesByPageByGroups commands.
