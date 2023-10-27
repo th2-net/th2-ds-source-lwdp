@@ -20,7 +20,9 @@ Each release has separate branch indicated by `DataSourceMajorVersion` of branch
 
 Available versions:
 - [ds-lwdp1](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_1.0.1.0) - dev version. 
-
+- [ds-lwdp2.0](https://github.com/th2-net/th2-ds-source-lwdp/tree/release-2.0) - release 2.0
+- [ds-lwdp2.1](https://github.com/th2-net/th2-ds-source-lwdp/tree/release-2.1) - release 2.1
+- [ds-lwdp3](https://github.com/th2-net/th2-ds-source-lwdp/tree/dev_3.0.1.0) - release 3.0
 
 ## 2.3. Release versioning
 
