@@ -17,6 +17,7 @@ from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
 from deprecated.classic import deprecated
+from json import dumps
 
 import requests
 from th2_data_services.data import Data
@@ -1160,7 +1161,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         )
 
 
-def _download_messages(api, url, body, headers, filename):
+def _download_messages(api, url, raw_body, headers, filename):
     """Downloads messages from LwDP and store to jsons.gz files.
 
     Args:
@@ -1174,9 +1175,18 @@ def _download_messages(api, url, body, headers, filename):
         Status dictionary
     """
 
-    def do_req_and_store(fn, headers, url, body):
+    def do_req_and_store(fn, headers, url, raw_body):
         with open(fn, "wb") as file:
             try:
+                body = {
+                    "mode": "raw",
+                    "raw": dumps(raw_body, indent=4),
+                    "options": {
+                        "raw": {
+                            "language": "json"
+                        }
+                    }
+                }
                 response = api.execute_post(url, body, headers=headers, stream=True)
                 response.raise_for_status()
 
@@ -1200,7 +1210,7 @@ def _download_messages(api, url, body, headers, filename):
     if filename.endswith(".gz"):
         filename = filename[:-3]
 
-    return do_req_and_store(f"{filename}.gz", headers, url, body)
+    return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
