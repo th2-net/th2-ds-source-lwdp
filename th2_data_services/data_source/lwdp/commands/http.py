@@ -1099,8 +1099,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         streams: List[str] = None,
-        # Non-data source args.
-        max_url_length: int = 2048,
+        fast_fail: bool = True,
     ):
         """DownloadMessagesByPageGzip Constructor.
 
@@ -1112,7 +1111,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from.
-            max_url_length: API request url max length.
+            fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -1125,7 +1124,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._streams = streams
-        self._max_url_length = max_url_length
+        self._fast_fail = fast_fail
 
         if streams is not None:
             _check_list_or_tuple(self._streams, var_name="streams")
@@ -1157,30 +1156,42 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
-            max_url_length=self._max_url_length,
+            fast_fail=self._fast_fail,
         )
 
 
-def _download_messages(api, urls, headers, filename):
+def _download_messages(api, url, body, headers, filename):
     """Downloads messages from LwDP and store to jsons.gz files.
 
     Args:
         api:
         urls:
+        body:
         headers:
         filename:
 
     Returns:
-        None
+        Status dictionary
     """
 
-    def do_req_and_store(fn, headers, url):
+    def do_req_and_store(fn, headers, url, body):
         with open(fn, "wb") as file:
             try:
-                response = api.execute_request(url, headers=headers, stream=True)
+                response = api.execute_post(url, body, headers=headers, stream=True)
                 response.raise_for_status()
 
-                copyfileobj(response.raw, file)
+                task_id = response.body['taskID']
+
+                task_request_url = api.get_download(task_id, headers=headers, stream=True)
+                messages_response = api.execute_request(task_request_url)
+
+                copyfileobj(messages_response.raw, file)
+
+                status_url = api.get_download_status(task_id)
+                status_response = api.execute_request(status_url)
+
+                return status_response.body
+
             except requests.exceptions.HTTPError as e:
                 print(e)
                 print()
@@ -1189,13 +1200,7 @@ def _download_messages(api, urls, headers, filename):
     if filename.endswith(".gz"):
         filename = filename[:-3]
 
-    if len(urls) == 1:
-        do_req_and_store(f"{filename}.gz", headers, urls[0])
-
-    else:
-        for num, url in enumerate(urls):
-            do_req_and_store(f"{filename}.{num + 1}.gz", headers, url)
-
+    return do_req_and_store(f"{filename}.gz", headers, url, body)
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
@@ -1224,8 +1229,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         streams: List[str] = None,
-        # Non-data source args.
-        max_url_length: int = 2048,
+        fast_fail: bool = True,
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
 
@@ -1239,6 +1243,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from.
             max_url_length: API request url max length.
+            fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -1250,8 +1255,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._sort = sort
         self._response_formats = response_formats
         self._keep_open = keep_open
-        self._max_url_length = max_url_length
-
+        self._fast_fail = fast_fail
+        
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
             _check_list_or_tuple(self._streams, var_name="streams")
@@ -1266,7 +1271,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         )
         self._book_id = page.book
         api = data_source.source_api
-        urls = api.get_download_messages(
+        url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
@@ -1275,12 +1280,14 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
-            max_url_length=self._max_url_length,
+            fast_fail=self._fast_fail,
         )
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        _download_messages(api, urls, headers, self._filename)
+        status = _download_messages(api, url, body, headers, self._filename)
+
+        return Data.from_json(self._filename).update_metadata(status)
 
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
@@ -1311,8 +1318,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         streams: List[str] = None,
-        # Non-data source args.
-        max_url_length: int = 2048,
+        fast_fail: bool = True,
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
 
@@ -1330,6 +1336,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from.
             max_url_length: API request url max length.
+            fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -1344,7 +1351,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._book_id = book_id
-        self._max_url_length = max_url_length
+        self._fast_fail = fast_fail
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1352,7 +1359,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
     def handle(self, data_source: DataSource):
         api = data_source.source_api
-        urls = api.get_download_messages(
+        url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
@@ -1361,11 +1368,13 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
-            max_url_length=self._max_url_length,
+            fast_fail=self._fast_fail,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        _download_messages(api, urls, headers, self._filename)
+        status = _download_messages(api, url, body, headers, self._filename)
+
+        return Data.from_json(self._filename).update_metadata(status)
 
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
