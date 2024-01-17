@@ -183,4 +183,19 @@ BugFixes without ticket
 
 ## Improvements
 
-1. [TH2-5140] Download messages commands now use new endpoints to download messages. Tasks are created for each download request. If something goes wrong and task fails its status can now be seen in Data object returned by download commands.
+1. [TH2-5140] `Download messages` commands now use new endpoints to download messages. 
+   Tasks are created for each download request. If something goes wrong and task fails its 
+   status can now be seen in Data object returned by download commands.
+2. `Download messages` commands store the messages on the disc and return `Data` object now. 
+   So you don't need to read the file manually. 
+3. Changed the way how to init the module resolvers. 
+   We made it like it works in the `traceback_with_variables` library. 
+   Now you can import them just importing `init_resolvers_by_import` module.
+   Example: `from th2_data_services.data_source.lwdp import init_resolvers_by_import`
+   Old approach via importing `from th2_data_services.data_source.lwdp` also is working.
+4. Highly improved the downloading speed of GetEventsById & GetMessagesById. 
+   They are work via async queries now.
+   Speed tests for GetEventsById:
+      - old sync approach: 75sec to download 100 Events by Ids
+      - new async approach: 1.5sec to download 100 Events by Ids, 13sec to download 1000 Events
+   

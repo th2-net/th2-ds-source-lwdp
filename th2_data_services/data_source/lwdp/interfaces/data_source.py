@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -22,7 +22,7 @@ if TYPE_CHECKING:
     from th2_data_services.interfaces import ILwDPCommand
 
 from th2_data_services.interfaces.data_source import IDataSource
-from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI 
+from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
 from th2_data_services.data_source.lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services.data_source.lwdp.stub_builder import IEventStub, IMessageStub
 
@@ -36,6 +36,7 @@ MessageStubBuilderT = TypeVar("MessageStubBuilderT", bound="IMessageStub")
 # LOG import logging
 
 # LOG logger = logging.getLogger(__name__)
+
 
 class ILwDPDataSource(
     IDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
@@ -99,7 +100,7 @@ class ILwDPDataSource(
     def source_api(self) -> IHTTPSourceAPI:
         """Returns Provider API."""
 
- 
+
 class IHTTPDataSource(
     ILwDPDataSource, Generic[EventStructT, MessageStructT, EventStubBuilderT, MessageStubBuilderT]
 ):
