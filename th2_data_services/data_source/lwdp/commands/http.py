@@ -1199,7 +1199,8 @@ def _download_messages(api, url, raw_body, headers, filename):
                 
             finally:
                 if task_id:
-                    api.execute_delete(task_request_url)
+                    # api.execute_delete(task_request_url)
+                    pass
 
 
     if filename.endswith(".gz"):

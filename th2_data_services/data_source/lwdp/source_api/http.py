@@ -321,7 +321,7 @@ class API(IHTTPSourceAPI):
             "endTimestamp": end_timestamp,
             "bookID": book_id,
             "sort": sort,
-            "responseFormat": response_formats,
+            "responseFormats": response_formats,
             # "streams": streams,
             "groups": groups,
             # "fastFail": fast_fail,
