@@ -17,7 +17,7 @@ from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
 from deprecated.classic import deprecated
-from json import dumps
+import json
 
 import requests
 from th2_data_services.data import Data
@@ -1178,34 +1178,29 @@ def _download_messages(api, url, raw_body, headers, filename):
     def do_req_and_store(fn, headers, url, raw_body):
         with open(fn, "wb") as file:
             try:
-                body = {
-                    "mode": "raw",
-                    "raw": dumps(raw_body, indent=4),
-                    "options": {
-                        "raw": {
-                            "language": "json"
-                        }
-                    }
-                }
-                response = api.execute_post(url, body, headers=headers, stream=True)
-                response.raise_for_status()
-
-                task_id = response.body['taskID']
-
-                task_request_url = api.get_download(task_id, headers=headers, stream=True)
-                messages_response = api.execute_request(task_request_url)
-
+                print(raw_body)
+                response = api.execute_post(url, raw_body)
+                task_id = json.loads(response.text)['taskID']
+                print(task_id)
+                task_request_url = api.get_download(task_id)
+                messages_response = api.execute_request(task_request_url, headers=headers, stream=True)
+                
                 copyfileobj(messages_response.raw, file)
-
+                print('copy done')
                 status_url = api.get_download_status(task_id)
                 status_response = api.execute_request(status_url)
 
-                return status_response.body
+                return json.loads(status_response.text)
 
             except requests.exceptions.HTTPError as e:
                 print(e)
                 print()
                 raise
+                
+            finally:
+                if task_id:
+                    api.execute_delete(task_request_url)
+
 
     if filename.endswith(".gz"):
         filename = filename[:-3]
@@ -1237,7 +1232,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        keep_open: bool = None,
         streams: List[str] = None,
         fast_fail: bool = True,
     ):
@@ -1250,7 +1244,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from.
             max_url_length: API request url max length.
             fast_fail: If true, stops task execution right after first error.
@@ -1264,7 +1257,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
-        self._keep_open = keep_open
         self._fast_fail = fast_fail
         
         _check_list_or_tuple(self._groups, var_name="groups")
@@ -1286,10 +1278,9 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
-            stream=self._streams,
+            streams=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
-            keep_open=self._keep_open,
             fast_fail=self._fast_fail,
         )
 
@@ -1297,7 +1288,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(self._filename).update_metadata(status)
+        return Data.from_json(self._filename).update_metadata({"Task status": status})
 
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
@@ -1326,7 +1317,6 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        keep_open: bool = None,
         streams: List[str] = None,
         fast_fail: bool = True,
     ):
@@ -1343,7 +1333,6 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                   (You cannot specify a direction in groups unlike streams.
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from.
             max_url_length: API request url max length.
             fast_fail: If true, stops task execution right after first error.
@@ -1359,7 +1348,6 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
-        self._keep_open = keep_open
         self._book_id = book_id
         self._fast_fail = fast_fail
 
@@ -1374,10 +1362,9 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
-            stream=self._streams,
+            streams=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
-            keep_open=self._keep_open,
             fast_fail=self._fast_fail,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
