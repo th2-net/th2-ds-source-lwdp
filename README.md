@@ -200,6 +200,7 @@ etc.recover_unknown_events()
 # See more info about how to use ETC in th2-data-services lib documentation.
 
 ```
+<!-- end get_started_example.py -->
 
 # Changes in LwDP 3.0.0
 
