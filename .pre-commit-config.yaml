@@ -34,14 +34,14 @@ repos:
         
   - repo: local
     hooks:
-      - id: update_get_started_example_in_readme
-        name: update_get_started_example_in_readme
-        language: script
-        entry: attach_file_to.sh
-        args:
-          - get_started_example.py
-          - README.md
-        require_serial: true
+      # - id: update_get_started_example_in_readme
+      #   name: update_get_started_example_in_readme
+      #   language: script
+      #   entry: attach_file_to.sh
+      #   args:
+      #     - get_started_example.py
+      #     - README.md
+      #   require_serial: true
 
       - id: check_copyright
         name: check_copyright
