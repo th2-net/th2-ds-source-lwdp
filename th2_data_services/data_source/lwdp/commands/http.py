@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -1111,7 +1111,10 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             max_url_length: API request url max length.
         """
         response_formats = _get_response_format(response_formats)
@@ -1237,7 +1240,10 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             max_url_length: API request url max length.
         """
         response_formats = _get_response_format(response_formats)
@@ -1328,7 +1334,10 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             max_url_length: API request url max length.
         """
         response_formats = _get_response_format(response_formats)
@@ -1407,7 +1416,10 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
@@ -1663,7 +1675,10 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.

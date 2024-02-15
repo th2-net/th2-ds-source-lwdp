@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -293,9 +293,7 @@ class API(IHTTPSourceAPI):
         groups: List[str],
         sort: bool = None,
         response_formats: List[str] = None,
-        stream: List[
-            str
-        ] = None,
+        stream: List[str] = None,
         keep_open: bool = None,
         max_url_length=2048,
     ) -> List[str]:

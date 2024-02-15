@@ -1,4 +1,4 @@
-#  Copyright 2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2023-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -92,4 +92,3 @@ class Streams:
         if self._direction is None:
             return "&".join([f"stream={alias}" for alias in self._aliases])
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._aliases])
-
