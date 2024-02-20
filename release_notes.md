@@ -192,7 +192,7 @@ BugFixes without ticket
    We made it like it works in the `traceback_with_variables` library. 
    Now you can import them just importing `init_resolvers_by_import` module.
    Example: `from th2_data_services.data_source.lwdp import init_resolvers_by_import`
-   Old approach via importing `from th2_data_services.data_source.lwdp` also is working.
+   Old approach via importing `from th2_data_services.data_source import lwdp` also is working.
 4. Highly improved the downloading speed of GetEventsById & GetMessagesById. 
    They are work via async queries now.
    Speed tests for GetEventsById:
