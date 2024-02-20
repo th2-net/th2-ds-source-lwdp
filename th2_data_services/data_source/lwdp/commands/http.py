@@ -1333,7 +1333,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
-            max_url_length: API request url max length.
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
