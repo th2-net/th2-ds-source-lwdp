@@ -1190,7 +1190,10 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
@@ -1326,7 +1329,10 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             max_url_length: API request url max length.
             fast_fail: If true, stops task execution right after first error.
         """
@@ -1415,8 +1421,10 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                   (You cannot specify a direction in groups unlike streams.
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
-            streams: List of streams to search messages from.
-            max_url_length: API request url max length.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
@@ -1495,7 +1503,10 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
@@ -1751,7 +1762,10 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.

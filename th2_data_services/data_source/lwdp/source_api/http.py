@@ -296,7 +296,7 @@ class API(IHTTPSourceAPI):
         streams: List[str] = None,
         fast_fail: bool = True,
     ) -> Tuple[str, dict]:
-        """REST-API `download` call downloads messages in specified time range in json format.
+        """REST-API `download/messages` call downloads messages in specified time range in json format.
 
         Args:
             start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
