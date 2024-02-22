@@ -1202,10 +1202,6 @@ def _download_messages(api, url, raw_body, headers, filename):
                     # api.execute_delete(task_request_url)
                     pass
 
-
-    if filename.endswith(".gz"):
-        filename = filename[:-3]
-
     return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1250,8 +1246,10 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
-        _check_response_formats(response_formats)
+        _check_response_formats(response_formats) 
         self._filename = filename
+        if self._filename.endswith('.gz'):
+            self._filename = self._filename[:-3]
         self._page = page
         self._book_id = book_id
         self._groups = groups
@@ -1289,7 +1287,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(self._filename).update_metadata({"Task status": status})
+        return Data.from_json(f'{self._filename}.gz', gzip=True).update_metadata({"Task status": status})
 
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
@@ -1343,6 +1341,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         _check_datetime(start_timestamp)
         _check_datetime(end_timestamp)
         self._filename = filename
+        if self._filename.endswith('.gz'):
+            self._filename = self._filename[:-3]
         self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
         self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
@@ -1372,7 +1372,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(self._filename).update_metadata(status)
+        return Data.from_json(f'{self._filename}.gz', gzip=True).update_metadata(status)
 
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
