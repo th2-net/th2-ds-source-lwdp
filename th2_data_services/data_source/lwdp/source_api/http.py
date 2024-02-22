@@ -293,7 +293,7 @@ class API(IHTTPSourceAPI):
         groups: List[str],
         sort: bool = False,
         response_formats: List[str] = None,
-        streams: List[str] = None,
+        streams: List[str] = [],
         fast_fail: bool = True,
     ) -> Tuple[str, dict]:
         """REST-API `download/messages` call downloads messages in specified time range in json format.
@@ -320,9 +320,9 @@ class API(IHTTPSourceAPI):
             "bookID": book_id,
             "sort": sort,
             "responseFormats": response_formats,
-            # "streams": streams,
+            "streams": streams,
             "groups": groups,
-            # "fastFail": fast_fail,
+            "fastFail": fast_fail,
         }
         url = f"{self._url}/download"
 

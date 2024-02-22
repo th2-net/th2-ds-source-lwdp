@@ -18,7 +18,7 @@ from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
 
-import aiohttp as aiohttp
+import http as aiohttp
 from deprecated.classic import deprecated
 import json
 
@@ -1259,31 +1259,27 @@ def _download_messages(api, url, raw_body, headers, filename):
 
     def do_req_and_store(fn, headers, url, raw_body):
         with open(fn, "wb") as file:
+            task_id = None
             try:
-                print(raw_body)
                 response = api.execute_post(url, raw_body)
                 task_id = json.loads(response.text)["taskID"]
-                print(task_id)
                 task_request_url = api.get_download(task_id)
                 messages_response = api.execute_request(
                     task_request_url, headers=headers, stream=True
                 )
 
                 copyfileobj(messages_response.raw, file)
-                print("copy done")
                 status_url = api.get_download_status(task_id)
                 status_response = api.execute_request(status_url)
 
                 return json.loads(status_response.text)
 
             except requests.exceptions.HTTPError as e:
-                print(e)
-                print()
-                raise
+                raise Exception(e)
 
             finally:
                 if task_id:
-                    # api.execute_delete(task_request_url)
+                    api.execute_delete(task_request_url)
                     pass
 
     return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
@@ -1314,7 +1310,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = None,
+        streams: List[str] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
@@ -1403,7 +1399,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = None,
+        streams: List[str] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
