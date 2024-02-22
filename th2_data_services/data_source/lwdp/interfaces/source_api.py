@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -18,6 +18,7 @@ from th2_data_services.interfaces import ISourceAPI
 
 class ILwDPSourceAPI(ISourceAPI):
     """Interface for Source API of lwdp-data-provider."""
+
 
 class IHTTPSourceAPI(ILwDPSourceAPI):
     """Interface for Source API of lwdp-data-provider which works via HTTP."""

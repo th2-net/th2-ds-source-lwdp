@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -21,7 +21,12 @@ from deprecated.classic import deprecated
 import requests
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
-from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
+from th2_data_services.utils.converters import (
+    UniversalDatetimeStringConverter,
+    UnixTimestampConverter,
+    DatetimeConverter,
+    ProtobufTimestampConverter,
+)
 
 from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
@@ -205,8 +210,20 @@ class GetEventScopes(SSEHandlerClassBase):
         else:
             _check_datetime(start_timestamp)
             _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         self._book_id = book_id
 
@@ -278,8 +295,20 @@ class GetMessageAliases(SSEHandlerClassBase):
         else:
             _check_datetime(start_timestamp)
             _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         self._book_id = book_id
 
@@ -353,8 +382,20 @@ class GetMessageGroups(SSEHandlerClassBase):
         else:
             _check_datetime(start_timestamp)
             _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         self._book_id = book_id
 
@@ -471,8 +512,20 @@ class GetPages(SSEHandlerClassBase):
         else:
             _check_datetime(start_timestamp)
             _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         super().__init__(
             cache=cache,
@@ -735,10 +788,21 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(end_timestamp) if end_timestamp else None
-        )
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if end_timestamp:
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        else:
+            self._end_timestamp = None
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -1031,11 +1095,21 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
 
-        # + TODO - we can make timestamps optional datetime or int
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(end_timestamp) if end_timestamp else None
-        )
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if end_timestamp:
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        else:
+            self._end_timestamp = None
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
@@ -1336,8 +1410,18 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         _check_datetime(start_timestamp)
         _check_datetime(end_timestamp)
         self._filename = filename
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
         self._streams = streams
         self._sort = sort
@@ -1428,8 +1512,18 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
         self._streams = streams
         self._sort = sort

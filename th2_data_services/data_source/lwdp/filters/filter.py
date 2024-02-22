@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -14,6 +14,7 @@
 
 from th2_data_services.data_source.lwdp.interfaces.filter import IFilter
 from typing import Sequence, Any, Union
+
 
 class Filter(IFilter):
     """General interface for Filters of Provider v6."""
@@ -81,6 +82,7 @@ class _FilterBase(Filter):
 
 class EventFilter(_FilterBase):
     """Base class for Event Filters of LwDP."""
+
 
 LwDPFilter = Filter
 _LwDPFilterBase = _FilterBase
