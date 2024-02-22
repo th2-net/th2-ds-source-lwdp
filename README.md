@@ -200,6 +200,7 @@ etc.recover_unknown_events()
 # See more info about how to use ETC in th2-data-services lib documentation.
 
 ```
+<!-- end get_started_example.py -->
 
 # Changes in LwDP 3.0.0
 
@@ -224,54 +225,54 @@ Main changes are in body field of message:
 Here is a small example on how to use expander to expand single message into multiple ones:
 
 ```python
-    from th2_data_services.data import Data
-    from th2_data_services.data_source.lwdp.resolver import MessageFieldResolver
-    # message in this example have 2 items in its body
-    message = {
-        "timestamp":{"epochSecond":1682680778,"nano":807953000},
-        "direction":"IN",
-        "sessionId":"ouch_1_1",
-        "attachedEventIds":[],
-        "body":[
+from th2_data_services.data import Data
+from th2_data_services.data_source.lwdp.resolver import MessageFieldResolver
+# message in this example have 2 items in its body
+message = {
+    "timestamp":{"epochSecond":1682680778,"nano":807953000},
+    "direction":"IN",
+    "sessionId":"ouch_1_1",
+    "attachedEventIds":[],
+    "body":[
+        {
+            "metadata":
             {
-                "metadata":
-                {
-                    "subsequence":[1],
-                    "messageType":"SequencedDataPacket",
-                    "protocol":"protocol"
-                },
-                "fields":
-                {
-                    "MessageLength":55,
-                    "MessageType":83
-                }
+                "subsequence":[1],
+                "messageType":"SequencedDataPacket",
+                "protocol":"protocol"
             },
+            "fields":
             {
-                "metadata":
-                {   
-                    "subsequence":[2],
-                    "messageType":"OrderExecuted",
-                    "protocol":"protocol"
-                },
-                "fields":
-                {
-                    "MessageType":69,
-                    "Timestamp":1682399803928773173,
-                    "OrderToken":"lzgjaynpgynbg1",
-                    "OrderBookID":110616,
-                    "TradedQuantity":50,
-                    "TradePrice":5000,
-                    "MatchID":"j\ufffdh\u0003\u0000\u0000\u0000\u0006\u0000\u0000\u0000",
-                    "DealSource":1,
-                    "MatchAttributes":5
-                }
+                "MessageLength":55,
+                "MessageType":83
             }
-        ],
-        "messageId":"store_perf_test:ouch_1_1:1:20230428111938807953000:1682680778806000001"
-    }
+        },
+        {
+            "metadata":
+            {   
+                "subsequence":[2],
+                "messageType":"OrderExecuted",
+                "protocol":"protocol"
+            },
+            "fields":
+            {
+                "MessageType":69,
+                "Timestamp":1682399803928773173,
+                "OrderToken":"lzgjaynpgynbg1",
+                "OrderBookID":110616,
+                "TradedQuantity":50,
+                "TradePrice":5000,
+                "MatchID":"j\ufffdh\u0003\u0000\u0000\u0000\u0006\u0000\u0000\u0000",
+                "DealSource":1,
+                "MatchAttributes":5
+            }
+        }
+    ],
+    "messageId":"store_perf_test:ouch_1_1:1:20230428111938807953000:1682680778806000001"
+}
 
-    message_data = Data([message])
-    mfr = MessageFieldResolver()
-    message_data = message_data.map(mfr.expand_message)
-    print(message_data) # we should now have 2 messages built from the body list of original message.
+message_data = Data([message])
+mfr = MessageFieldResolver()
+message_data = message_data.map(mfr.expand_message)
+print(message_data) # we should now have 2 messages built from the body list of original message.
 ```

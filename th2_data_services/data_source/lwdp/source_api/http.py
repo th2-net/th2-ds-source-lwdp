@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -293,12 +293,10 @@ class API(IHTTPSourceAPI):
         groups: List[str],
         sort: bool = False,
         response_formats: List[str] = None,
-        streams: List[
-            str
-        ] = None,
+        streams: List[str] = None,
         fast_fail: bool = True,
     ) -> Tuple[str, dict]:
-        """REST-API `download` call downloads messages in specified time range in json format.
+        """REST-API `download/messages` call downloads messages in specified time range in json format.
 
         Args:
             start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
@@ -329,33 +327,31 @@ class API(IHTTPSourceAPI):
         url = f"{self._url}/download"
 
         return self.__encode_url(url), kwargs
-    
+
     def get_download(
-            self, 
-            task_id: str,
-        ) -> str:
-        """
-        REST-API 'download/{taskID}' for downloading specified task's data.
+        self,
+        task_id: str,
+    ) -> str:
+        """REST-API 'download/{taskID}' for downloading specified task's data.
 
         Args:
             task_id: Task ID for downloading.
-        
+
         Returns:
             URL for downloading task.
         """
         url = f"{self._url}/download/{task_id}"
         return self.__encode_url(url)
-    
+
     def get_download_status(
-            self, 
-            task_id: str,
-        ) -> str:
-        """
-        REST-API 'download/{taskID}/status' for getting specified task's status.
+        self,
+        task_id: str,
+    ) -> str:
+        """REST-API 'download/{taskID}/status' for getting specified task's status.
 
         Args:
             task_id: Task ID for task status.
-        
+
         Returns:
             URL for getting task status.
         """
@@ -399,8 +395,10 @@ class API(IHTTPSourceAPI):
             requests.Response: Response data.
         """
         return requests.get(url, headers=headers, stream=stream)
-    
-    def execute_post(self, url: str, request_body: dict, headers: dict = None, stream=False) -> Response:
+
+    def execute_post(
+        self, url: str, request_body: dict, headers: dict = None, stream=False
+    ) -> Response:
         """Sends a POST request to provider.
 
         Args:
@@ -413,11 +411,11 @@ class API(IHTTPSourceAPI):
             requests.Response: Response data.
         """
         if headers:
-            headers.update({'content-type':'application/json'})
+            headers.update({"content-type": "application/json"})
         else:
-            headers = {'content-type':'application/json'}
+            headers = {"content-type": "application/json"}
         return requests.post(url, json=request_body, headers=headers, stream=stream)
-    
+
     def execute_delete(self, url: str) -> Response:
         """Sends a DELETE request to provider.
 

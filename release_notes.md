@@ -177,3 +177,35 @@ BugFixes without ticket
 3. [TH2-4959] - Added deprecation warning.
 4. [TH2-5048] - Added typing hints for resolver methods.
 5. [TH2-4974] - Added resolver for getting group in message.
+
+
+# v3.1.0.0
+
+## User impact and migration instructions
+1. [I] `max_url_length` argument of `Download messages` commands was removed.
+   [M] Just remove the usage of this argument if you have used it.
+
+## Features
+1. Now you can import resolvers just importing `init_resolvers_by_import` module.
+   Example: `from th2_data_services.data_source.lwdp import init_resolvers_by_import`
+2. `Download messages` commands store the messages on the disc and return `Data` object now. 
+   So you don't need to read the file manually. 
+3. [TH2-5140] `Download messages` commands now use new endpoints to download messages. 
+   Tasks are created for each download request. If something goes wrong and task fails its 
+   status can now be seen in Data object (data.metadata) returned by download commands.
+   Some old `Download messages` command fields were changed:
+      - max_url_length -- removed
+      - fast_fail -- added
+
+## Improvements
+1. Changed the way how to init the module resolvers. 
+   We made it like it works in the `traceback_with_variables` library. 
+   Now you can import them just importing `init_resolvers_by_import` module.
+   Example: `from th2_data_services.data_source.lwdp import init_resolvers_by_import`
+   Old approach via importing `from th2_data_services.data_source import lwdp` also is working.
+2. Highly improved the downloading speed of GetEventsById & GetMessagesById. 
+   They are work via async queries now.
+   Speed tests for GetEventsById:
+      - old sync approach: 75sec to download 100 Events by Ids
+      - new async approach: 1.5sec to download 100 Events by Ids, 13sec to download 1000 Events
+   

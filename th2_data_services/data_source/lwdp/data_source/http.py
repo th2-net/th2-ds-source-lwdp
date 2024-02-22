@@ -1,4 +1,4 @@
-#  Copyright 2022-2023 Exactpro (Exactpro Systems Limited)
+#  Copyright 2022-2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -42,9 +42,7 @@ from th2_data_services.data_source.lwdp.interfaces.data_source import IHTTPDataS
 # LOG logger = logging.getLogger(__name__)
 
 
-class DataSource(
-    IHTTPDataSource[EventStruct, MessageStruct, EventStubBuilder, MessageStubBuilder]
-):
+class DataSource(IHTTPDataSource[EventStruct, MessageStruct, EventStubBuilder, MessageStubBuilder]):
     """DataSource class which provide work with http LwDP."""
 
     def __init__(
