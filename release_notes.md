@@ -177,3 +177,12 @@ BugFixes without ticket
 3. [TH2-4959] - Added deprecation warning.
 4. [TH2-5048] - Added typing hints for resolver methods.
 5. [TH2-4974] - Added resolver for getting group in message.
+
+
+# v3.1.0.0
+
+## Improvements
+
+1. [TH2-5140] Updated download messages commands to new endpoint. Now command downloads the message and returns a Data object that reads the downloaded file. Status of download is also stored in the Data object metadata.
+
+2. [TH2-2799] Added possibility to use unix timestamps 
