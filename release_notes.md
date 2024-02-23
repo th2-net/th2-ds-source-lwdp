@@ -185,4 +185,4 @@ BugFixes without ticket
 
 1. [TH2-5140] Updated download messages commands to new endpoint. Now command downloads the message and returns a Data object that reads the downloaded file. Status of download is also stored in the Data object metadata.
 
-2. [TH2-2799] Added possibility to use unix timestamps 
+2. [TH2-2799] Added possibility to use unix timestamps and datetime strings in all commands that take timestamps as arguments.
