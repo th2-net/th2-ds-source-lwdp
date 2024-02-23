@@ -178,8 +178,8 @@ class GetEventScopes(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         cache: bool = False,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -191,8 +191,8 @@ class GetEventScopes(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -263,8 +263,8 @@ class GetMessageAliases(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         cache: bool = False,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -276,8 +276,8 @@ class GetMessageAliases(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -350,8 +350,8 @@ class GetMessageGroups(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         cache: bool = False,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -363,8 +363,8 @@ class GetMessageGroups(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -484,8 +484,8 @@ class GetPages(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         result_limit: int = None,
         cache: bool = False,
         char_enc: str = "utf-8",
@@ -498,8 +498,8 @@ class GetPages(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             result_limit (Optional, int): Return Result Limit.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
@@ -742,10 +742,10 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
 
     def __init__(
         self,
-        start_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
         book_id: str,
         scopes: List[str],
-        end_timestamp: Optional[datetime] = None,
+        end_timestamp: Optional[Union[datetime, str, int]] = None,
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -761,10 +761,10 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         """GetEventsByBookByScopes constructor.
 
         Args:
-            start_timestamp: Start timestamp of search.
+            start_timestamp: Start timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             book_id: Book ID for messages.
             scopes: Scope names for events.
-            end_timestamp: End timestamp of search.
+            end_timestamp: End timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
             result_count_limit: Result count limit.
@@ -1034,13 +1034,13 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
 
     def __init__(
         self,
-        start_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
         book_id: str,
         streams: Union[List[Union[str, Streams, Stream]], Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        end_timestamp: datetime = None,
+        end_timestamp: Union[datetime, str, int] = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = False,
         # Non-data source args.
@@ -1054,14 +1054,14 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         """GetMessagesByBookByStreams constructor.
 
         Args:
-            start_timestamp: Start timestamp of search.
+            start_timestamp: Start timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             book_id: Book ID for messages
             streams: List of aliases to request. If direction is not specified all directions will be requested for stream.
             message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             search_direction: Search direction.
             result_count_limit: Result count limit.
-            end_timestamp: End timestamp of search.
+            end_timestamp: End timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             response_formats: The format of the response
             keep_open: If the search has reached the current moment.
                 It needs to wait further for the appearance of new data.
@@ -1377,8 +1377,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
     def __init__(
         self,
         filename: str,
-        start_timestamp: datetime,
-        end_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
         sort: bool = None,
@@ -1392,8 +1392,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         Args:
             filename: Filename of downloaded files.
-            start_timestamp: Sets the search starting point.
-            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
 
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
@@ -1463,8 +1463,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
     def __init__(
         self,
-        start_timestamp: datetime,
-        end_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
         sort: bool = None,
@@ -1481,8 +1481,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         """GetMessagesByBookByGroups Constructor.
 
         Args:
-            start_timestamp: Sets the search starting point.
-            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
 
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
