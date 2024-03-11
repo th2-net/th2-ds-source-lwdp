@@ -11,12 +11,16 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+import asyncio
 from abc import abstractmethod
 from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
+
+import http as aiohttp
 from deprecated.classic import deprecated
+import json
 
 import requests
 from th2_data_services.data import Data
@@ -614,6 +618,25 @@ class GetEventById(IHTTPCommand):
         else:
             return response.json()
 
+    async def async_handle(self, data_source: DataSource) -> dict:  # noqa: D102
+        api: API = data_source.source_api
+        url = api.get_url_find_event_by_id(self._id)
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                json_response = await response.text()
+
+                if response.status == 404 and self._stub_status:
+                    stub = data_source.event_stub_builder.build(
+                        {data_source.event_struct.EVENT_ID: self._id}
+                    )
+                    return stub
+                elif response.status == 404:
+                    # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
+                    raise EventNotFound(self._id, "Unable to find the event")
+                else:
+                    return json.loads(json_response)
+
 
 class GetEventsById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
@@ -640,12 +663,26 @@ class GetEventsById(IHTTPCommand):
         self._stub_status = use_stub
 
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
+        # return self._sync_handle(data_source)
+        return asyncio.run(self._async_handle(data_source))
+
+    def _sync_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         result = []
         for event_id in self._ids:
             event = GetEventById(event_id, use_stub=self._stub_status).handle(data_source)
             result.append(event)
 
         return result
+
+    async def _async_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
+        coros = []
+        for event_id in self._ids:
+            co_event = GetEventById(event_id, use_stub=self._stub_status).async_handle(data_source)
+            coros.append(co_event)
+
+        events = await asyncio.gather(*coros)
+
+        return events
 
 
 class GetEventsByPage(IHTTPCommand):
@@ -975,6 +1012,33 @@ class GetMessageById(IHTTPCommand):
         else:
             return response.json()
 
+    async def async_handle(self, data_source: DataSource) -> dict:  # noqa: D102
+        api: API = data_source.source_api
+        if self._response_formats in [["JSON_PARSED", "BASE_64"], ["BASE_64", "JSON_PARSED"], None]:
+            only_raw = False
+        elif self._response_formats == ["BASE_64"]:
+            only_raw = True
+        else:
+            raise Exception(
+                "response_formats should be either ['BASE_64'] or ['JSON_PARSED','BASE_64']"
+            )
+        url = api.get_url_find_message_by_id(self._id, only_raw)
+
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url) as response:
+                json_response = await response.text()
+
+                if response.status in (404, 408) and self._stub_status:
+                    stub = data_source.message_stub_builder.build(
+                        {data_source.message_struct.MESSAGE_ID: self._id}
+                    )
+                    return stub
+                elif response.status in (404, 408):
+                    # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
+                    raise MessageNotFound(self._id, "Unable to find the message")
+                else:
+                    return json.loads(json_response)
+
 
 class GetMessagesById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
@@ -1005,6 +1069,10 @@ class GetMessagesById(IHTTPCommand):
         self._response_formats = response_formats
 
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
+        # return self._sync_handle(data_source)
+        return asyncio.run(self._async_handle(data_source))
+
+    def _sync_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         result = []
         for message_id in self._ids:
             message = GetMessageById(
@@ -1015,6 +1083,18 @@ class GetMessagesById(IHTTPCommand):
             result.append(message)
 
         return result
+
+    async def _async_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
+        coros = []
+        for message_id in self._ids:
+            co_event = GetMessageById(
+                message_id, use_stub=self._stub_status, response_formats=self._response_formats
+            ).async_handle(data_source)
+            coros.append(co_event)
+
+        messages = await asyncio.gather(*coros)
+
+        return messages
 
 
 @deprecated(
@@ -1173,8 +1253,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         streams: List[str] = None,
-        # Non-data source args.
-        max_url_length: int = 2048,
+        fast_fail: bool = True,
     ):
         """DownloadMessagesByPageGzip Constructor.
 
@@ -1185,8 +1264,11 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
-            max_url_length: API request url max length.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -1199,7 +1281,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         self._response_formats = response_formats
         self._keep_open = keep_open
         self._streams = streams
-        self._max_url_length = max_url_length
+        self._fast_fail = fast_fail
 
         if streams is not None:
             _check_list_or_tuple(self._streams, var_name="streams")
@@ -1231,44 +1313,49 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             sort=self._sort,
             response_formats=self._response_formats,
             keep_open=self._keep_open,
-            max_url_length=self._max_url_length,
+            fast_fail=self._fast_fail,
         )
 
 
-def _download_messages(api, urls, headers, filename):
+def _download_messages(api, url, raw_body, headers, filename):
     """Downloads messages from LwDP and store to jsons.gz files.
 
     Args:
         api:
         urls:
+        body:
         headers:
         filename:
 
     Returns:
-        None
+        Status dictionary
     """
 
-    def do_req_and_store(fn, headers, url):
+    def do_req_and_store(fn, headers, url, raw_body):
         with open(fn, "wb") as file:
+            task_id = None
             try:
-                response = api.execute_request(url, headers=headers, stream=True)
-                response.raise_for_status()
+                response = api.execute_post(url, raw_body)
+                task_id = json.loads(response.text)["taskID"]
+                task_request_url = api.get_download(task_id)
+                messages_response = api.execute_request(
+                    task_request_url, headers=headers, stream=True
+                )
 
-                copyfileobj(response.raw, file)
+                copyfileobj(messages_response.raw, file)
+                status_url = api.get_download_status(task_id)
+                status_response = api.execute_request(status_url)
+
+                return json.loads(status_response.text)
+
             except requests.exceptions.HTTPError as e:
-                print(e)
-                print()
-                raise
+                raise Exception(e)
 
-    if filename.endswith(".gz"):
-        filename = filename[:-3]
+            finally:
+                if task_id:
+                    api.execute_delete(task_request_url)
 
-    if len(urls) == 1:
-        do_req_and_store(f"{filename}.gz", headers, urls[0])
-
-    else:
-        for num, url in enumerate(urls):
-            do_req_and_store(f"{filename}.{num + 1}.gz", headers, url)
+    return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
 
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1296,10 +1383,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        keep_open: bool = None,
-        streams: List[str] = None,
-        # Non-data source args.
-        max_url_length: int = 2048,
+        streams: List[str] = [],
+        fast_fail: bool = True,
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
 
@@ -1310,27 +1395,30 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
-            max_url_length: API request url max length.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         self._filename = filename
+        if self._filename.endswith(".gz"):
+            self._filename = self._filename[:-3]
         self._page = page
         self._book_id = book_id
         self._groups = groups
         self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
-        self._keep_open = keep_open
-        self._max_url_length = max_url_length
+        self._fast_fail = fast_fail
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
             _check_list_or_tuple(self._streams, var_name="streams")
 
-    def handle(self, data_source: DataSource):
+    def handle(self, data_source: DataSource) -> Data:
         page = _get_page_object(self._book_id, self._page, data_source)
         self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
         self._end_timestamp = (
@@ -1340,21 +1428,24 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         )
         self._book_id = page.book
         api = data_source.source_api
-        urls = api.get_download_messages(
+        url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
-            stream=self._streams,
+            streams=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
-            keep_open=self._keep_open,
-            max_url_length=self._max_url_length,
+            fast_fail=self._fast_fail,
         )
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        _download_messages(api, urls, headers, self._filename)
+        status = _download_messages(api, url, body, headers, self._filename)
+
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
+            {"Task status": status}
+        )
 
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
@@ -1383,10 +1474,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        keep_open: bool = None,
-        streams: List[str] = None,
-        # Non-data source args.
-        max_url_length: int = 2048,
+        streams: List[str] = [],
+        fast_fail: bool = True,
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
 
@@ -1401,15 +1490,19 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                   (You cannot specify a direction in groups unlike streams.
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
-            max_url_length: API request url max length.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         _check_datetime(start_timestamp)
         _check_datetime(end_timestamp)
         self._filename = filename
+        if self._filename.endswith(".gz"):
+            self._filename = self._filename[:-3]
         if isinstance(start_timestamp, datetime):
             self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
         if isinstance(start_timestamp, str):
@@ -1426,9 +1519,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._streams = streams
         self._sort = sort
         self._response_formats = response_formats
-        self._keep_open = keep_open
         self._book_id = book_id
-        self._max_url_length = max_url_length
+        self._fast_fail = fast_fail
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1436,20 +1528,21 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
     def handle(self, data_source: DataSource):
         api = data_source.source_api
-        urls = api.get_download_messages(
+        url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
-            stream=self._streams,
+            streams=self._streams,
             sort=self._sort,
             response_formats=self._response_formats,
-            keep_open=self._keep_open,
-            max_url_length=self._max_url_length,
+            fast_fail=self._fast_fail,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        _download_messages(api, urls, headers, self._filename)
+        status = _download_messages(api, url, body, headers, self._filename)
+
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status)
 
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
@@ -1491,7 +1584,10 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
@@ -1757,7 +1853,10 @@ class GetMessagesByPageByGroups(SSEHandlerClassBase):
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
-            streams: List of streams to search messages from.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.

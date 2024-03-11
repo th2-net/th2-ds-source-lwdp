@@ -17,7 +17,7 @@ from th2_data_services.data_source.lwdp.event_tree import ETCDriver
 from th2_data_services.data_source.lwdp.streams import Streams, Stream
 from th2_data_services.data import Data
 from datetime import datetime
-from th2_data_services.data_source.lwdp.utils import Page
+from th2_data_services.data_source.lwdp import Page
 
 # About this example
 #   The following document shows common features of the library.

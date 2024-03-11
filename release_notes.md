@@ -181,8 +181,45 @@ BugFixes without ticket
 
 # v3.1.0.0
 
+## User impact and migration instructions
+1. [I] `max_url_length` argument of `Download messages` commands was removed.
+   [M] Just remove the usage of this argument if you have used it.
+
+## Features
+1. Now you can import resolvers just importing `init_resolvers_by_import` module.
+   Example: `from th2_data_services.data_source.lwdp import init_resolvers_by_import`
+2. `Download messages` commands store the messages on the disc and return `Data` object now. 
+   So you don't need to read the file manually. 
+3. [TH2-5140] `Download messages` commands now use new endpoints to download messages. 
+   Tasks are created for each download request. If something goes wrong and task fails its 
+   status can now be seen in Data object (data.metadata) returned by download commands.
+   Some old `Download messages` command fields were changed:
+      - max_url_length -- removed
+      - fast_fail -- added
+
 ## Improvements
+1. Changed the way how to init the module resolvers. 
+   We made it like it works in the `traceback_with_variables` library. 
+   Now you can import them just importing `init_resolvers_by_import` module.
+   Example: `from th2_data_services.data_source.lwdp import init_resolvers_by_import`
+   Old approach via importing `from th2_data_services.data_source import lwdp` also is working.
+2. Highly improved the downloading speed of GetEventsById & GetMessagesById. 
+   They are work via async queries now.
+   Speed tests for GetEventsById:
+      - old sync approach: 75sec to download 100 Events by Ids
+      - new async approach: 1.5sec to download 100 Events by Ids, 13sec to download 1000 Events
+3. [TH2-5140] `Download messages` commands now return a Data object that reads the 
+    downloaded file. Don't need to read it manually as before.
 
-1. [TH2-5140] Updated download messages commands to new endpoint. Now command downloads the message and returns a Data object that reads the downloaded file. Status of download is also stored in the Data object metadata.
-
-2. [TH2-2799] Added possibility to use unix timestamps and datetime strings in all commands that take timestamps as arguments.
+4. [TH2-2799/TH2-5156] Added possibility to use unix timestamps and datetime
+    strings in all commands that take timestamps as arguments.
+    timestamp - can be either seconds, microseconds or nanoseconds.
+    datetime string - can be in many formats:
+    E.g.
+    - 2023-12-27T23:42:15.123456Z 
+    - 2023-12-27T23:42:15.123456
+    - 2023-12-27T23:42:15.123
+    - 2023-12-27T23:42:15
+    - 2023-12-27 23:42:15.123456
+    - 2023-12-27 23:42:15.123
+    - 2023-12-27 23:42:15
