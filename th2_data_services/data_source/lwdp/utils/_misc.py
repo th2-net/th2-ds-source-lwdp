@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 from datetime import datetime, timezone
-from typing import List
+from typing import List, Union
 
 from th2_data_services.data_source.lwdp import ResponseFormat
 from th2_data_services.data_source.lwdp.utils._response_formats import ResponseFormatsChecker
@@ -23,9 +23,11 @@ def _check_list_or_tuple(variable, var_name):  # noqa
         raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
 
-def _check_datetime(dt: datetime):
-    if not isinstance(dt, datetime):
-        raise TypeError("Provided timestamp should be `datetime` object in UTC time")
+def _check_timestamp(dt: Union[datetime, str, int]):
+    if not isinstance(dt, datetime) and not isinstance(dt, str) and not isinstance(dt, int):
+        raise TypeError(
+            "Provided timestamp should be `datetime`, `str` or `int` object in UTC time"
+        )
 
 
 def _check_response_formats(formats: List[str]):

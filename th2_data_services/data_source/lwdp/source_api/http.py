@@ -14,7 +14,7 @@
 
 # LOG import logging
 from http import HTTPStatus
-from typing import List, Generator, Optional, Union
+from typing import List, Generator, Optional, Union, Tuple
 
 import requests
 from requests import Response
@@ -285,18 +285,17 @@ class API(IHTTPSourceAPI):
         urls = self.__split_requests(url, groups, max_url_length)
         return [self.__encode_url(url) for url in urls]
 
-    def get_download_messages(
+    def post_download_messages(
         self,
         start_timestamp: int,
         end_timestamp: int,
         book_id: str,
         groups: List[str],
-        sort: bool = None,
+        sort: bool = False,
         response_formats: List[str] = None,
-        stream: List[str] = None,
-        keep_open: bool = None,
-        max_url_length=2048,
-    ) -> List[str]:
+        streams: List[str] = [],
+        fast_fail: bool = True,
+    ) -> Tuple[str, dict]:
         """REST-API `download/messages` call downloads messages in specified time range in json format.
 
         Args:
@@ -309,38 +308,55 @@ class API(IHTTPSourceAPI):
             sort: Enables message sorting in the request
             response_formats: Response format
             stream: List of streams (optionally with direction) to include in the response.
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range
-            max_url_length: API request url max length.
+            fast_fail: If true, stops task execution right after first error.
 
         Returns:
-            URL for downloading messages.
+            URL for downloading messages and dictionary for request body.
         """
         kwargs = {
+            "resource": "MESSAGES",
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
-            "bookId": book_id,
+            "bookID": book_id,
             "sort": sort,
-            "responseFormat": response_formats,
-            "keepOpen": keep_open,
-            "stream": stream,
+            "responseFormats": response_formats,
+            "streams": streams,
+            "groups": groups,
+            "fastFail": fast_fail,
         }
-        groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
-        options = []
-        url = f"{self._url}/download/messages?"
+        url = f"{self._url}/download"
 
-        for k, v in kwargs.items():
-            if v is None:
-                continue
-            if k in ["responseFormat", "stream"]:
-                for item in v:
-                    options.append(self._option(k, item))
-            else:
-                options.append(self._option(k, v))
+        return self.__encode_url(url), kwargs
 
-        options_url = "&".join(options)
-        url = f"{url}{options_url}"
-        urls = self.__split_requests(url, groups, max_url_length)
-        return [self.__encode_url(url) for url in urls]
+    def get_download(
+        self,
+        task_id: str,
+    ) -> str:
+        """REST-API 'download/{taskID}' for downloading specified task's data.
+
+        Args:
+            task_id: Task ID for downloading.
+
+        Returns:
+            URL for downloading task.
+        """
+        url = f"{self._url}/download/{task_id}"
+        return self.__encode_url(url)
+
+    def get_download_status(
+        self,
+        task_id: str,
+    ) -> str:
+        """REST-API 'download/{taskID}/status' for getting specified task's status.
+
+        Args:
+            task_id: Task ID for task status.
+
+        Returns:
+            URL for getting task status.
+        """
+        url = f"{self._url}/download/{task_id}/status"
+        return self.__encode_url(url)
 
     def execute_sse_request(self, url: str) -> Generator[bytes, None, None]:
         """Create stream connection.
@@ -379,6 +395,37 @@ class API(IHTTPSourceAPI):
             requests.Response: Response data.
         """
         return requests.get(url, headers=headers, stream=stream)
+
+    def execute_post(
+        self, url: str, request_body: dict, headers: dict = None, stream=False
+    ) -> Response:
+        """Sends a POST request to provider.
+
+        Args:
+            url: Url for a post request to rpt-data-provider.
+            request_body: Dictionary for request parameters.
+            headers: Dictionary of headers for request.
+            stream: Gets response as a stream if True.
+
+        Returns:
+            requests.Response: Response data.
+        """
+        if headers:
+            headers.update({"content-type": "application/json"})
+        else:
+            headers = {"content-type": "application/json"}
+        return requests.post(url, json=request_body, headers=headers, stream=stream)
+
+    def execute_delete(self, url: str) -> Response:
+        """Sends a DELETE request to provider.
+
+        Args:
+            url: Url for a delete request to rpt-data-provider.
+
+        Returns:
+            requests.Response: Response data.
+        """
+        return requests.delete(url)
 
     def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
         if len(fixed_url + max(optional, key=len)) >= max_url_len:

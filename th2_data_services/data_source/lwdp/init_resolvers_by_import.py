@@ -1,4 +1,4 @@
-#  Copyright 2023-2024 Exactpro (Exactpro Systems Limited)
+#  Copyright 2024 Exactpro (Exactpro Systems Limited)
 #
 #  Licensed under the Apache License, Version 2.0 (the "License");
 #  you may not use this file except in compliance with the License.
@@ -11,10 +11,18 @@
 #  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
+from th2_data_services.config import options as _o
 
-from .stub_builder import BrokenEvent, BrokenMessage
-from .message_response_format import ResponseFormat
-from .streams import Stream, Streams
-from .page import Page
+from th2_data_services.data_source.lwdp.resolver import (
+    EventFieldResolver,
+    MessageFieldResolver,
+    SubMessageFieldResolver,
+    ExpandedMessageFieldResolver,
+)
 
-from . import init_resolvers_by_import
+_o.setup_resolvers(
+    EventFieldResolver(),
+    MessageFieldResolver(),
+    SubMessageFieldResolver(),
+    ExpandedMessageFieldResolver(),
+)
