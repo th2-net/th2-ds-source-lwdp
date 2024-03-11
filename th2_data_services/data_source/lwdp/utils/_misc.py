@@ -23,7 +23,7 @@ def _check_list_or_tuple(variable, var_name):  # noqa
         raise TypeError(f"{var_name} argument has to be list or tuple type. Got {type(variable)}")
 
 
-def _check_datetime(dt: Union[datetime, str, int]):
+def _check_timestamp(dt: Union[datetime, str, int]):
     if not isinstance(dt, datetime) and not isinstance(dt, str) and not isinstance(dt, int):
         raise TypeError(
             "Provided timestamp should be `datetime`, `str` or `int` object in UTC time"

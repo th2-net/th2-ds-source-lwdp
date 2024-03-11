@@ -45,7 +45,7 @@ from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
 from th2_data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services.data_source.lwdp.filters.event_filters import EventFilter
 from th2_data_services.data_source.lwdp.utils import (
-    _check_datetime,
+    _check_timestamp,
     _check_list_or_tuple,
     _check_response_formats,
 )
@@ -212,8 +212,8 @@ class GetEventScopes(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
             if isinstance(start_timestamp, datetime):
                 self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
             if isinstance(start_timestamp, str):
@@ -297,8 +297,8 @@ class GetMessageAliases(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
             if isinstance(start_timestamp, datetime):
                 self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
             if isinstance(start_timestamp, str):
@@ -384,8 +384,8 @@ class GetMessageGroups(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
             if isinstance(start_timestamp, datetime):
                 self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
             if isinstance(start_timestamp, str):
@@ -514,8 +514,8 @@ class GetPages(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
             if isinstance(start_timestamp, datetime):
                 self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
             if isinstance(start_timestamp, str):
@@ -812,9 +812,9 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_datetime(start_timestamp)
+        _check_timestamp(start_timestamp)
         if end_timestamp:
-            _check_datetime(end_timestamp)
+            _check_timestamp(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -1153,9 +1153,9 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
-        _check_datetime(start_timestamp)
+        _check_timestamp(start_timestamp)
         if end_timestamp:
-            _check_datetime(end_timestamp)
+            _check_timestamp(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -1498,8 +1498,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
-        _check_datetime(start_timestamp)
-        _check_datetime(end_timestamp)
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
         self._filename = filename
         if self._filename.endswith(".gz"):
             self._filename = self._filename[:-3]
@@ -1596,8 +1596,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
-        _check_datetime(start_timestamp)
-        _check_datetime(end_timestamp)
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,

@@ -12,4 +12,4 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from ._misc import _check_list_or_tuple, _check_datetime, _check_response_formats
+from ._misc import _check_list_or_tuple, _check_timestamp, _check_response_formats
