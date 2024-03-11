@@ -25,7 +25,12 @@ import json
 import requests
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound
-from th2_data_services.utils.converters import DatetimeConverter, ProtobufTimestampConverter
+from th2_data_services.utils.converters import (
+    UniversalDatetimeStringConverter,
+    UnixTimestampConverter,
+    DatetimeConverter,
+    ProtobufTimestampConverter,
+)
 
 from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
@@ -40,7 +45,7 @@ from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
 from th2_data_services.utils.decode_error_handler import UNICODE_REPLACE_HANDLER
 from th2_data_services.data_source.lwdp.filters.event_filters import EventFilter
 from th2_data_services.data_source.lwdp.utils import (
-    _check_datetime,
+    _check_timestamp,
     _check_list_or_tuple,
     _check_response_formats,
 )
@@ -177,8 +182,8 @@ class GetEventScopes(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         cache: bool = False,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -190,8 +195,8 @@ class GetEventScopes(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -207,10 +212,22 @@ class GetEventScopes(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         self._book_id = book_id
 
@@ -250,8 +267,8 @@ class GetMessageAliases(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         cache: bool = False,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -263,8 +280,8 @@ class GetMessageAliases(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -280,10 +297,22 @@ class GetMessageAliases(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         self._book_id = book_id
 
@@ -325,8 +354,8 @@ class GetMessageGroups(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         cache: bool = False,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
@@ -338,8 +367,8 @@ class GetMessageGroups(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
@@ -355,10 +384,22 @@ class GetMessageGroups(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         self._book_id = book_id
 
@@ -447,8 +488,8 @@ class GetPages(SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
-        start_timestamp: datetime = None,
-        end_timestamp: datetime = None,
+        start_timestamp: Union[datetime, str, int] = None,
+        end_timestamp: Union[datetime, str, int] = None,
         result_limit: int = None,
         cache: bool = False,
         char_enc: str = "utf-8",
@@ -461,8 +502,8 @@ class GetPages(SSEHandlerClassBase):
 
         Args:
             book_id (str): Book ID.
-            start_timestamp (datetime): Start Timestamp.
-            end_timestamp (datetime): End Timestamp.
+            start_timestamp (datetime): Start Timestamp. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp (datetime): End Timestamp. Can be datetime object, datetime string or unix timestamp integer.
             result_limit (Optional, int): Return Result Limit.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             char_enc: Encoding for the byte stream.
@@ -473,10 +514,22 @@ class GetPages(SSEHandlerClassBase):
         if all(timestamp is None for timestamp in (start_timestamp, end_timestamp)):
             self._all_results = True
         else:
-            _check_datetime(start_timestamp)
-            _check_datetime(end_timestamp)
-            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            _check_timestamp(start_timestamp)
+            _check_timestamp(end_timestamp)
+            if isinstance(start_timestamp, datetime):
+                self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+            if isinstance(start_timestamp, str):
+                self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(
+                    start_timestamp
+                )
+            if isinstance(start_timestamp, int):
+                self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
             self._all_results = False
         super().__init__(
             cache=cache,
@@ -726,10 +779,10 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
 
     def __init__(
         self,
-        start_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
         book_id: str,
         scopes: List[str],
-        end_timestamp: Optional[datetime] = None,
+        end_timestamp: Optional[Union[datetime, str, int]] = None,
         parent_event: str = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -745,10 +798,10 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         """GetEventsByBookByScopes constructor.
 
         Args:
-            start_timestamp: Start timestamp of search.
+            start_timestamp: Start timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             book_id: Book ID for messages.
             scopes: Scope names for events.
-            end_timestamp: End timestamp of search.
+            end_timestamp: End timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             parent_event: Match events to the specified parent.
             search_direction: Search direction.
             result_count_limit: Result count limit.
@@ -759,9 +812,9 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
             max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
-        _check_datetime(start_timestamp)
+        _check_timestamp(start_timestamp)
         if end_timestamp:
-            _check_datetime(end_timestamp)
+            _check_timestamp(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -772,10 +825,21 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         self._cache = cache
         # +TODO - we can make timestamps optional datetime or int. We have to check that it's in ms.
 
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(end_timestamp) if end_timestamp else None
-        )
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if end_timestamp:
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        else:
+            self._end_timestamp = None
         self._parent_event = parent_event
         self._search_direction = search_direction
         self._result_count_limit = result_count_limit
@@ -1050,13 +1114,13 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
 
     def __init__(
         self,
-        start_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
         book_id: str,
         streams: Union[List[Union[str, Streams, Stream]], Streams],
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
-        end_timestamp: datetime = None,
+        end_timestamp: Union[datetime, str, int] = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = False,
         # Non-data source args.
@@ -1070,14 +1134,14 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         """GetMessagesByBookByStreams constructor.
 
         Args:
-            start_timestamp: Start timestamp of search.
+            start_timestamp: Start timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             book_id: Book ID for messages
             streams: List of aliases to request. If direction is not specified all directions will be requested for stream.
             message_ids: List of message IDs to restore search. If given, it has
                 the highest priority and ignores streams (uses streams from ids), startTimestamp and resumeFromId.
             search_direction: Search direction.
             result_count_limit: Result count limit.
-            end_timestamp: End timestamp of search.
+            end_timestamp: End timestamp of search. Can be datetime object, datetime string or unix timestamp integer.
             response_formats: The format of the response
             keep_open: If the search has reached the current moment.
                 It needs to wait further for the appearance of new data.
@@ -1089,9 +1153,9 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
-        _check_datetime(start_timestamp)
+        _check_timestamp(start_timestamp)
         if end_timestamp:
-            _check_datetime(end_timestamp)
+            _check_timestamp(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -1111,11 +1175,21 @@ class GetMessagesByBookByStreams(SSEHandlerClassBase):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
 
-        # + TODO - we can make timestamps optional datetime or int
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = (
-            DatetimeConverter.to_nanoseconds(end_timestamp) if end_timestamp else None
-        )
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if end_timestamp:
+            if isinstance(end_timestamp, datetime):
+                self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, str):
+                self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+            if isinstance(end_timestamp, int):
+                self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        else:
+            self._end_timestamp = None
 
         if self._start_timestamp is None and not self._message_ids:
             raise TypeError("One of start_timestamp or message_id arguments must not be empty")
@@ -1280,7 +1354,6 @@ def _download_messages(api, url, raw_body, headers, filename):
             finally:
                 if task_id:
                     api.execute_delete(task_request_url)
-                    pass
 
     return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
 
@@ -1329,9 +1402,9 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
-        _check_response_formats(response_formats) 
+        _check_response_formats(response_formats)
         self._filename = filename
-        if self._filename.endswith('.gz'):
+        if self._filename.endswith(".gz"):
             self._filename = self._filename[:-3]
         self._page = page
         self._book_id = book_id
@@ -1370,7 +1443,9 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(f'{self._filename}.gz', gzip=True).update_metadata({"Task status": status})
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
+            {"Task status": status}
+        )
 
 
 class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
@@ -1393,8 +1468,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
     def __init__(
         self,
         filename: str,
-        start_timestamp: datetime,
-        end_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
         sort: bool = None,
@@ -1406,8 +1481,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         Args:
             filename: Filename of downloaded files.
-            start_timestamp: Sets the search starting point.
-            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
 
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
@@ -1423,13 +1498,23 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
-        _check_datetime(start_timestamp)
-        _check_datetime(end_timestamp)
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
         self._filename = filename
-        if self._filename.endswith('.gz'):
+        if self._filename.endswith(".gz"):
             self._filename = self._filename[:-3]
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
         self._streams = streams
         self._sort = sort
@@ -1457,7 +1542,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(f'{self._filename}.gz', gzip=True).update_metadata(status)
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status)
 
 
 class GetMessagesByBookByGroups(SSEHandlerClassBase):
@@ -1471,8 +1556,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
 
     def __init__(
         self,
-        start_timestamp: datetime,
-        end_timestamp: datetime,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
         sort: bool = None,
@@ -1489,8 +1574,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         """GetMessagesByBookByGroups Constructor.
 
         Args:
-            start_timestamp: Sets the search starting point.
-            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
 
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
@@ -1511,8 +1596,8 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
-        _check_datetime(start_timestamp)
-        _check_datetime(end_timestamp)
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
         super().__init__(
             cache=cache,
             buffer_limit=buffer_limit,
@@ -1523,8 +1608,18 @@ class GetMessagesByBookByGroups(SSEHandlerClassBase):
         self._char_enc = char_enc
         self._decode_error_handler = decode_error_handler
         self._cache = cache
-        self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
-        self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
         self._streams = streams
         self._sort = sort

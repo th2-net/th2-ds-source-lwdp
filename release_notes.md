@@ -208,4 +208,18 @@ BugFixes without ticket
    Speed tests for GetEventsById:
       - old sync approach: 75sec to download 100 Events by Ids
       - new async approach: 1.5sec to download 100 Events by Ids, 13sec to download 1000 Events
-   
+3. [TH2-5140] `Download messages` commands now return a Data object that reads the 
+    downloaded file. Don't need to read it manually as before.
+
+4. [TH2-2799/TH2-5156] Added possibility to use unix timestamps and datetime
+    strings in all commands that take timestamps as arguments.
+    timestamp - can be either seconds, microseconds or nanoseconds.
+    datetime string - can be in many formats:
+    E.g.
+    - 2023-12-27T23:42:15.123456Z 
+    - 2023-12-27T23:42:15.123456
+    - 2023-12-27T23:42:15.123
+    - 2023-12-27T23:42:15
+    - 2023-12-27 23:42:15.123456
+    - 2023-12-27 23:42:15.123
+    - 2023-12-27 23:42:15
