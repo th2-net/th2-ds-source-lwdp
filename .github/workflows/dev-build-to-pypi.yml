@@ -8,16 +8,17 @@ on:
 
 jobs:
   build-n-publish:
-    name: Dev build and Python distributions to PyPI
+    name: Dev build and publish Python distributions to PyPI
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
 
       - name: Wait for tests to succeed
-        uses: lewagon/wait-on-check-action@v1.2.0
+        uses: lewagon/wait-on-check-action@v1.3.2
         with:
           ref: ${{ github.ref }}
-          running-workflow-name: 'Dev build and Python distributions to PyPI'
+#          check-name: 'Run tests'
+          running-workflow-name: 'Dev build and publish Python distributions to PyPI'
           repo-token: ${{ secrets.GITHUB_TOKEN }}
           wait-interval: 10
           allowed-conclusions: success
@@ -45,10 +46,10 @@ jobs:
           value: ${{ steps.release_ver.outputs.value }}
 
       # Build and publish
-      - name: Set up Python 3.7
+      - name: Set up Python 3.8
         uses: actions/setup-python@v1
         with:
-          python-version: 3.7
+          python-version: 3.8
 
       - name: Install dependencies
         run: |
