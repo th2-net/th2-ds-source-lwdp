@@ -187,6 +187,14 @@ BugFixes without ticket
 
 # v3.0.1.1
 
+## User impact and migration instructions
+
+1. [I] new version of `orjson` lib require python 3.8+.
+   [M] Change your python version if you use 3.7 to 3.8+.
+
 ## BugFixes
 1. [TH2-5191] - The following commands `GetEventScopes`, `GetMessageAliases`, 
-   `GetMessageGroups` return list of lists instead of single list
+   `GetMessageGroups` return list of lists instead of a single list.
+2. [TH2-5193] - orjson versions 3.7.0 through 3.9.14 library has vulnerability
+   https://devhub.checkmarx.com/cve-details/CVE-2024-27454/. 
+   Updated to >=3.10,<4.
