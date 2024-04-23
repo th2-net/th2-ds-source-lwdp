@@ -176,4 +176,17 @@ BugFixes without ticket
 2. [TH2-4945] - Refactoring: Remove GRPC.
 3. [TH2-4959] - Added deprecation warning.
 4. [TH2-5048] - Added typing hints for resolver methods.
-5. [TH2-4974] - Added resolver for getting group in message.
+5. [TH2-4974] - Added resolver for getting a group in the message.
+
+
+# v3.0.1.0
+
+## Features
+
+1. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands.
+
+# v3.0.1.1
+
+## BugFixes
+1. [TH2-5191] - The following commands `GetEventScopes`, `GetMessageAliases`, 
+   `GetMessageGroups` return list of lists instead of single list
