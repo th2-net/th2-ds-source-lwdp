@@ -176,7 +176,14 @@ BugFixes without ticket
 2. [TH2-4945] - Refactoring: Remove GRPC.
 3. [TH2-4959] - Added deprecation warning.
 4. [TH2-5048] - Added typing hints for resolver methods.
-5. [TH2-4974] - Added resolver for getting group in message.
+5. [TH2-4974] - Added resolver for getting a group in the message.
+
+
+# v3.0.1.0
+
+## Features
+
+1. [Th2-4975] Added streams parameter to download and get-messages-by-groups/pages sse commands.
 
 
 # v3.1.0.0
@@ -223,3 +230,21 @@ BugFixes without ticket
     - 2023-12-27 23:42:15.123456
     - 2023-12-27 23:42:15.123
     - 2023-12-27 23:42:15
+
+
+# v3.1.0.1
+
+## User impact and migration instructions
+
+1. [I] new version of `orjson` & `aiohttp` lib require python 3.8+.
+   [M] Change your python version if you use 3.7 to 3.8+.
+
+## BugFixes
+1. [TH2-5191] - The following commands `GetEventScopes`, `GetMessageAliases`, 
+   `GetMessageGroups` return list of lists instead of a single list.
+2. [TH2-5193] - orjson versions 3.7.0 through 3.9.14 library has vulnerability
+   https://devhub.checkmarx.com/cve-details/CVE-2024-27454/. 
+   Updated to >=3.10,<4.
+3. [TH2-5193] - aiohttp library versions < 3.9.4 have vulnerability
+   https://security.snyk.io/package/pip/aiohttp. 
+   Updated to >=3.9.5,<4.

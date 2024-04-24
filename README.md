@@ -1,10 +1,11 @@
-# Lightweight Data Provider Data Source (major version 3).
-# Introduction
+# Lightweight Data Provider Data Source (major version 3)
+
+## Introduction
 This repository is an implementation of data-services data source for Lightweight Data Provider V3.
 
-Most commands that this library provides can be seen in example below.
+Most commands that this library provides can be seen in the example below.
 
-# Example
+## Example
 <!-- start get_started_example.py -->
 ```python
 from typing import List
@@ -200,16 +201,15 @@ etc.recover_unknown_events()
 # See more info about how to use ETC in th2-data-services lib documentation.
 
 ```
-<!-- end get_started_example.py -->
 
-# Changes in LwDP 3.0.0
+## Changes in LwDP 3.* against LwDP 2.*
 
 Changes mostly affect how messages are represented in LwDP V3.
 
-In V3 message id will also get a group section and new format will look like:
-book:group:session_alias:direction:timestamp:sequence
+In V3 message id will also get a group section, and the new format will look like:
+`book:group:session_alias:direction:timestamp:sequence`
 
-Main changes are in body field of message:
+The Main changes are in the body field of a message:
 * METADATA
   * the metadata does not contain duplicated information from the top message (direction, sequence, timestamp, sessionId). Only subsequence, messageType and protocol are left (inside metadata).
   * metadata block doesn’t have fixed structure. So if there is only 1 parsed was produced from raw message, metadata will not have this key.
