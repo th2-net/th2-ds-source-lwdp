@@ -17,6 +17,9 @@ import orjson as json
 from orjson import JSONDecodeError
 
 
+# TODO
+#   We have almost the same code in the DS-core
+#   we can use it instead.
 class BufferedJSONProcessor:
     def __init__(self, buffer_limit: int = 250):
         """BufferedJSONProcessor constructor.
@@ -48,7 +51,7 @@ class BufferedJSONProcessor:
             # Prevents StopIteration issues
             self.buffer = []
 
-    def _decode_without_buffer(self, x: str) -> dict:
+    def _decode_without_buffer(self, x: str) -> Generator:
         """Decode JSON without buffer.
 
         Args:
@@ -59,7 +62,7 @@ class BufferedJSONProcessor:
         """
         yield json.loads(x)
 
-    def _decode_with_buffer(self, x: str) -> dict:
+    def _decode_with_buffer(self, x: str) -> Generator:
         """Decode JSON with buffer.
 
         Args:

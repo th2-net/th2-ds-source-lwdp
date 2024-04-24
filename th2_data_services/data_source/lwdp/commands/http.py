@@ -55,7 +55,7 @@ Event = dict
 # LOG logger = logging.getLogger(__name__)
 
 
-class SSEHandlerClassBase(IHTTPCommand):
+class _SSEHandlerClassBase(IHTTPCommand):
     def __init__(
         self,
         cache: bool,
@@ -161,7 +161,34 @@ class SSEHandlerClassBase(IHTTPCommand):
         return self._current_handle_function(data_source)
 
 
-class GetEventScopes(SSEHandlerClassBase):
+class _SSEHandlerListEventsBase(_SSEHandlerClassBase):
+    """Special base class.
+
+    Special base class for endpoints which return list of jsons in every
+    SSE event.
+    """
+
+    def _data_object(self, data_source: DataSource) -> Data[Page]:
+        """Parses SSEEvents Into Data Object.
+
+        Args:
+            data_source: DataSource
+
+        Returns:
+             Data
+        """
+        sse_events_stream = partial(self._sse_events_stream, data_source)
+        data = (
+            Data(sse_events_stream)
+            .map_stream(self._sse_handler)
+            .map_yield(lambda e: e)
+            .use_cache(self._cache)
+        )
+        data.metadata["urls"] = self._get_urls(data_source)
+        return data
+
+
+class GetEventScopes(_SSEHandlerListEventsBase):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of event scopes in book.
@@ -219,22 +246,8 @@ class GetEventScopes(SSEHandlerClassBase):
                 api.get_url_get_scopes(self._book_id, self._start_timestamp, self._end_timestamp)
             ]
 
-    def _data_object(self, data_source: DataSource) -> Data[Page]:
-        """Parses SSEEvents Into Data Object.
 
-        Args:
-            data_source: DataSource
-
-        Returns:
-             Data
-        """
-        sse_events_stream = partial(self._sse_events_stream, data_source)
-        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
-        data.metadata["urls"] = self._get_urls(data_source)
-        return data
-
-
-class GetMessageAliases(SSEHandlerClassBase):
+class GetMessageAliases(_SSEHandlerListEventsBase):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of message aliases in book.
@@ -294,22 +307,8 @@ class GetMessageAliases(SSEHandlerClassBase):
                 )
             ]
 
-    def _data_object(self, data_source: DataSource) -> Data[Page]:
-        """Parses SSEEvents Into Data Object.
 
-        Args:
-            data_source: DataSource
-
-        Returns:
-             Data
-        """
-        sse_events_stream = partial(self._sse_events_stream, data_source)
-        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
-        data.metadata["urls"] = self._get_urls(data_source)
-        return data
-
-
-class GetMessageGroups(SSEHandlerClassBase):
+class GetMessageGroups(_SSEHandlerListEventsBase):
     """A Class-Command for request to lw-data-provider.
 
     It retrieves a list of message groups in book.
@@ -369,20 +368,6 @@ class GetMessageGroups(SSEHandlerClassBase):
                 )
             ]
 
-    def _data_object(self, data_source: DataSource) -> Data[Page]:
-        """Parses SSEEvents Into Data Object.
-
-        Args:
-            data_source: DataSource
-
-        Returns:
-             Data
-        """
-        sse_events_stream = partial(self._sse_events_stream, data_source)
-        data = Data(sse_events_stream).map_stream(self._sse_handler).use_cache(self._cache)
-        data.metadata["urls"] = self._get_urls(data_source)
-        return data
-
 
 class GetBooks(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
@@ -439,7 +424,7 @@ class GetPageByName(IHTTPCommand):
             raise PageNotFound(self._page_name, self._book_id)
 
 
-class GetPages(SSEHandlerClassBase):
+class GetPages(_SSEHandlerClassBase):
     def __init__(
         self,
         book_id: str,
@@ -678,7 +663,7 @@ class GetEventsByPage(IHTTPCommand):
         )
 
 
-class GetEventsByBookByScopes(SSEHandlerClassBase):
+class GetEventsByBookByScopes(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
@@ -769,7 +754,7 @@ class GetEventsByBookByScopes(SSEHandlerClassBase):
         ]
 
 
-class GetEventsByPageByScopes(SSEHandlerClassBase):
+class GetEventsByPageByScopes(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches events stream by options.
@@ -959,7 +944,7 @@ To speed up the whole chain, all messages are stored in DB by groups but not by 
 It means that you'll get nothing by your alias, because the data in DB is in another table (for groups).
 Use the commands that get messages by Groups instead."""
 )
-class GetMessagesByBookByStreams(SSEHandlerClassBase):
+class GetMessagesByBookByStreams(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by options.
@@ -1377,7 +1362,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         _download_messages(api, urls, headers, self._filename)
 
 
-class GetMessagesByBookByGroups(SSEHandlerClassBase):
+class GetMessagesByBookByGroups(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by groups.
@@ -1562,7 +1547,7 @@ To speed up the whole chain, all messages are stored in DB by groups but not by 
 It means that you'll get nothing by your alias, because the data in DB is in another table (for groups).
 Use the commands that get messages by Groups instead."""
 )
-class GetMessagesByPageByStreams(SSEHandlerClassBase):
+class GetMessagesByPageByStreams(_SSEHandlerClassBase):
     def __init__(
         self,
         page: Union[Page, str],
@@ -1641,7 +1626,7 @@ class GetMessagesByPageByStreams(SSEHandlerClassBase):
         )
 
 
-class GetMessagesByPageByGroups(SSEHandlerClassBase):
+class GetMessagesByPageByGroups(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page & groups.
