@@ -55,7 +55,7 @@ START_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=5, m
 END_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=6, microsecond=0)
 
 # [1] Create data source object to connect to lightweight data provider.
-provider_url_link = f"http://10.100.66.105:32681"
+provider_url_link = "http://10.100.66.105:32681"
 data_source = DataSource(provider_url_link)
 
 # [2] Getting books, pages, scopes, groups and aliases.

@@ -21,7 +21,7 @@ def test_command_without_end_timestamp():
                 year=2022, month=6, day=30, hour=14, minute=0, second=0, microsecond=0
             ),
         )
-    except TypeError as te:
+    except TypeError:
         assert False
 
 

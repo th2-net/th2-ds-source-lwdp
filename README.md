@@ -65,7 +65,7 @@ START_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=5, m
 END_TIME = datetime(year=2023, month=1, day=5, hour=13, minute=57, second=6, microsecond=0)
 
 # [1] Create data source object to connect to lightweight data provider.
-provider_url_link = f"http://10.100.66.105:32681"
+provider_url_link = "http://10.100.66.105:32681"
 data_source = DataSource(provider_url_link)
 
 # [2] Getting books, pages, scopes, groups and aliases.
@@ -199,8 +199,8 @@ etc = EventTreeCollection(etc_driver)
 etc.build(events)
 etc.recover_unknown_events()
 # See more info about how to use ETC in th2-data-services lib documentation.
-
 ```
+<!-- end get_started_example.py -->
 
 ## Changes in LwDP 3.* against LwDP 2.*
 
@@ -276,3 +276,4 @@ mfr = MessageFieldResolver()
 message_data = message_data.map(mfr.expand_message)
 print(message_data) # we should now have 2 messages built from the body list of original message.
 ```
+

@@ -16,7 +16,7 @@ from typing import List
 from th2_data_services.interfaces.utils import resolver as resolver_core
 from th2_data_services.data_source.lwdp.struct import event_struct, message_struct
 
-from typing import List, Dict, Any
+from typing import Dict, Any
 
 
 class EventFieldResolver(resolver_core.EventFieldResolver):
