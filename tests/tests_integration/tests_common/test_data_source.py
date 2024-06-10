@@ -17,7 +17,7 @@ from tests.tests_integration.test_bodies.http.event_bodies import (
     root_event_body,
     plain_event_1_body,
     filter_event_3_body,
-) 
+)
 from tests.tests_integration.test_bodies.http.message_bodies import message_1_body, message_2_body
 
 
@@ -28,8 +28,11 @@ def test_issue_events(all_events):
 def test_issue_messages(all_messages):
     assert list(all_messages.data) == all_messages.expected_data_values
 
-def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups,all_messages):
-    assert sorted(list(get_messages_by_book_by_groups),key=lambda a: a['messageId']) == sorted(all_messages.expected_data_values,key=lambda a: a['messageId']) 
+
+def test_find_messages_by_book_by_groups(get_messages_by_book_by_groups, all_messages):
+    assert sorted(list(get_messages_by_book_by_groups), key=lambda a: a["messageId"]) == sorted(
+        all_messages.expected_data_values, key=lambda a: a["messageId"]
+    )
 
 
 def test_find_messages_by_pages_by_groups(get_messages_by_page_by_groups: Data):
@@ -133,7 +136,7 @@ def test_get_x_with_filters(
     get_events_with_filters: Data,
 ):
     event_case = [filter_event_3_body]
-    assert list(get_events_with_one_filter) == event_case and len(event_case) is 1
+    assert list(get_events_with_one_filter) == event_case and len(event_case) == 1
     assert list(get_events_with_filters) == event_case
 
 
@@ -152,7 +155,7 @@ def test_get_events_from_data_provider_with_error(http_data_source: DataSource):
             )
         )
         list(events)
-    #assert "replace() takes no keyword arguments" in str(exc_info)
+    # assert "replace() takes no keyword arguments" in str(exc_info)
     assert "Provided timestamp should be `datetime` object" in str(exc_info)
 
 
@@ -167,7 +170,7 @@ def test_get_messages_from_data_provider_with_error(http_data_source: DataSource
             )
         )
         list(messages)
-    #assert "replace() takes no keyword arguments" in str(exc_info)
+    # assert "replace() takes no keyword arguments" in str(exc_info)
     assert "Provided timestamp should be `datetime` object" in str(exc_info)
 
 
@@ -238,7 +241,7 @@ def test_messages_for_data_loss(all_messages):
     It might happen if source inside of Data is object of generator instead of
     generator function.
     """
-    
+
     messages = all_messages.data
     for _ in range(3):
         for _ in messages:
