@@ -1340,7 +1340,32 @@ def _download_messages(api, url, raw_body, headers, filename):
                 if task_id:
                     api.execute_delete(task_request_url)
 
-    return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
+    def do_req_and_iter(headers, url, raw_body):
+        task_id = None
+        try:
+            response = api.execute_post(url, raw_body)
+            task_id = json.loads(response.text)["taskID"]
+            task_request_url = api.get_download(task_id)
+            messages_response = api.execute_request(
+                task_request_url, headers=headers, stream=True
+            )
+            for line in messages_response.iter_lines():
+                message = json.loads(line)
+                yield message
+
+            status_url = api.get_download_status(task_id)
+            status_response = api.execute_request(status_url)
+
+            return json.loads(status_response.text)
+
+        except requests.exceptions.HTTPError as e:
+            raise Exception(e)
+
+        finally:
+            if task_id:
+                api.execute_delete(task_request_url)
+
+    return do_req_and_iter(headers, url, raw_body)
 
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1527,7 +1552,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status)
+        return status
+            # Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status))
 
 
 class GetMessagesByBookByGroups(_SSEHandlerClassBase):
