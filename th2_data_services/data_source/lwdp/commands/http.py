@@ -1340,8 +1340,10 @@ def _download_messages(api, url, raw_body, headers, filename=None):
                 if task_id:
                     api.execute_delete(task_request_url)
 
-    def do_req_and_iter(headers, url, raw_body):
+    def do_req_and_iter(headers, url, raw_body, buffer_limit=250):
         task_id = None
+        json_processor = BufferedJSONProcessor(buffer_limit)
+
         try:
             response = api.execute_post(url, raw_body)
             task_id = orjson.loads(response.text)["taskID"]
@@ -1349,9 +1351,11 @@ def _download_messages(api, url, raw_body, headers, filename=None):
             messages_response = api.execute_request(
                 task_request_url, headers=headers, stream=True
             )
+
             for line in messages_response.iter_lines():
-                message = orjson.loads(line)
-                yield message
+                for message in json_processor.decode(line.decode('utf-8')):
+                    yield message
+            yield from json_processor.fin()
 
             status_url = api.get_download_status(task_id)
             status_response = api.execute_request(status_url)
