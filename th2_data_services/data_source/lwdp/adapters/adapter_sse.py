@@ -17,7 +17,7 @@ from typing import Iterable
 from urllib3.exceptions import HTTPError
 
 from th2_data_services.interfaces import IStreamAdapter
-from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
+from th2_data_services.utils._json import BufferedJSONProcessor
 
 
 class SSEAdapter(IStreamAdapter):
