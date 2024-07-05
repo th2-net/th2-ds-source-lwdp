@@ -20,7 +20,7 @@ from shutil import copyfileobj
 
 import http as aiohttp
 from deprecated.classic import deprecated
-import json
+import orjson
 
 import requests
 from th2_data_services.data import Data
@@ -53,7 +53,7 @@ from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
     _get_response_format,
 )
-from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
+from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
@@ -620,7 +620,7 @@ class GetEventById(IHTTPCommand):
                     # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
                     raise EventNotFound(self._id, "Unable to find the event")
                 else:
-                    return json.loads(json_response)
+                    return orjson.loads(json_response)
 
 
 class GetEventsById(IHTTPCommand):
@@ -1022,7 +1022,7 @@ class GetMessageById(IHTTPCommand):
                     # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
                     raise MessageNotFound(self._id, "Unable to find the message")
                 else:
-                    return json.loads(json_response)
+                    return orjson.loads(json_response)
 
 
 class GetMessagesById(IHTTPCommand):
@@ -1302,8 +1302,8 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         )
 
 
-def _download_messages(api, url, raw_body, headers, filename):
-    """Downloads messages from LwDP and store to jsons.gz files.
+def _download_messages(api, url, raw_body, headers, filename=None):
+    """Downloads messages from LwDP. If filename is specified, store it to jsons.gz files.
 
     Args:
         api:
@@ -1321,7 +1321,7 @@ def _download_messages(api, url, raw_body, headers, filename):
             task_id = None
             try:
                 response = api.execute_post(url, raw_body)
-                task_id = json.loads(response.text)["taskID"]
+                task_id = orjson.loads(response.text)["taskID"]
                 task_request_url = api.get_download(task_id)
                 messages_response = api.execute_request(
                     task_request_url, headers=headers, stream=True
@@ -1331,7 +1331,7 @@ def _download_messages(api, url, raw_body, headers, filename):
                 status_url = api.get_download_status(task_id)
                 status_response = api.execute_request(status_url)
 
-                return json.loads(status_response.text)
+                return orjson.loads(status_response.text)
 
             except requests.exceptions.HTTPError as e:
                 raise Exception(e)
@@ -1344,19 +1344,19 @@ def _download_messages(api, url, raw_body, headers, filename):
         task_id = None
         try:
             response = api.execute_post(url, raw_body)
-            task_id = json.loads(response.text)["taskID"]
+            task_id = orjson.loads(response.text)["taskID"]
             task_request_url = api.get_download(task_id)
             messages_response = api.execute_request(
                 task_request_url, headers=headers, stream=True
             )
             for line in messages_response.iter_lines():
-                message = json.loads(line)
+                message = orjson.loads(line)
                 yield message
 
             status_url = api.get_download_status(task_id)
             status_response = api.execute_request(status_url)
 
-            return json.loads(status_response.text)
+            return orjson.loads(status_response.text)
 
         except requests.exceptions.HTTPError as e:
             raise Exception(e)
@@ -1365,6 +1365,8 @@ def _download_messages(api, url, raw_body, headers, filename):
             if task_id:
                 api.execute_delete(task_request_url)
 
+    if filename:
+        return do_req_and_store(filename, headers, url, raw_body)
     return do_req_and_iter(headers, url, raw_body)
 
 
@@ -1552,8 +1554,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return status
-            # Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status))
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status)
 
 
 class GetMessagesByBookByGroups(_SSEHandlerClassBase):
@@ -1656,6 +1657,90 @@ class GetMessagesByBookByGroups(_SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
+
+
+class GetMessagesByBookByGroups2(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+        Creates a generator that returns messages stream by book & groups in real time.
+
+        Returns:
+            Generator: Stream of Th2 messages.
+        """
+
+    def __init__(
+            self,
+            start_timestamp: Union[datetime, str, int],
+            end_timestamp: Union[datetime, str, int],
+            book_id: str,
+            groups: List[str],
+            sort: bool = None,
+            response_formats: Union[List[str], str] = None,
+            streams: List[str] = [],
+            fast_fail: bool = True,
+    ):
+        """GetMessagesByBookByGroups2 Constructor.
+
+        Args:
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
+
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+                  (You cannot specify a direction in groups unlike streams.
+                  It's possible to add it to the CradleAPI by request to dev team.)
+            response_formats: The format of the response
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            fast_fail: If true, stops task execution right after first error.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        self._groups = groups
+        self._streams = streams
+        self._sort = sort
+        self._response_formats = response_formats
+        self._book_id = book_id
+        self._fast_fail = fast_fail
+
+        _check_list_or_tuple(self._groups, var_name="groups")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
+
+    def handle(self, data_source: DataSource):
+        api = data_source.source_api
+        url, body = api.post_download_messages(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            book_id=self._book_id,
+            groups=self._groups,
+            streams=self._streams,
+            sort=self._sort,
+            response_formats=self._response_formats,
+            fast_fail=self._fast_fail,
+        )
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        status = _download_messages(api, url, body, headers)
+
+        return status
 
 
 class GetMessagesByPage(IHTTPCommand):
@@ -1920,6 +2005,81 @@ class GetMessagesByPageByGroups(_SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
+
+
+class GetMessagesByPagesByGroups2(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+       Creates a generator that returns messages stream by page & groups in real time.
+
+       Returns:
+           Generator: Stream of Th2 messages.
+       """
+
+    def __init__(
+            self,
+            page: Union[Page, str],
+            groups: List[str],
+            book_id: str = None,
+            sort: bool = None,
+            response_formats: Union[List[str], str] = None,
+            streams: List[str] = [],
+            fast_fail: bool = True,
+    ):
+        """GetMessagesByPagesByGroups2 Constructor.
+
+        Args:
+            page: Page to search with.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            fast_fail: If true, stops task execution right after first error.
+        """
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        self._page = page
+        self._book_id = book_id
+        self._groups = groups
+        self._streams = streams
+        self._sort = sort
+        self._response_formats = response_formats
+        self._fast_fail = fast_fail
+
+        _check_list_or_tuple(self._groups, var_name="groups")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
+
+    def handle(self, data_source: DataSource) -> Data:
+        page = _get_page_object(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        self._end_timestamp = (
+            get_utc_datetime_now()
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+        )
+        self._book_id = page.book
+        api = data_source.source_api
+        url, body = api.post_download_messages(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            book_id=self._book_id,
+            groups=self._groups,
+            streams=self._streams,
+            sort=self._sort,
+            response_formats=self._response_formats,
+            fast_fail=self._fast_fail,
+        )
+
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        status = _download_messages(api, url, body, headers)
+
+        return status
 
 
 def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
