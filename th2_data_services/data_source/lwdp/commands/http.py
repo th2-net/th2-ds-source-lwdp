@@ -1352,15 +1352,15 @@ def _download_messages(api, url, raw_body, headers, filename=None):
                 task_request_url, headers=headers, stream=True
             )
 
+            status_url = api.get_download_status(task_id)
+            status_response = api.execute_request(status_url)
+
+            yield orjson.loads(status_response.text)
+
             for line in messages_response.iter_lines():
                 for message in json_processor.decode(line.decode('utf-8')):
                     yield message
             yield from json_processor.fin()
-
-            status_url = api.get_download_status(task_id)
-            status_response = api.execute_request(status_url)
-
-            return orjson.loads(status_response.text)
 
         except requests.exceptions.HTTPError as e:
             raise Exception(e)
@@ -1742,9 +1742,11 @@ class GetMessagesByBookByGroups2(IHTTPCommand):
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        status = _download_messages(api, url, body, headers)
+        generator = _download_messages(api, url, body, headers)
+        data = Data(generator)
+        status = next(generator)
 
-        return status
+        return data.update_metadata(status)
 
 
 class GetMessagesByPage(IHTTPCommand):
@@ -2011,7 +2013,7 @@ class GetMessagesByPageByGroups(_SSEHandlerClassBase):
         )
 
 
-class GetMessagesByPagesByGroups2(IHTTPCommand):
+class GetMessagesByPageByGroups2(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
        Creates a generator that returns messages stream by page & groups in real time.
@@ -2081,9 +2083,11 @@ class GetMessagesByPagesByGroups2(IHTTPCommand):
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        status = _download_messages(api, url, body, headers)
+        generator = _download_messages(api, url, body, headers)
+        data = Data(generator)
+        status = next(generator)
 
-        return status
+        return data.update_metadata(status)
 
 
 def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
