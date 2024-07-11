@@ -4,28 +4,54 @@ from unittest.mock import Mock, patch, MagicMock
 import orjson
 from th2_data_services.data import Data
 
-from th2_data_services.data_source.lwdp.commands.http import GetMessagesByPageByGroups2
+from th2_data_services.data_source.lwdp.commands.http import GetMessagesByPageByGroups2, GetMessagesByBookByGroups2
 from th2_data_services.data_source.lwdp.data_source import DataSource
 
 
 @pytest.fixture
-def mock_data_source():
-    mock = Mock(spec=DataSource)
-    mock.source_api = MagicMock()
-    mock.source_api.post_download_messages.return_value = ("test_url", "test_body")
+def mock_source_api():
+    mock_api = MagicMock()
+    mock_api.post_download_messages.return_value = ("test_url", "test_body")
+    return mock_api
 
+
+@pytest.fixture
+def mock_execute_post_response():
     mock_response = MagicMock()
     mock_response.text = orjson.dumps({"taskID": "test_task_id"}).decode()
-    mock.source_api.execute_post.return_value = mock_response
-    mock_messages_response = MagicMock()
-    mock_messages_response.iter_lines.return_value = [
-        orjson.dumps({"message": "test"}),
-        orjson.dumps({"message1": "test"}),
-        orjson.dumps({"message2": "test"})
-    ]
+    return mock_response
+
+
+@pytest.fixture
+def mock_messages_response():
+    mock_response = MagicMock()
+
+    def iter_lines():
+        yield orjson.dumps({"message": "test"})
+        yield orjson.dumps({"message1": "test"})
+        yield orjson.dumps({"message2": "test"})
+
+    mock_response.iter_lines.return_value = iter_lines()
+    return mock_response
+
+
+@pytest.fixture
+def mock_status_response():
+    mock_response = MagicMock()
+    mock_response.text = orjson.dumps({"status": "success"}).decode()
+    return mock_response
+
+
+@pytest.fixture
+def mock_data_source(mock_source_api, mock_execute_post_response, mock_messages_response, mock_status_response):
+    mock = Mock(spec=DataSource)
+    mock.source_api = mock_source_api
+    mock.source_api.execute_post.return_value = mock_execute_post_response
     mock.source_api.execute_request.side_effect = [
         mock_messages_response,
-        MagicMock(text=orjson.dumps({"status": "success"}).decode())
+        mock_status_response,
+        mock_messages_response,
+        mock_status_response
     ]
     return mock
 
@@ -49,6 +75,27 @@ def test_get_messages_by_pages_by_groups2_handle(mock_data_source):
         for message in result:
             assert message == expected[i]
             i += 1
+
+
+def test_get_messages_by_book_by_groups2_handle(mock_data_source):
+    command = GetMessagesByBookByGroups2(1718355600000000000, 1718362800000000000,
+                                         book_id="test_book", groups=["group1", "group2"])
+
+    expected = [{"message": "test"}, {"message1": "test"}, {"message2": "test"}]
+
+    result = command.handle(mock_data_source)
+    i = 0
+    for message in result:
+        assert message == expected[i]
+        i += 1
+
+    assert isinstance(result, Data)
+    assert result.metadata == {"status": "success"}
+
+    i = 0
+    for message in result:
+        assert message == expected[i]
+        i += 1
 
 
 if __name__ == "__main__":

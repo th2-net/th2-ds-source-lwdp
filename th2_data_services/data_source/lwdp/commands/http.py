@@ -1352,15 +1352,14 @@ def _download_messages(api, url, raw_body, headers, filename=None):
                 task_request_url, headers=headers, stream=True
             )
 
+            for line in messages_response.iter_lines():
+                yield from json_processor.decode(line.decode('utf-8'))
+            yield from json_processor.fin()
+
             status_url = api.get_download_status(task_id)
             status_response = api.execute_request(status_url)
 
             yield orjson.loads(status_response.text)
-
-            for line in messages_response.iter_lines():
-                for message in json_processor.decode(line.decode('utf-8')):
-                    yield message
-            yield from json_processor.fin()
 
         except requests.exceptions.HTTPError as e:
             raise Exception(e)
@@ -1371,7 +1370,7 @@ def _download_messages(api, url, raw_body, headers, filename=None):
 
     if filename:
         return do_req_and_store(filename, headers, url, raw_body)
-    return do_req_and_iter(headers, url, raw_body)
+    yield from do_req_and_iter(headers, url, raw_body)
 
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1742,11 +1741,20 @@ class GetMessagesByBookByGroups2(IHTTPCommand):
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        generator = _download_messages(api, url, body, headers)
-        data = Data(generator)
-        status = next(generator)
+        metadata_cache = {}
 
-        return data.update_metadata(status)
+        def lazy_fetch():
+            download_gen = _download_messages(api, url, body, headers)
+            for item in download_gen:
+                if isinstance(item, dict) and 'status' in item:
+                    if not metadata_cache:
+                        metadata_cache.update(item)
+                        data.update_metadata(metadata_cache)
+                else:
+                    yield item
+
+        data = Data(lazy_fetch)
+        return data
 
 
 class GetMessagesByPage(IHTTPCommand):
@@ -2083,11 +2091,20 @@ class GetMessagesByPageByGroups2(IHTTPCommand):
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        generator = _download_messages(api, url, body, headers)
-        data = Data(generator)
-        status = next(generator)
+        metadata_cache = {}
 
-        return data.update_metadata(status)
+        def lazy_fetch():
+            download_gen = _download_messages(api, url, body, headers)
+            for item in download_gen:
+                if isinstance(item, dict) and 'status' in item:
+                    if not metadata_cache:
+                        metadata_cache.update(item)
+                        data.update_metadata(metadata_cache)
+                else:
+                    yield item
+
+        data = Data(lazy_fetch)
+        return data
 
 
 def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
