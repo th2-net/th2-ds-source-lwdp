@@ -1741,15 +1741,11 @@ class GetMessagesByBookByGroups2(IHTTPCommand):
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        metadata_cache = {}
-
         def lazy_fetch():
             download_gen = _download_messages(api, url, body, headers)
             for item in download_gen:
                 if isinstance(item, dict) and 'status' in item:
-                    if not metadata_cache:
-                        metadata_cache.update(item)
-                        data.update_metadata(metadata_cache)
+                    data.update_metadata(item)
                 else:
                     yield item
 
@@ -2091,15 +2087,11 @@ class GetMessagesByPageByGroups2(IHTTPCommand):
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
-        metadata_cache = {}
-
         def lazy_fetch():
             download_gen = _download_messages(api, url, body, headers)
             for item in download_gen:
                 if isinstance(item, dict) and 'status' in item:
-                    if not metadata_cache:
-                        metadata_cache.update(item)
-                        data.update_metadata(metadata_cache)
+                    data.update_metadata(item)
                 else:
                     yield item
 
