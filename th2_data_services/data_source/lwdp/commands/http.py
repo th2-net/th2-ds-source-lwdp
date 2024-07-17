@@ -1302,7 +1302,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         )
 
 
-def _download_messages(api, url, raw_body, headers, filename=None):
+def _download_messages(api, url, raw_body, headers, metadata_list=None, filename=None):
     """Downloads messages from LwDP. If filename is specified, store it to jsons.gz files.
 
     Args:
@@ -1316,61 +1316,43 @@ def _download_messages(api, url, raw_body, headers, filename=None):
         Status dictionary
     """
 
-    def do_req_and_store(fn, headers, url, raw_body):
+    def do_req_and_store(fn):
         with open(fn, "wb") as file:
-            task_id = None
-            try:
-                response = api.execute_post(url, raw_body)
-                task_id = orjson.loads(response.text)["taskID"]
-                task_request_url = api.get_download(task_id)
-                messages_response = api.execute_request(
-                    task_request_url, headers=headers, stream=True
-                )
-
-                copyfileobj(messages_response.raw, file)
-                status_url = api.get_download_status(task_id)
-                status_response = api.execute_request(status_url)
-
-                return orjson.loads(status_response.text)
-
-            except requests.exceptions.HTTPError as e:
-                raise Exception(e)
-
-            finally:
-                if task_id:
-                    api.execute_delete(task_request_url)
-
-    def do_req_and_iter(headers, url, raw_body, buffer_limit=250):
-        task_id = None
-        json_processor = BufferedJSONProcessor(buffer_limit)
-
-        try:
-            response = api.execute_post(url, raw_body)
-            task_id = orjson.loads(response.text)["taskID"]
-            task_request_url = api.get_download(task_id)
-            messages_response = api.execute_request(
-                task_request_url, headers=headers, stream=True
-            )
-
-            for line in messages_response.iter_lines():
-                yield from json_processor.decode(line.decode('utf-8'))
-            yield from json_processor.fin()
-
             status_url = api.get_download_status(task_id)
             status_response = api.execute_request(status_url)
+            copyfileobj(messages_response.raw, file)
+            return orjson.loads(status_response.text)
 
-            yield orjson.loads(status_response.text)
+    def do_req_and_iter(buffer_limit=250):
+        json_processor = BufferedJSONProcessor(buffer_limit)
+        for line in messages_response.iter_lines():
+            yield from json_processor.decode(line.decode('utf-8'))
+        yield from json_processor.fin()
 
-        except requests.exceptions.HTTPError as e:
-            raise Exception(e)
+        status_url = api.get_download_status(task_id)
+        status_response = api.execute_request(status_url)
+        status = orjson.loads(status_response.text)
+        metadata_list.append(status)
 
-        finally:
-            if task_id:
-                api.execute_delete(task_request_url)
+    task_id = None
+    try:
+        response = api.execute_post(url, raw_body)
+        task_id = orjson.loads(response.text)["taskID"]
+        task_request_url = api.get_download(task_id)
+        messages_response = api.execute_request(
+            task_request_url, headers=headers, stream=True
+        )
 
-    if filename:
-        return do_req_and_store(filename, headers, url, raw_body)
-    yield from do_req_and_iter(headers, url, raw_body)
+        if filename:
+            return do_req_and_store(filename)
+        yield from do_req_and_iter()
+
+    except requests.exceptions.HTTPError as e:
+        raise Exception(e)
+
+    finally:
+        if task_id:
+            api.execute_delete(task_request_url)
 
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1740,14 +1722,13 @@ class GetMessagesByBookByGroups2(IHTTPCommand):
             fast_fail=self._fast_fail,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+        metadata_list = []
 
         def lazy_fetch():
-            download_gen = _download_messages(api, url, body, headers)
+            download_gen = _download_messages(api, url, body, headers, metadata_list)
             for item in download_gen:
-                if isinstance(item, dict) and 'status' in item:
-                    data.update_metadata(item)
-                else:
-                    yield item
+                yield item
+            data.update_metadata(metadata_list[-1])
 
         data = Data(lazy_fetch)
         return data
@@ -2086,14 +2067,13 @@ class GetMessagesByPageByGroups2(IHTTPCommand):
         )
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+        metadata_list = []
 
         def lazy_fetch():
-            download_gen = _download_messages(api, url, body, headers)
+            download_gen = _download_messages(api, url, body, headers, metadata_list)
             for item in download_gen:
-                if isinstance(item, dict) and 'status' in item:
-                    data.update_metadata(item)
-                else:
-                    yield item
+                yield item
+            data.update_metadata(metadata_list[-1])
 
         data = Data(lazy_fetch)
         return data
