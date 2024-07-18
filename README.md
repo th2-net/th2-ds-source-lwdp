@@ -153,7 +153,7 @@ messages_by_stream: Data[dict] = data_source.command(
 
 # [3.2.3] Get messages by BOOK, groups and time interval.
 messages_by_group: Data[dict] = data_source.command(
-    commands.GetMessagesByBookByGroups(
+    commands.GetMessagesByBookByGroupsSse(
         start_timestamp=START_TIME, end_timestamp=END_TIME, groups=groups, book_id=book_id
     )
 )
@@ -180,10 +180,10 @@ messages_by_page_name_by_streams: Data[dict] = data_source.command(
 )
 
 messages_by_page_by_groups: Data[dict] = data_source.command(
-    commands.GetMessagesByPageByGroups(page=page, groups=groups)
+    commands.GetMessagesByPageByGroupsSse(page=page, groups=groups)
 )
 messages_by_page_name_by_groups: Data[dict] = data_source.command(
-    commands.GetMessagesByPageByGroups(page=page_name, book_id=book_id, groups=groups)
+    commands.GetMessagesByPageByGroupsSse(page=page_name, book_id=book_id, groups=groups)
 )
 
 # [4] ETCDriver

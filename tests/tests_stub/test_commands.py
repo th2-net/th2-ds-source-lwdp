@@ -4,7 +4,7 @@ from unittest.mock import Mock, patch, MagicMock
 import orjson
 from th2_data_services.data import Data
 
-from th2_data_services.data_source.lwdp.commands.http import GetMessagesByPageByGroups2, GetMessagesByBookByGroups2
+from th2_data_services.data_source.lwdp.commands.http import GetMessagesByPageByGroupsJson, GetMessagesByBookByGroupsJson
 from th2_data_services.data_source.lwdp.data_source import DataSource
 
 
@@ -57,7 +57,7 @@ def mock_data_source(mock_source_api, mock_execute_post_response, mock_messages_
 
 
 def test_get_messages_by_pages_by_groups2_handle(mock_data_source):
-    command = GetMessagesByPageByGroups2("test_page", ["group1"], "test_book")
+    command = GetMessagesByPageByGroupsJson("test_page", ["group1"], "test_book")
 
     with patch('th2_data_services.data_source.lwdp.commands.http._get_page_object'):
         expected = [{"message": "test"}, {"message1": "test"}, {"message2": "test"}]
@@ -78,8 +78,8 @@ def test_get_messages_by_pages_by_groups2_handle(mock_data_source):
 
 
 def test_get_messages_by_book_by_groups2_handle(mock_data_source):
-    command = GetMessagesByBookByGroups2(1718355600000000000, 1718362800000000000,
-                                         book_id="test_book", groups=["group1", "group2"])
+    command = GetMessagesByBookByGroupsJson(1718355600000000000, 1718362800000000000,
+                                            book_id="test_book", groups=["group1", "group2"])
 
     expected = [{"message": "test"}, {"message1": "test"}, {"message2": "test"}]
 

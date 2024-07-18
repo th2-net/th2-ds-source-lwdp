@@ -1542,7 +1542,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status)
 
 
-class GetMessagesByBookByGroups(_SSEHandlerClassBase):
+class GetMessagesByBookByGroupsSse(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by groups.
@@ -1644,7 +1644,7 @@ class GetMessagesByBookByGroups(_SSEHandlerClassBase):
         )
 
 
-class GetMessagesByBookByGroups2(IHTTPCommand):
+class GetMessagesByBookByGroupsJson(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
         Creates a generator that returns messages stream by book & groups in real time.
@@ -1734,6 +1734,61 @@ class GetMessagesByBookByGroups2(IHTTPCommand):
         return data
 
 
+class GetMessagesByBookByGroups(IHTTPCommand):
+    """
+    A class that provides messages by book and groups, using either SSE or JSON format
+    based on the user's choice.
+    """
+
+    def __init__(
+        self,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
+        book_id: str,
+        groups: List[str],
+        use_sse: bool = True,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        streams: List[str] = [],
+        **kwargs
+    ):
+        self.start_timestamp = start_timestamp
+        self.end_timestamp = end_timestamp
+        self.book_id = book_id
+        self.groups = groups
+        self.use_sse = use_sse
+        self.sort = sort
+        self.response_formats = response_formats
+        self.streams = streams
+        self.kwargs = kwargs
+
+        if self.use_sse:
+            self.handler = GetMessagesByBookByGroupsSse(
+                start_timestamp=self.start_timestamp,
+                end_timestamp=self.end_timestamp,
+                book_id=self.book_id,
+                groups=self.groups,
+                sort=self.sort,
+                response_formats=self.response_formats,
+                streams=self.streams,
+                **self.kwargs
+            )
+        else:
+            self.handler = GetMessagesByBookByGroupsJson(
+                start_timestamp=self.start_timestamp,
+                end_timestamp=self.end_timestamp,
+                book_id=self.book_id,
+                groups=self.groups,
+                sort=self.sort,
+                response_formats=self.response_formats,
+                streams=self.streams,
+                **self.kwargs
+            )
+
+    def handle(self, data_source: DataSource):
+        return self.handler.handle(data_source)
+
+
 class GetMessagesByPage(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
@@ -1805,7 +1860,7 @@ class GetMessagesByPage(IHTTPCommand):
         )
         self._book_id = page.book
         return data_source.command(
-            GetMessagesByPageByGroups(
+            GetMessagesByPageByGroupsSse(
                 page=self._page,
                 groups=groups,
                 book_id=self._book_id,
@@ -1906,7 +1961,7 @@ class GetMessagesByPageByStreams(_SSEHandlerClassBase):
         )
 
 
-class GetMessagesByPageByGroups(_SSEHandlerClassBase):
+class GetMessagesByPageByGroupsSse(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page & groups.
@@ -1998,7 +2053,7 @@ class GetMessagesByPageByGroups(_SSEHandlerClassBase):
         )
 
 
-class GetMessagesByPageByGroups2(IHTTPCommand):
+class GetMessagesByPageByGroupsJson(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
        Creates a generator that returns messages stream by page & groups in real time.
@@ -2077,6 +2132,57 @@ class GetMessagesByPageByGroups2(IHTTPCommand):
 
         data = Data(lazy_fetch)
         return data
+
+
+class GetMessagesByPageByGroups(IHTTPCommand):
+    """
+    A class that provides messages by page and groups, using either SSE or JSON format
+    based on the user's choice.
+    """
+
+    def __init__(
+        self,
+        page: Union[Page, str],
+        groups: List[str],
+        use_sse: bool = True,
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        streams: List[str] = [],
+        **kwargs
+    ):
+        self.page = page
+        self.groups = groups
+        self.use_sse = use_sse
+        self.book_id = book_id
+        self.sort = sort
+        self.response_formats = response_formats
+        self.streams = streams
+        self.kwargs = kwargs
+
+        if self.use_sse:
+            self.handler = GetMessagesByPageByGroupsSse(
+                page=self.page,
+                groups=self.groups,
+                book_id=self.book_id,
+                sort=self.sort,
+                response_formats=self.response_formats,
+                streams=self.streams,
+                **self.kwargs
+            )
+        else:
+            self.handler = GetMessagesByPageByGroupsJson(
+                page=self.page,
+                groups=self.groups,
+                book_id=self.book_id,
+                sort=self.sort,
+                response_formats=self.response_formats,
+                streams=self.streams,
+                **self.kwargs
+            )
+
+    def handle(self, data_source: DataSource):
+        return self.handler.handle(data_source)
 
 
 def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
