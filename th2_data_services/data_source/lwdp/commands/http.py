@@ -1746,7 +1746,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
-        use_sse: bool = True,
+        request_mode: str = 'json',
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         streams: List[str] = [],
@@ -1756,13 +1756,13 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         self.end_timestamp = end_timestamp
         self.book_id = book_id
         self.groups = groups
-        self.use_sse = use_sse
+        self.request_mode = request_mode
         self.sort = sort
         self.response_formats = response_formats
         self.streams = streams
         self.kwargs = kwargs
 
-        if self.use_sse:
+        if self.request_mode == 'sse':
             self.handler = GetMessagesByBookByGroupsSse(
                 start_timestamp=self.start_timestamp,
                 end_timestamp=self.end_timestamp,
@@ -1773,7 +1773,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 streams=self.streams,
                 **self.kwargs
             )
-        else:
+        elif self.request_mode == 'json':
             self.handler = GetMessagesByBookByGroupsJson(
                 start_timestamp=self.start_timestamp,
                 end_timestamp=self.end_timestamp,
@@ -1784,6 +1784,8 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 streams=self.streams,
                 **self.kwargs
             )
+        else:
+            raise ValueError('Request mode parameter should be either "sse" or "json".')
 
     def handle(self, data_source: DataSource):
         return self.handler.handle(data_source)
@@ -2144,7 +2146,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         self,
         page: Union[Page, str],
         groups: List[str],
-        use_sse: bool = True,
+        request_mode: str = 'json',
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
@@ -2153,14 +2155,14 @@ class GetMessagesByPageByGroups(IHTTPCommand):
     ):
         self.page = page
         self.groups = groups
-        self.use_sse = use_sse
+        self.request_mode = request_mode
         self.book_id = book_id
         self.sort = sort
         self.response_formats = response_formats
         self.streams = streams
         self.kwargs = kwargs
 
-        if self.use_sse:
+        if self.request_mode == 'sse':
             self.handler = GetMessagesByPageByGroupsSse(
                 page=self.page,
                 groups=self.groups,
@@ -2170,7 +2172,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 streams=self.streams,
                 **self.kwargs
             )
-        else:
+        elif self.request_mode == 'json':
             self.handler = GetMessagesByPageByGroupsJson(
                 page=self.page,
                 groups=self.groups,
@@ -2180,6 +2182,8 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 streams=self.streams,
                 **self.kwargs
             )
+        else:
+            raise ValueError('Request mode parameter should be either "sse" or "json".')
 
     def handle(self, data_source: DataSource):
         return self.handler.handle(data_source)
