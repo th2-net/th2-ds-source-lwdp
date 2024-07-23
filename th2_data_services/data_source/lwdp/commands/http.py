@@ -2253,4 +2253,4 @@ class StatusUpdateManager:
         self.__data = data
 
     def update(self, status):
-        self.__data.update_metadata({"iter_statuses": IterStatus(**status)})
+        self.__data.update_metadata({"Iter statuses": IterStatus(**status)})
