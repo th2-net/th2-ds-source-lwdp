@@ -1305,14 +1305,14 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
 def _iterate_messages(api, url, raw_body, headers, status_update_manager, buffer_limit=250):
     """Fetches messages from LwDP in real time and iterates over them.
 
-        Args:
-            api:
-            url:
-            raw_body:
-            headers:
-            status_update_manager:
-            buffer_limit:
-        """
+    Args:
+        api:
+        url:
+        raw_body:
+        headers:
+        status_update_manager:
+        buffer_limit:
+    """
 
     task_id = None
     json_processor = BufferedJSONProcessor(buffer_limit)
@@ -1320,12 +1320,10 @@ def _iterate_messages(api, url, raw_body, headers, status_update_manager, buffer
         response = api.execute_post(url, raw_body)
         task_id = orjson.loads(response.text)["taskID"]
         task_request_url = api.get_download(task_id)
-        messages_response = api.execute_request(
-            task_request_url, headers=headers, stream=True
-        )
+        messages_response = api.execute_request(task_request_url, headers=headers, stream=True)
 
         for line in messages_response.iter_lines():
-            yield from json_processor.decode(line.decode('utf-8'))
+            yield from json_processor.decode(line.decode("utf-8"))
         yield from json_processor.fin()
 
     except requests.exceptions.HTTPError as e:
@@ -1676,22 +1674,22 @@ class GetMessagesByBookByGroupsSse(_SSEHandlerClassBase):
 class GetMessagesByBookByGroupsJson(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
-        Creates a generator that returns messages stream by book & groups in real time.
+    Creates a generator that returns messages stream by book & groups in real time.
 
-        Returns:
-            Generator: Stream of Th2 messages.
-        """
+    Returns:
+        Generator: Stream of Th2 messages.
+    """
 
     def __init__(
-            self,
-            start_timestamp: Union[datetime, str, int],
-            end_timestamp: Union[datetime, str, int],
-            book_id: str,
-            groups: List[str],
-            sort: bool = None,
-            response_formats: Union[List[str], str] = None,
-            streams: List[str] = [],
-            fast_fail: bool = True,
+        self,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        streams: List[str] = [],
+        fast_fail: bool = True,
     ):
         """GetMessagesByBookByGroups2 Constructor.
 
@@ -1774,11 +1772,11 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
-        request_mode: str = 'json',
+        request_mode: str = "json",
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         streams: List[str] = [],
-        **kwargs
+        **kwargs,
     ):
         self.start_timestamp = start_timestamp
         self.end_timestamp = end_timestamp
@@ -1790,7 +1788,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         self.streams = streams
         self.kwargs = kwargs
 
-        if self.request_mode == 'sse':
+        if self.request_mode == "sse":
             self.handler = GetMessagesByBookByGroupsSse(
                 start_timestamp=self.start_timestamp,
                 end_timestamp=self.end_timestamp,
@@ -1799,9 +1797,9 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 sort=self.sort,
                 response_formats=self.response_formats,
                 streams=self.streams,
-                **self.kwargs
+                **self.kwargs,
             )
-        elif self.request_mode == 'json':
+        elif self.request_mode == "json":
             self.handler = GetMessagesByBookByGroupsJson(
                 start_timestamp=self.start_timestamp,
                 end_timestamp=self.end_timestamp,
@@ -1810,7 +1808,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 sort=self.sort,
                 response_formats=self.response_formats,
                 streams=self.streams,
-                **self.kwargs
+                **self.kwargs,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2086,21 +2084,21 @@ class GetMessagesByPageByGroupsSse(_SSEHandlerClassBase):
 class GetMessagesByPageByGroupsJson(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
-       Creates a generator that returns messages stream by page & groups in real time.
+    Creates a generator that returns messages stream by page & groups in real time.
 
-       Returns:
-           Generator: Stream of Th2 messages.
-       """
+    Returns:
+        Generator: Stream of Th2 messages.
+    """
 
     def __init__(
-            self,
-            page: Union[Page, str],
-            groups: List[str],
-            book_id: str = None,
-            sort: bool = None,
-            response_formats: Union[List[str], str] = None,
-            streams: List[str] = [],
-            fast_fail: bool = True,
+        self,
+        page: Union[Page, str],
+        groups: List[str],
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        streams: List[str] = [],
+        fast_fail: bool = True,
     ):
         """GetMessagesByPagesByGroups2 Constructor.
 
@@ -2173,12 +2171,12 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         self,
         page: Union[Page, str],
         groups: List[str],
-        request_mode: str = 'json',
+        request_mode: str = "json",
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         streams: List[str] = [],
-        **kwargs
+        **kwargs,
     ):
         self.page = page
         self.groups = groups
@@ -2189,7 +2187,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         self.streams = streams
         self.kwargs = kwargs
 
-        if self.request_mode == 'sse':
+        if self.request_mode == "sse":
             self.handler = GetMessagesByPageByGroupsSse(
                 page=self.page,
                 groups=self.groups,
@@ -2197,9 +2195,9 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 sort=self.sort,
                 response_formats=self.response_formats,
                 streams=self.streams,
-                **self.kwargs
+                **self.kwargs,
             )
-        elif self.request_mode == 'json':
+        elif self.request_mode == "json":
             self.handler = GetMessagesByPageByGroupsJson(
                 page=self.page,
                 groups=self.groups,
@@ -2207,7 +2205,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 sort=self.sort,
                 response_formats=self.response_formats,
                 streams=self.streams,
-                **self.kwargs
+                **self.kwargs,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2229,21 +2227,25 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
 
 
 class IterStatus:
-    count = 0
-
     def __init__(self, taskID, createdAt, completedAt, status):
         self.__taskID = taskID
         self.__createdAt = createdAt
         self.__completedAt = completedAt
         self.__status = status
-        IterStatus.count += 1
-        self.__count = IterStatus.count
 
     def __str__(self):
-        return f"Iter {self.__count} status: {{'taskID': {self.__taskID}, 'createdAt': {self.__createdAt}, 'completedAt': {self.__completedAt}, 'status': {self.__status}}}"
+        return f"IterStatus('taskID': {self.__taskID}, 'createdAt': {self.__createdAt}, 'completedAt': {self.__completedAt}, 'status': {self.__status})"
 
     def __repr__(self):
         return self.__str__()
+
+    def __eq__(self, other):
+        if not isinstance(other, IterStatus):
+            return NotImplemented
+        return (self.__taskID == other.__taskID and
+                self.__createdAt == other.__createdAt and
+                self.__completedAt == other.__completedAt and
+                self.__status == other.__status)
 
 
 class StatusUpdateManager:
@@ -2251,4 +2253,4 @@ class StatusUpdateManager:
         self.__data = data
 
     def update(self, status):
-        self.__data.update_metadata({'iter_statuses': IterStatus(**status)})
+        self.__data.update_metadata({"iter_statuses": IterStatus(**status)})
