@@ -42,7 +42,9 @@ def mock_messages_response():
 @pytest.fixture
 def mock_status_response():
     mock_response = MagicMock()
-    mock_response.text = orjson.dumps({"taskID": "a", "createdAt": "b", "completedAt": "c", "status": "success"}).decode()
+    mock_response.text = orjson.dumps(
+        {"taskID": "a", "createdAt": "b", "completedAt": "c", "status": "success"}
+    ).decode()
     return mock_response
 
 
@@ -74,9 +76,11 @@ def test_get_messages_by_pages_by_groups2_handle(mock_data_source):
             assert message == expected[i]
             i += 1
 
-        expected_status = IterStatus(**{"taskID": "a", "createdAt": "b", "completedAt": "c", "status": "success"})
+        expected_status = IterStatus(
+            **{"taskID": "a", "createdAt": "b", "completedAt": "c", "status": "success"}
+        )
         assert isinstance(result, Data)
-        assert result.metadata == {'iter_statuses': expected_status}
+        assert result.metadata == {"Iter statuses": expected_status}
 
         i = 0
         for message in result:
@@ -97,9 +101,11 @@ def test_get_messages_by_book_by_groups2_handle(mock_data_source):
         assert message == expected[i]
         i += 1
 
-    expected_status = IterStatus(**{"taskID": "a", "createdAt": "b", "completedAt": "c", "status": "success"})
+    expected_status = IterStatus(
+        **{"taskID": "a", "createdAt": "b", "completedAt": "c", "status": "success"}
+    )
     assert isinstance(result, Data)
-    assert result.metadata == {'iter_statuses': expected_status}
+    assert result.metadata == {"Iter statuses": expected_status}
 
     i = 0
     for message in result:

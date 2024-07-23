@@ -1306,14 +1306,13 @@ def _iterate_messages(api, url, raw_body, headers, status_update_manager, buffer
     """Fetches messages from LwDP in real time and iterates over them.
 
     Args:
-        api:
-        url:
-        raw_body:
-        headers:
-        status_update_manager:
-        buffer_limit:
+        api: The API object for making requests.
+        url: The URL to send the initial POST request.
+        raw_body: The raw body of the POST request.
+        headers: The headers for the request.
+        status_update_manager: Manager for updating the status.
+        buffer_limit: The limit for the buffered JSON processor. Defaults to 250.
     """
-
     task_id = None
     json_processor = BufferedJSONProcessor(buffer_limit)
     try:
@@ -1343,11 +1342,11 @@ def _download_messages(api, url, raw_body, headers, filename):
     """Downloads messages from LwDP and store to jsons.gz files.
 
     Args:
-        api:
-        url:
-        raw_body:
-        headers:
-        filename:
+        api: The API object for making requests.
+        url: The URL to send the initial POST request.
+        raw_body: The raw body of the POST request.
+        headers: The headers for the request.
+        filename: Name of the file to write the response.
 
     Returns:
         Status dictionary
@@ -1696,7 +1695,6 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         Args:
             start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
-
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
@@ -1761,9 +1759,10 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
 
 
 class GetMessagesByBookByGroups(IHTTPCommand):
-    """
-    A class that provides messages by book and groups, using either SSE or JSON format
-    based on the user's choice.
+    """A class that provides messages by book and groups.
+
+    This class retrieves messages organized by book and groups, using either SSE
+    or JSON format based on the user's choice.
     """
 
     def __init__(
@@ -1778,6 +1777,28 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         streams: List[str] = [],
         **kwargs,
     ):
+        """GetMessagesByBookByGroups Constructor.
+
+        Args:
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+                  (You cannot specify a direction in groups unlike streams.
+                  It's possible to add it to the CradleAPI by request to dev team.)
+            response_formats: The format of the response
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            fast_fail: If true, stops task execution right after first error.
+            **kwargs: Additional keyword arguments.
+
+        Raises:
+            ValueError: If request_mode is not either json or sse.
+        """
         self.start_timestamp = start_timestamp
         self.end_timestamp = end_timestamp
         self.book_id = book_id
@@ -2162,9 +2183,10 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
 
 
 class GetMessagesByPageByGroups(IHTTPCommand):
-    """
-    A class that provides messages by page and groups, using either SSE or JSON format
-    based on the user's choice.
+    """A class that provides messages by book and groups.
+
+    This class retrieves messages organized by page and groups, using either SSE
+    or JSON format based on the user's choice.
     """
 
     def __init__(
@@ -2178,6 +2200,24 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         streams: List[str] = [],
         **kwargs,
     ):
+        """GetMessagesByPagesByGroups2 Constructor.
+
+        Args:
+            page: Page to search with.
+            groups: List of groups to search messages from.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            **kwargs: Additional keyword arguments.
+
+        Raises:
+            ValueError: If request_mode is not either json or sse.
+        """
         self.page = page
         self.groups = groups
         self.request_mode = request_mode
@@ -2228,6 +2268,14 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
 
 class IterStatus:
     def __init__(self, taskID, createdAt, completedAt, status):
+        """Initialize an IterStatus object.
+
+        Args:
+            taskID (str): The unique identifier for the task.
+            createdAt (str): The timestamp when the task was created.
+            completedAt (str): The timestamp when the task was completed.
+            status (str): The current status of the task.
+        """
         self.__taskID = taskID
         self.__createdAt = createdAt
         self.__completedAt = completedAt
@@ -2242,14 +2290,21 @@ class IterStatus:
     def __eq__(self, other):
         if not isinstance(other, IterStatus):
             return NotImplemented
-        return (self.__taskID == other.__taskID and
-                self.__createdAt == other.__createdAt and
-                self.__completedAt == other.__completedAt and
-                self.__status == other.__status)
+        return (
+            self.__taskID == other.__taskID
+            and self.__createdAt == other.__createdAt
+            and self.__completedAt == other.__completedAt
+            and self.__status == other.__status
+        )
 
 
 class StatusUpdateManager:
     def __init__(self, data):
+        """Initialize the StatusUpdateManager.
+
+        Args:
+            data: The data object to manage status updates for.
+        """
         self.__data = data
 
     def update(self, status):
