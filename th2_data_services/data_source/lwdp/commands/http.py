@@ -1302,7 +1302,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         )
 
 
-def _iterate_messages(api, url, raw_body, headers, metadata_list, buffer_limit=250):
+def _iterate_messages(api, url, raw_body, headers, status_update_manager, buffer_limit=250):
     """Fetches messages from LwDP in real time and iterates over them.
 
         Args:
@@ -1310,7 +1310,7 @@ def _iterate_messages(api, url, raw_body, headers, metadata_list, buffer_limit=2
             url:
             raw_body:
             headers:
-            metadata_list:
+            status_update_manager:
             buffer_limit:
         """
 
@@ -1328,15 +1328,15 @@ def _iterate_messages(api, url, raw_body, headers, metadata_list, buffer_limit=2
             yield from json_processor.decode(line.decode('utf-8'))
         yield from json_processor.fin()
 
-        status_url = api.get_download_status(task_id)
-        status_response = api.execute_request(status_url)
-        status = orjson.loads(status_response.text)
-        metadata_list.append(status)
-
     except requests.exceptions.HTTPError as e:
         raise Exception(e)
 
     finally:
+        status_url = api.get_download_status(task_id)
+        status_response = api.execute_request(status_url)
+        status = orjson.loads(status_response.text)
+        status_update_manager.update(status)
+
         if task_id:
             api.execute_delete(task_request_url)
 
@@ -1468,7 +1468,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         status = _download_messages(api, url, body, headers, self._filename)
 
         return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
-            {"Task status": status}
+            {"Download status": status}
         )
 
 
@@ -1566,7 +1566,9 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status)
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
+            {"Download status": status}
+        )
 
 
 class GetMessagesByBookByGroupsSse(_SSEHandlerClassBase):
@@ -1749,13 +1751,12 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             fast_fail=self._fast_fail,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-        metadata_list = []
 
         def lazy_fetch():
-            download_gen = _iterate_messages(api, url, body, headers, metadata_list)
+            status_update_manager = StatusUpdateManager(data)
+            download_gen = _iterate_messages(api, url, body, headers, status_update_manager)
             for item in download_gen:
                 yield item
-            data.update_metadata(metadata_list[-1])
 
         data = Data(lazy_fetch)
         return data
@@ -2151,13 +2152,12 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         )
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-        metadata_list = []
 
         def lazy_fetch():
-            download_gen = _iterate_messages(api, url, body, headers, metadata_list)
+            status_update_manager = StatusUpdateManager(data)
+            download_gen = _iterate_messages(api, url, body, headers, status_update_manager)
             for item in download_gen:
                 yield item
-            data.update_metadata(metadata_list[-1])
 
         data = Data(lazy_fetch)
         return data
@@ -2226,3 +2226,29 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         return page
     else:
         raise Exception("Wrong type. page should be Page object or string (page name)!")
+
+
+class IterStatus:
+    count = 0
+
+    def __init__(self, taskID, createdAt, completedAt, status):
+        self.__taskID = taskID
+        self.__createdAt = createdAt
+        self.__completedAt = completedAt
+        self.__status = status
+        IterStatus.count += 1
+        self.__count = IterStatus.count
+
+    def __str__(self):
+        return f"Iter {self.__count} status: {{'taskID': {self.__taskID}, 'createdAt': {self.__createdAt}, 'completedAt': {self.__completedAt}, 'status': {self.__status}}}"
+
+    def __repr__(self):
+        return self.__str__()
+
+
+class StatusUpdateManager:
+    def __init__(self, data):
+        self.__data = data
+
+    def update(self, status):
+        self.__data.update_metadata({'iter_statuses': IterStatus(**status)})
