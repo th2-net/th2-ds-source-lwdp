@@ -55,6 +55,7 @@ from th2_data_services.data_source.lwdp.utils._misc import (
 )
 from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
+from dataclasses import dataclass
 
 Event = dict
 
@@ -2266,36 +2267,13 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         raise Exception("Wrong type. page should be Page object or string (page name)!")
 
 
+@dataclass
 class IterStatus:
-    def __init__(self, taskID, createdAt, completedAt, status):
-        """Initialize an IterStatus object.
-
-        Args:
-            taskID (str): The unique identifier for the task.
-            createdAt (str): The timestamp when the task was created.
-            completedAt (str): The timestamp when the task was completed.
-            status (str): The current status of the task.
-        """
-        self.__taskID = taskID
-        self.__createdAt = createdAt
-        self.__completedAt = completedAt
-        self.__status = status
-
-    def __str__(self):
-        return f"IterStatus('taskID': {self.__taskID}, 'createdAt': {self.__createdAt}, 'completedAt': {self.__completedAt}, 'status': {self.__status})"
-
-    def __repr__(self):
-        return self.__str__()
-
-    def __eq__(self, other):
-        if not isinstance(other, IterStatus):
-            return NotImplemented
-        return (
-            self.__taskID == other.__taskID
-            and self.__createdAt == other.__createdAt
-            and self.__completedAt == other.__completedAt
-            and self.__status == other.__status
-        )
+    taskID: str = None
+    createdAt: str = None
+    completedAt: str = None
+    status: str = None
+    errors: str = None
 
 
 class StatusUpdateManager:
