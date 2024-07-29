@@ -49,13 +49,13 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
+from th2_data_services.data_source.lwdp.utils._iter_status_manager import StatusUpdateManager
 from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
     _get_response_format,
 )
 from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
-from dataclasses import dataclass
 
 Event = dict
 
@@ -1595,12 +1595,11 @@ class GetMessagesByBookByGroupsSse(_SSEHandlerClassBase):
         cache: bool = False,
         buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
-        """GetMessagesByBookByGroups Constructor.
+        """GetMessagesByBookByGroupsSse Constructor.
 
         Args:
             start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
-
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
@@ -1691,7 +1690,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         streams: List[str] = [],
         fast_fail: bool = True,
     ):
-        """GetMessagesByBookByGroups2 Constructor.
+        """GetMessagesByBookByGroupsJson Constructor.
 
         Args:
             start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
@@ -2036,12 +2035,12 @@ class GetMessagesByPageByGroupsSse(_SSEHandlerClassBase):
         cache: bool = False,
         buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
-        """GetMessagesByPageByGroups Constructor.
+        """GetMessagesByPageByGroupsSse Constructor.
 
         Args:
             page: Page to search with.
-            book_id: Book to search page by name. If page is string, book_id should be passed.
             groups: List of groups to search messages from.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
@@ -2122,12 +2121,12 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         streams: List[str] = [],
         fast_fail: bool = True,
     ):
-        """GetMessagesByPagesByGroups2 Constructor.
+        """GetMessagesByPageByGroupsJson Constructor.
 
         Args:
             page: Page to search with.
-            book_id: Book to search page by name. If page is string, book_id should be passed.
             groups: List of groups to search messages from.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             streams: List of streams to search messages from the specified groups.
@@ -2201,7 +2200,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         streams: List[str] = [],
         **kwargs,
     ):
-        """GetMessagesByPagesByGroups2 Constructor.
+        """GetMessagesByPagesByGroups Constructor.
 
         Args:
             page: Page to search with.
@@ -2265,25 +2264,3 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         return page
     else:
         raise Exception("Wrong type. page should be Page object or string (page name)!")
-
-
-@dataclass
-class IterStatus:
-    taskID: str = None
-    createdAt: str = None
-    completedAt: str = None
-    status: str = None
-    errors: str = None
-
-
-class StatusUpdateManager:
-    def __init__(self, data):
-        """Initialize the StatusUpdateManager.
-
-        Args:
-            data: The data object to manage status updates for.
-        """
-        self.__data = data
-
-    def update(self, status):
-        self.__data.update_metadata({"Iter statuses": IterStatus(**status)})

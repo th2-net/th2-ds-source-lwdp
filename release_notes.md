@@ -239,6 +239,12 @@ BugFixes without ticket
 1. [I] new version of `orjson` & `aiohttp` lib require python 3.8+.
    [M] Change your python version if you use 3.7 to 3.8+.
 
+## Features
+1. [TH2-5217] GetMessagesByBookByGroups and GetMessagesByPageByGroups now take additional parameter `request_mode`, 
+   its value is either `sse` or `json` and will dictate which method will be used to fetch messages. Added GetMessagesByBookByGroupsJson, 
+   GetMessagesByPageByGroupsJson commands, they return messages in real time. Now, for example, GetMessagesByBookByGroups
+   will use GetMessagesByBookByGroupsSse or GetMessagesByBookByGroupsJson depending on `request_mode` (default value is `sse`).
+
 ## BugFixes
 1. [TH2-5191] - The following commands `GetEventScopes`, `GetMessageAliases`, 
    `GetMessageGroups` return list of lists instead of a single list.
