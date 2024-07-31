@@ -90,7 +90,7 @@ def get_messages_by_page_by_streams(http_data_source: DataSource) -> Data:
 @pytest.fixture
 def get_messages_by_book_by_groups(http_data_source: DataSource) -> Data:
     messages = http_data_source.command(
-        http.GetMessagesByBookByGroups(
+        http.GetMessagesByBookByGroupsSse(
             start_timestamp=START_TIME,
             end_timestamp=END_TIME,
             groups=["ds-lib-session1", "ds-lib-session2"],
@@ -108,7 +108,7 @@ def get_messages_by_page_by_groups(http_data_source: DataSource) -> Data:
     )
 
     messages = http_data_source.command(
-        http.GetMessagesByPageByGroups(
+        http.GetMessagesByPageByGroupsSse(
             page=list(pages)[0], groups=["ds-lib-session1", "ds-lib-session2"]
         )
     )
