@@ -49,7 +49,7 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
-from th2_data_services.data_source.lwdp.utils._iter_status_manager import StatusUpdateManager
+from th2_data_services.data_source.lwdp.utils.iter_status_manager import StatusUpdateManager
 from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
     _get_response_format,
