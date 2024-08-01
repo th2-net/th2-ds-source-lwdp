@@ -1298,7 +1298,6 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             book_id=self._book_id,
             sort=self._sort,
             response_formats=self._response_formats,
-            keep_open=self._keep_open,
             fast_fail=self._fast_fail,
         )
 
