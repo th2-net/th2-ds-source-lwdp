@@ -245,6 +245,9 @@ BugFixes without ticket
    GetMessagesByPageByGroupsJson commands, they return messages in real time. Now, for example, GetMessagesByBookByGroups
    will use GetMessagesByBookByGroupsSse or GetMessagesByBookByGroupsJson depending on `request_mode` (default value is `sse`).
 
+## Improvements
+1. [TH2-5228] Session objects are now used to make requests.
+
 ## BugFixes
 1. [TH2-5191] - The following commands `GetEventScopes`, `GetMessageAliases`, 
    `GetMessageGroups` return list of lists instead of a single list.
