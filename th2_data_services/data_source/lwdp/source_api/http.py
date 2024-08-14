@@ -17,7 +17,7 @@ from http import HTTPStatus
 from typing import List, Generator, Optional, Union, Tuple
 
 import requests
-from requests import Response, Session
+from requests import Response
 from urllib3 import PoolManager, exceptions
 from urllib.parse import quote
 
@@ -29,7 +29,7 @@ from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSource
 
 
 class API(IHTTPSourceAPI):
-    def __init__(self, url: str, chunk_length: int = 65536, session: Session = requests.Session()):
+    def __init__(self, url: str, chunk_length: int = 65536):
         """HTTP API.
 
         Args:
@@ -38,7 +38,7 @@ class API(IHTTPSourceAPI):
         """
         self._url = self.__normalize_url(url)
         self._chunk_length = chunk_length
-        self.__session = session
+        self.__session = requests.Session()
 
     def __normalize_url(self, url):
         if url is None:
