@@ -198,3 +198,9 @@ BugFixes without ticket
 2. [TH2-5193] - orjson versions 3.7.0 through 3.9.14 library has vulnerability
    https://devhub.checkmarx.com/cve-details/CVE-2024-27454/. 
    Updated to >=3.10,<4.
+
+
+# v3.0.1.2
+
+## Improvements
+1. [TH2-5228] Session objects are now used to make requests.
