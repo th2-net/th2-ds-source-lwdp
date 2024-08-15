@@ -650,7 +650,15 @@ class GetEventsById(IHTTPCommand):
 
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         # return self._sync_handle(data_source)
-        return asyncio.run(self._async_handle(data_source))
+        try:
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
+
+        if loop and loop.is_running():
+            return loop.create_task(self._async_handle(data_source)).result()
+        else:
+            return asyncio.run(self._async_handle(data_source))
 
     def _sync_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         result = []
