@@ -64,7 +64,8 @@ Event = dict
 
 # LOG logger = logging.getLogger(__name__)
 
-
+class DownloadGroupsException(Exception):
+    pass
 class _SSEHandlerClassBase(IHTTPCommand):
     def __init__(
         self,
@@ -1362,6 +1363,11 @@ def _download_messages(api, url, raw_body, headers, filename):
                 messages_response = api.execute_request(
                     task_request_url, headers=headers, stream=True
                 )
+
+                if messages_response.status_code != 200:
+                    # TODO: Make retries
+                    msg = f'ERROR: Failed to download messages from LWDP: {raw_body} Response: {messages_response}. Please try again.'
+                    raise DownloadGroupsException(msg)
 
                 copyfileobj(messages_response.raw, file)
                 status_url = api.get_download_status(task_id)
