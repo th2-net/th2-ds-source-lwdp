@@ -7,9 +7,9 @@ from th2_data_services.data import Data
 from th2_data_services.data_source.lwdp.commands.http import (
     GetMessagesByPageByGroupsJson,
     GetMessagesByBookByGroupsJson,
-    IterStatus,
 )
 from th2_data_services.data_source.lwdp.data_source import DataSource
+from th2_data_services.data_source.lwdp.utils.iter_status_manager import IterStatus
 
 
 @pytest.fixture
