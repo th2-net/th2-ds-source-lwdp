@@ -11,7 +11,7 @@ on:
 jobs:
   build-job:
     name: Check and publish snapshot tarball to PyPi
-    uses: th2-net/.github/.github/workflows/compound-python.yml@main
+    uses: th2-net/.github/.github/workflows/compound-python.yml@add_requirements_files_for_test_workflow
     with:
       release-type: development
       style-check-enabled: false
