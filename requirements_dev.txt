@@ -6,3 +6,4 @@ black
 lazydocs
 pydocstyle
 autoflake
+th2-data-services~=2.0.0.dev8779326749
