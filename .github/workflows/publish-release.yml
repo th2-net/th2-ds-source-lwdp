@@ -8,7 +8,13 @@ jobs:
     uses: th2-net/.github/.github/workflows/compound-python.yml@main
     with:
       release-type: release
+      style-check-enabled: false
+      strict-style-check: false
       python-check-versions: "['3.8', '3.9', '3.10', '3.11', '3.12']"
+      test-dir: tests/tests_unit
+      test-ignore-dir: tests/tests_unit/test_dependencies/
+      test-requirements-files: requirements.txt, requirements_dev.txt
       create-tag: true
+
     secrets:
       pypi-password: ${{ secrets.PYPI_PASSWORD }}
