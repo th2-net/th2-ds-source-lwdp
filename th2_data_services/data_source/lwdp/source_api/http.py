@@ -38,6 +38,7 @@ class API(IHTTPSourceAPI):
         """
         self._url = self.__normalize_url(url)
         self._chunk_length = chunk_length
+        self.__session = requests.Session()
 
     def __normalize_url(self, url):
         if url is None:
@@ -378,7 +379,7 @@ class API(IHTTPSourceAPI):
         Returns:
             requests.Response: Response data.
         """
-        return requests.get(url, headers=headers, stream=stream)
+        return self.__session.get(url, headers=headers, stream=stream)
 
     def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
         if len(fixed_url + max(optional, key=len)) >= max_url_len:
