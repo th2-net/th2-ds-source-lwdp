@@ -18,7 +18,7 @@ from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
 
-import http as aiohttp
+import aiohttp
 from deprecated.classic import deprecated
 import orjson
 
