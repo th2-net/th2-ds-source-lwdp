@@ -12,7 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 
-from th2_data_services.interfaces import IEventStub, IMessageStub
+from th2_data_services.interfaces.stub_builder import IEventStub, IMessageStub
 from th2_data_services.data_source.lwdp.struct import (
     event_struct,
     message_struct,
