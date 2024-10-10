@@ -1847,7 +1847,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 char_enc=self._char_enc,
                 decode_error_handler=self._decode_error_handler,
                 cache=self._cache,
-                buffer_limit=self._buffer_limit
+                buffer_limit=self._buffer_limit,
             )
         elif self._request_mode == "json":
             self.handler = GetMessagesByBookByGroupsJson(
@@ -1858,7 +1858,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 sort=self._sort,
                 response_formats=self._response_formats,
                 streams=self._streams,
-                fast_fail=self._fast_fail
+                fast_fail=self._fast_fail,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2285,7 +2285,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 char_enc=self._char_enc,
                 decode_error_handler=self._decode_error_handler,
                 cache=self._cache,
-                buffer_limit=self._buffer_limit
+                buffer_limit=self._buffer_limit,
             )
         elif self._request_mode == "json":
             self.handler = GetMessagesByPageByGroupsJson(
@@ -2295,7 +2295,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 sort=self._sort,
                 response_formats=self._response_formats,
                 streams=self._streams,
-                fast_fail=self._fast_fail
+                fast_fail=self._fast_fail,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
