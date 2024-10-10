@@ -258,3 +258,4 @@ BugFixes without ticket
    https://security.snyk.io/package/pip/aiohttp. 
    Updated to >=3.9.5,<4.
 4. [TH2-5222] - Fix `DownloadMessagesByPageGzip`, it constructed `DownloadMessagesByPageByGroupsGzip` incorrectly.
+5. [TH2-5243] - Fix backward compatibility issues with `GetMessagesByBookByGroups` and `GetMessagesByPageByGroups`.
