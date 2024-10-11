@@ -1778,17 +1778,17 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
-        request_mode: str = "json",
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
-        fast_fail: bool = True,
         keep_open: bool = None,
+        streams: List[str] = [],
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
         buffer_limit=DEFAULT_BUFFER_LIMIT,
+        fast_fail: bool = True,
+        request_mode: str = "json",
     ):
         """GetMessagesByBookByGroups Constructor.
 
@@ -1797,22 +1797,22 @@ class GetMessagesByBookByGroups(IHTTPCommand):
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
-            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
             sort: Enables message sorting within a group. It is not sorted between groups.
                   (You cannot specify a direction in groups unlike streams.
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
-            fast_fail: If true, stops task execution right after first error.
-            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             max_url_length: API request url max length.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            fast_fail: If true, stops task execution right after first error.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
 
         Raises:
             ValueError: If request_mode is not either json or sse.
@@ -2222,38 +2222,39 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         self,
         page: Union[Page, str],
         groups: List[str],
-        request_mode: str = "json",
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
-        fast_fail: bool = True,
         keep_open: bool = None,
+        streams: List[str] = [],
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
         decode_error_handler: str = UNICODE_REPLACE_HANDLER,
         cache: bool = False,
         buffer_limit=DEFAULT_BUFFER_LIMIT,
+        fast_fail: bool = True,
+        request_mode: str = "json",
     ):
         """GetMessagesByPagesByGroups Constructor.
 
         Args:
             page: Page to search with.
             groups: List of groups to search messages from.
-            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
             book_id: Book to search page by name. If page is string, book_id should be passed.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
             fast_fail: If true, stops task execution right after first error.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
 
         Raises:
             ValueError: If request_mode is not either json or sse.
