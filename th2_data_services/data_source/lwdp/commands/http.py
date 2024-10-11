@@ -17,6 +17,7 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
+from warnings import warn
 
 import aiohttp
 from deprecated.classic import deprecated
@@ -1696,6 +1697,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         streams: List[str] = [],
         fast_fail: bool = True,
+        cache: bool = False,
     ):
         """GetMessagesByBookByGroupsJson Constructor.
 
@@ -1713,6 +1715,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             fast_fail: If true, stops task execution right after first error.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -1736,6 +1739,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         self._response_formats = response_formats
         self._book_id = book_id
         self._fast_fail = fast_fail
+        self._cache = cache
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1761,7 +1765,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             for item in download_gen:
                 yield item
 
-        data = Data(lazy_fetch)
+        data = Data(lazy_fetch).use_cache(self._cache)
         return data
 
 
@@ -1782,12 +1786,12 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         streams: List[str] = [],
-        max_url_length: int = 2048,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        max_url_length: int = None,
+        char_enc: str = None,
+        decode_error_handler: str = None,
         cache: bool = False,
-        buffer_limit=DEFAULT_BUFFER_LIMIT,
-        fast_fail: bool = True,
+        buffer_limit: int = None,
+        fast_fail: bool = None,
         request_mode: str = "json",
     ):
         """GetMessagesByBookByGroups Constructor.
@@ -1833,7 +1837,23 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         self._cache = cache
         self._buffer_limit = buffer_limit
 
-        if self._request_mode == "sse":
+        if self._request_mode == 'sse':
+            if fast_fail is not None:
+                warn(
+                    '"fast_fail" parameter is not used when "request_mode" is "sse".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if not max_url_length:
+                self._max_url_length = 2048
+            if not char_enc:
+                self._char_enc = 'utf-8'
+            if not decode_error_handler:
+                self._decode_error_handler = UNICODE_REPLACE_HANDLER
+            if not buffer_limit:
+                self._buffer_limit = DEFAULT_BUFFER_LIMIT
+
             self.handler = GetMessagesByBookByGroupsSse(
                 start_timestamp=self._start_timestamp,
                 end_timestamp=self._end_timestamp,
@@ -1849,7 +1869,18 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 cache=self._cache,
                 buffer_limit=self._buffer_limit,
             )
-        elif self._request_mode == "json":
+        elif self._request_mode == 'json':
+            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+                warn(
+                    '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
+                    ' parameters are not used when "request_mode" is "json".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if fast_fail is None:
+                self._fast_fail = True
+
             self.handler = GetMessagesByBookByGroupsJson(
                 start_timestamp=self._start_timestamp,
                 end_timestamp=self._end_timestamp,
@@ -1859,6 +1890,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 response_formats=self._response_formats,
                 streams=self._streams,
                 fast_fail=self._fast_fail,
+                cache=self._cache,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2149,6 +2181,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         streams: List[str] = [],
         fast_fail: bool = True,
+        cache: bool = False,
     ):
         """GetMessagesByPageByGroupsJson Constructor.
 
@@ -2163,6 +2196,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             fast_fail: If true, stops task execution right after first error.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -2173,6 +2207,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         self._sort = sort
         self._response_formats = response_formats
         self._fast_fail = fast_fail
+        self._cache = cache
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -2207,7 +2242,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             for item in download_gen:
                 yield item
 
-        data = Data(lazy_fetch)
+        data = Data(lazy_fetch).use_cache(self._cache)
         return data
 
 
@@ -2227,12 +2262,12 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
         streams: List[str] = [],
-        max_url_length: int = 2048,
-        char_enc: str = "utf-8",
-        decode_error_handler: str = UNICODE_REPLACE_HANDLER,
+        max_url_length: int = None,
+        char_enc: str = None,
+        decode_error_handler: str = None,
         cache: bool = False,
-        buffer_limit=DEFAULT_BUFFER_LIMIT,
-        fast_fail: bool = True,
+        buffer_limit: int = None,
+        fast_fail: bool = None,
         request_mode: str = "json",
     ):
         """GetMessagesByPagesByGroups Constructor.
@@ -2275,12 +2310,29 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         self._buffer_limit = buffer_limit
 
         if self._request_mode == "sse":
+            if fast_fail is not None:
+                warn(
+                    "'fast_fail' parameter is not used when 'request_mode' is 'sse'.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if not max_url_length:
+                self._max_url_length = 2048
+            if not char_enc:
+                self._char_enc = 'utf-8'
+            if not decode_error_handler:
+                self._decode_error_handler = UNICODE_REPLACE_HANDLER
+            if not buffer_limit:
+                self._buffer_limit = DEFAULT_BUFFER_LIMIT
+
             self.handler = GetMessagesByPageByGroupsSse(
                 page=self._page,
                 groups=self._groups,
                 book_id=self._book_id,
                 sort=self._sort,
                 response_formats=self._response_formats,
+                keep_open=self._keep_open,
                 streams=self._streams,
                 max_url_length=self._max_url_length,
                 char_enc=self._char_enc,
@@ -2289,6 +2341,17 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 buffer_limit=self._buffer_limit,
             )
         elif self._request_mode == "json":
+            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+                warn(
+                    '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
+                    ' parameters are not used when "request_mode" is "json".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if fast_fail is None:
+                self._fast_fail = True
+
             self.handler = GetMessagesByPageByGroupsJson(
                 page=self._page,
                 groups=self._groups,
@@ -2297,6 +2360,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 response_formats=self._response_formats,
                 streams=self._streams,
                 fast_fail=self._fast_fail,
+                cache=self._cache,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
