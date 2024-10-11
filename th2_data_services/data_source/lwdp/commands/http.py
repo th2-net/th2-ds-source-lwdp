@@ -1837,7 +1837,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         self._cache = cache
         self._buffer_limit = buffer_limit
 
-        if self._request_mode == 'sse':
+        if self._request_mode == "sse":
             if fast_fail is not None:
                 warn(
                     '"fast_fail" parameter is not used when "request_mode" is "sse".',
@@ -1848,7 +1848,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
             if not max_url_length:
                 self._max_url_length = 2048
             if not char_enc:
-                self._char_enc = 'utf-8'
+                self._char_enc = "utf-8"
             if not decode_error_handler:
                 self._decode_error_handler = UNICODE_REPLACE_HANDLER
             if not buffer_limit:
@@ -1869,7 +1869,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 cache=self._cache,
                 buffer_limit=self._buffer_limit,
             )
-        elif self._request_mode == 'json':
+        elif self._request_mode == "json":
             if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
                 warn(
                     '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
@@ -2320,7 +2320,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
             if not max_url_length:
                 self._max_url_length = 2048
             if not char_enc:
-                self._char_enc = 'utf-8'
+                self._char_enc = "utf-8"
             if not decode_error_handler:
                 self._decode_error_handler = UNICODE_REPLACE_HANDLER
             if not buffer_limit:
