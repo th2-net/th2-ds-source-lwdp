@@ -17,6 +17,7 @@ from typing import List, Optional, Union, Generator, Any
 from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
+from warnings import warn
 
 import aiohttp
 from deprecated.classic import deprecated
@@ -1618,10 +1619,10 @@ class GetMessagesByBookByGroupsSse(_SSEHandlerClassBase):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         response_formats = _get_response_format(response_formats)
@@ -1696,6 +1697,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         streams: List[str] = [],
         fast_fail: bool = True,
+        cache: bool = False,
     ):
         """GetMessagesByBookByGroupsJson Constructor.
 
@@ -1713,6 +1715,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             fast_fail: If true, stops task execution right after first error.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -1736,6 +1739,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         self._response_formats = response_formats
         self._book_id = book_id
         self._fast_fail = fast_fail
+        self._cache = cache
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1761,7 +1765,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             for item in download_gen:
                 yield item
 
-        data = Data(lazy_fetch)
+        data = Data(lazy_fetch).use_cache(self._cache)
         return data
 
 
@@ -1778,11 +1782,17 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         end_timestamp: Union[datetime, str, int],
         book_id: str,
         groups: List[str],
-        request_mode: str = "json",
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
         streams: List[str] = [],
-        **kwargs,
+        max_url_length: int = None,
+        char_enc: str = None,
+        decode_error_handler: str = None,
+        cache: bool = False,
+        buffer_limit: int = None,
+        fast_fail: bool = None,
+        request_mode: str = "json",
     ):
         """GetMessagesByBookByGroups Constructor.
 
@@ -1791,52 +1801,96 @@ class GetMessagesByBookByGroups(IHTTPCommand):
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
-            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
             sort: Enables message sorting within a group. It is not sorted between groups.
                   (You cannot specify a direction in groups unlike streams.
                   It's possible to add it to the CradleAPI by request to dev team.)
             response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
             fast_fail: If true, stops task execution right after first error.
-            **kwargs: Additional keyword arguments.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
 
         Raises:
             ValueError: If request_mode is not either json or sse.
         """
-        self.start_timestamp = start_timestamp
-        self.end_timestamp = end_timestamp
-        self.book_id = book_id
-        self.groups = groups
-        self.request_mode = request_mode
-        self.sort = sort
-        self.response_formats = response_formats
-        self.streams = streams
-        self.kwargs = kwargs
+        self._start_timestamp = start_timestamp
+        self._end_timestamp = end_timestamp
+        self._groups = groups
+        self._request_mode = request_mode
+        self._book_id = book_id
+        self._sort = sort
+        self._response_formats = response_formats
+        self._streams = streams
+        self._fast_fail = fast_fail
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._cache = cache
+        self._buffer_limit = buffer_limit
 
-        if self.request_mode == "sse":
+        if self._request_mode == "sse":
+            if fast_fail is not None:
+                warn(
+                    '"fast_fail" parameter is not used when "request_mode" is "sse".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if not max_url_length:
+                self._max_url_length = 2048
+            if not char_enc:
+                self._char_enc = "utf-8"
+            if not decode_error_handler:
+                self._decode_error_handler = UNICODE_REPLACE_HANDLER
+            if not buffer_limit:
+                self._buffer_limit = DEFAULT_BUFFER_LIMIT
+
             self.handler = GetMessagesByBookByGroupsSse(
-                start_timestamp=self.start_timestamp,
-                end_timestamp=self.end_timestamp,
-                book_id=self.book_id,
-                groups=self.groups,
-                sort=self.sort,
-                response_formats=self.response_formats,
-                streams=self.streams,
-                **self.kwargs,
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                book_id=self._book_id,
+                groups=self._groups,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                keep_open=self._keep_open,
+                streams=self._streams,
+                max_url_length=self._max_url_length,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
             )
-        elif self.request_mode == "json":
+        elif self._request_mode == "json":
+            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+                warn(
+                    '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
+                    ' parameters are not used when "request_mode" is "json".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if fast_fail is None:
+                self._fast_fail = True
+
             self.handler = GetMessagesByBookByGroupsJson(
-                start_timestamp=self.start_timestamp,
-                end_timestamp=self.end_timestamp,
-                book_id=self.book_id,
-                groups=self.groups,
-                sort=self.sort,
-                response_formats=self.response_formats,
-                streams=self.streams,
-                **self.kwargs,
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                book_id=self._book_id,
+                groups=self._groups,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                streams=self._streams,
+                fast_fail=self._fast_fail,
+                cache=self._cache,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2055,10 +2109,10 @@ class GetMessagesByPageByGroupsSse(_SSEHandlerClassBase):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         super().__init__(
@@ -2127,6 +2181,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         streams: List[str] = [],
         fast_fail: bool = True,
+        cache: bool = False,
     ):
         """GetMessagesByPageByGroupsJson Constructor.
 
@@ -2141,6 +2196,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
             fast_fail: If true, stops task execution right after first error.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
@@ -2151,6 +2207,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         self._sort = sort
         self._response_formats = response_formats
         self._fast_fail = fast_fail
+        self._cache = cache
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -2185,7 +2242,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             for item in download_gen:
                 yield item
 
-        data = Data(lazy_fetch)
+        data = Data(lazy_fetch).use_cache(self._cache)
         return data
 
 
@@ -2200,59 +2257,110 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         self,
         page: Union[Page, str],
         groups: List[str],
-        request_mode: str = "json",
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
         streams: List[str] = [],
-        **kwargs,
+        max_url_length: int = None,
+        char_enc: str = None,
+        decode_error_handler: str = None,
+        cache: bool = False,
+        buffer_limit: int = None,
+        fast_fail: bool = None,
+        request_mode: str = "json",
     ):
         """GetMessagesByPagesByGroups Constructor.
 
         Args:
             page: Page to search with.
             groups: List of groups to search messages from.
-            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
             book_id: Book to search page by name. If page is string, book_id should be passed.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
-            **kwargs: Additional keyword arguments.
+            max_url_length: API request url max length.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            fast_fail: If true, stops task execution right after first error.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
 
         Raises:
             ValueError: If request_mode is not either json or sse.
         """
-        self.page = page
-        self.groups = groups
-        self.request_mode = request_mode
-        self.book_id = book_id
-        self.sort = sort
-        self.response_formats = response_formats
-        self.streams = streams
-        self.kwargs = kwargs
+        self._page = page
+        self._groups = groups
+        self._request_mode = request_mode
+        self._book_id = book_id
+        self._sort = sort
+        self._response_formats = response_formats
+        self._streams = streams
+        self._fast_fail = fast_fail
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._cache = cache
+        self._buffer_limit = buffer_limit
 
-        if self.request_mode == "sse":
+        if self._request_mode == "sse":
+            if fast_fail is not None:
+                warn(
+                    "'fast_fail' parameter is not used when 'request_mode' is 'sse'.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if not max_url_length:
+                self._max_url_length = 2048
+            if not char_enc:
+                self._char_enc = "utf-8"
+            if not decode_error_handler:
+                self._decode_error_handler = UNICODE_REPLACE_HANDLER
+            if not buffer_limit:
+                self._buffer_limit = DEFAULT_BUFFER_LIMIT
+
             self.handler = GetMessagesByPageByGroupsSse(
-                page=self.page,
-                groups=self.groups,
-                book_id=self.book_id,
-                sort=self.sort,
-                response_formats=self.response_formats,
-                streams=self.streams,
-                **self.kwargs,
+                page=self._page,
+                groups=self._groups,
+                book_id=self._book_id,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                keep_open=self._keep_open,
+                streams=self._streams,
+                max_url_length=self._max_url_length,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
             )
-        elif self.request_mode == "json":
+        elif self._request_mode == "json":
+            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+                warn(
+                    '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
+                    ' parameters are not used when "request_mode" is "json".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if fast_fail is None:
+                self._fast_fail = True
+
             self.handler = GetMessagesByPageByGroupsJson(
-                page=self.page,
-                groups=self.groups,
-                book_id=self.book_id,
-                sort=self.sort,
-                response_formats=self.response_formats,
-                streams=self.streams,
-                **self.kwargs,
+                page=self._page,
+                groups=self._groups,
+                book_id=self._book_id,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                streams=self._streams,
+                fast_fail=self._fast_fail,
+                cache=self._cache,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')

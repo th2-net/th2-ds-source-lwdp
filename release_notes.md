@@ -239,6 +239,18 @@ BugFixes without ticket
 1. [I] new version of `orjson` & `aiohttp` lib require python 3.8+.
    [M] Change your python version if you use 3.7 to 3.8+.
 
+## BugFixes
+1. [TH2-5191] - The following commands `GetEventScopes`, `GetMessageAliases`, 
+   `GetMessageGroups` return list of lists instead of a single list.
+2. [TH2-5193] - orjson versions 3.7.0 through 3.9.14 library has vulnerability
+   https://devhub.checkmarx.com/cve-details/CVE-2024-27454/. 
+   Updated to >=3.10,<4.
+3. [TH2-5193] - aiohttp library versions < 3.9.4 have vulnerability
+   https://security.snyk.io/package/pip/aiohttp. 
+   Updated to >=3.9.5,<4.
+
+# v3.1.1.0
+
 ## Features
 1. [TH2-5217] GetMessagesByBookByGroups and GetMessagesByPageByGroups now take additional parameter `request_mode`, 
    its value is either `sse` or `json` and will dictate which method will be used to fetch messages. Added GetMessagesByBookByGroupsJson, 
@@ -249,12 +261,5 @@ BugFixes without ticket
 1. [TH2-5228] Session objects are now used to make requests.
 
 ## BugFixes
-1. [TH2-5191] - The following commands `GetEventScopes`, `GetMessageAliases`, 
-   `GetMessageGroups` return list of lists instead of a single list.
-2. [TH2-5193] - orjson versions 3.7.0 through 3.9.14 library has vulnerability
-   https://devhub.checkmarx.com/cve-details/CVE-2024-27454/. 
-   Updated to >=3.10,<4.
-3. [TH2-5193] - aiohttp library versions < 3.9.4 have vulnerability
-   https://security.snyk.io/package/pip/aiohttp. 
-   Updated to >=3.9.5,<4.
-4. [TH2-5222] - Fix `DownloadMessagesByPageGzip`, it constructed `DownloadMessagesByPageByGroupsGzip` incorrectly.
+1. [TH2-5222] - Fix `DownloadMessagesByPageGzip`, it constructed `DownloadMessagesByPageByGroupsGzip` incorrectly.
+2. [TH2-5243] - Fix backward compatibility issues with `GetMessagesByBookByGroups` and `GetMessagesByPageByGroups`.
