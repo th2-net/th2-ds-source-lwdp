@@ -25,7 +25,7 @@ import orjson
 
 import requests
 from th2_data_services.data import Data
-from th2_data_services.exceptions import EventNotFound, MessageNotFound
+from th2_data_services.exceptions import EventNotFound, MessageNotFound, CommandError
 from th2_data_services.utils.converters import (
     UniversalDatetimeStringConverter,
     UnixTimestampConverter,
@@ -1326,6 +1326,15 @@ def _iterate_messages(api, url, raw_body, headers, status_update_manager, buffer
     json_processor = BufferedJSONProcessor(buffer_limit)
     try:
         response = api.execute_post(url, raw_body)
+        if not response.ok:
+            raise CommandError(
+                "Error during doing request to LwDP. \n"
+                f"URL: {url}\n"
+                f"raw_body: {raw_body}\n"
+                f"headers: {headers}\n"
+                f"server response: {response.text}"
+            )
+
         task_id = orjson.loads(response.text)["taskID"]
         task_request_url = api.get_download(task_id)
         messages_response = api.execute_request(task_request_url, headers=headers, stream=True)
@@ -1366,6 +1375,15 @@ def _download_messages(api, url, raw_body, headers, filename):
             task_id = None
             try:
                 response = api.execute_post(url, raw_body)
+                if not response.ok:
+                    raise CommandError(
+                        "Error during doing request to LwDP. \n"
+                        f"URL: {url}\n"
+                        f"raw_body: {raw_body}\n"
+                        f"headers: {headers}\n"
+                        f"server response: {response.text}"
+                    )
+
                 task_id = orjson.loads(response.text)["taskID"]
                 task_request_url = api.get_download(task_id)
                 messages_response = api.execute_request(
