@@ -13,7 +13,7 @@
 #  limitations under the License.
 import asyncio
 from abc import abstractmethod
-from typing import List, Optional, Union, Generator, Any
+from typing import List, Optional, Union, Generator, Any, Dict
 from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
@@ -1406,6 +1406,42 @@ def _download_messages(api, url, raw_body, headers, filename):
     return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
 
 
+def _download_messages_old(api, urls, headers, filename):
+    """Downloads messages from LwDP and store to jsons.gz files.
+
+    Args:
+        api:
+        urls:
+        headers:
+        filename:
+
+    Returns:
+        None
+    """
+
+    def do_req_and_store(fn, headers, url):
+        with open(fn, "wb") as file:
+            try:
+                response = api.execute_request(url, headers=headers, stream=True)
+                response.raise_for_status()
+
+                copyfileobj(response.raw, file)
+            except requests.exceptions.HTTPError as e:
+                print(e)
+                print()
+                raise
+
+    if filename.endswith(".gz"):
+        filename = filename[:-3]
+
+    if len(urls) == 1:
+        do_req_and_store(f"{filename}.gz", headers, urls[0])
+
+    else:
+        for num, url in enumerate(urls):
+            do_req_and_store(f"{filename}.{num + 1}.gz", headers, url)
+
+
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
@@ -1431,7 +1467,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
+        streams: Union[List[str], List[Dict[str, str]]] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
@@ -1476,6 +1512,30 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         )
         self._book_id = page.book
         api = data_source.source_api
+
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        if all(isinstance(stream, str) for stream in self._streams):
+            urls = api.get_download_messages(
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                book_id=self._book_id,
+                groups=self._groups,
+                stream=self._streams,
+                sort=self._sort,
+                response_formats=self._response_formats,
+            )
+
+            _download_messages_old(api, urls, headers, self._filename)
+
+            if (url_len := len(urls)) == 1:
+                return Data.from_json(f"{self._filename}.gz", gzip=True)
+
+            return sum(
+                (Data.from_json(f"{self._filename}.{i + 1}.gz", gzip=True) for i in range(url_len)),
+                Data([]),
+            )
+
         url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -1486,8 +1546,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
         )
-
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
         status = _download_messages(api, url, body, headers, self._filename)
 
@@ -1522,7 +1580,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
+        streams: Union[List[str], List[Dict[str, str]]] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
@@ -1576,6 +1634,29 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
     def handle(self, data_source: DataSource):
         api = data_source.source_api
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        if all(isinstance(stream, str) for stream in self._streams):
+            urls = api.get_download_messages(
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                book_id=self._book_id,
+                groups=self._groups,
+                stream=self._streams,
+                sort=self._sort,
+                response_formats=self._response_formats,
+            )
+
+            _download_messages_old(api, urls, headers, self._filename)
+
+            if (url_len := len(urls)) == 1:
+                return Data.from_json(f"{self._filename}.gz", gzip=True)
+
+            return sum(
+                (Data.from_json(f"{self._filename}.{i + 1}.gz", gzip=True) for i in range(url_len)),
+                Data([]),
+            )
+
         url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
@@ -1586,7 +1667,6 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
         )
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
         status = _download_messages(api, url, body, headers, self._filename)
 
