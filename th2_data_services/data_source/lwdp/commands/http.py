@@ -1511,8 +1511,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
         self._book_id = page.book
-        api = data_source.source_api
 
+        api = data_source.source_api
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
         if all(isinstance(stream, str) for stream in self._streams):
