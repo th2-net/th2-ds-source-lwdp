@@ -1467,7 +1467,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: Union[List[str], List[Dict[str, str]]] = [],
+        streams: List[Dict[str, str]] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
@@ -1482,7 +1482,13 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
@@ -1514,27 +1520,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
 
         api = data_source.source_api
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-
-        if all(isinstance(stream, str) for stream in self._streams):
-            urls = api.get_download_messages(
-                start_timestamp=self._start_timestamp,
-                end_timestamp=self._end_timestamp,
-                book_id=self._book_id,
-                groups=self._groups,
-                stream=self._streams,
-                sort=self._sort,
-                response_formats=self._response_formats,
-            )
-
-            _download_messages_old(api, urls, headers, self._filename)
-
-            if (url_len := len(urls)) == 1:
-                return Data.from_json(f"{self._filename}.gz", gzip=True)
-
-            return sum(
-                (Data.from_json(f"{self._filename}.{i + 1}.gz", gzip=True) for i in range(url_len)),
-                Data([]),
-            )
 
         url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
@@ -1580,7 +1565,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: Union[List[str], List[Dict[str, str]]] = [],
+        streams: List[Dict[str, str]] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
@@ -1599,7 +1584,13 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
@@ -1635,27 +1626,6 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
     def handle(self, data_source: DataSource):
         api = data_source.source_api
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
-
-        if all(isinstance(stream, str) for stream in self._streams):
-            urls = api.get_download_messages(
-                start_timestamp=self._start_timestamp,
-                end_timestamp=self._end_timestamp,
-                book_id=self._book_id,
-                groups=self._groups,
-                stream=self._streams,
-                sort=self._sort,
-                response_formats=self._response_formats,
-            )
-
-            _download_messages_old(api, urls, headers, self._filename)
-
-            if (url_len := len(urls)) == 1:
-                return Data.from_json(f"{self._filename}.gz", gzip=True)
-
-            return sum(
-                (Data.from_json(f"{self._filename}.{i + 1}.gz", gzip=True) for i in range(url_len)),
-                Data([]),
-            )
 
         url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
@@ -1793,7 +1763,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
+        streams: List[Dict[str, str]] = [],
         fast_fail: bool = True,
         cache: bool = False,
     ):
@@ -1811,7 +1781,13 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
@@ -1883,7 +1859,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = [],
+        streams: Union[List[str], List[Dict[str, str]]] = [],
         max_url_length: int = None,
         char_enc: str = None,
         decode_error_handler: str = None,
@@ -2277,7 +2253,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
+        streams: List[Dict[str, str]] = [],
         fast_fail: bool = True,
         cache: bool = False,
     ):
@@ -2292,7 +2268,13 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
@@ -2359,7 +2341,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = [],
+        streams: Union[List[str], List[Dict[str, str]]] = [],
         max_url_length: int = None,
         char_enc: str = None,
         decode_error_handler: str = None,

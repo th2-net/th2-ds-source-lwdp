@@ -14,7 +14,7 @@
 
 # LOG import logging
 from http import HTTPStatus
-from typing import List, Generator, Optional, Union, Tuple
+from typing import List, Generator, Optional, Union, Tuple, Dict
 
 import requests
 from requests import Response
@@ -351,7 +351,7 @@ class API(IHTTPSourceAPI):
         groups: List[str],
         sort: bool = False,
         response_formats: List[str] = None,
-        streams: List[str] = [],
+        streams: List[Dict[str, str]] = [],
         fast_fail: bool = True,
     ) -> Tuple[str, dict]:
         """REST-API `download` call downloads messages in specified time range in json format.
@@ -365,7 +365,7 @@ class API(IHTTPSourceAPI):
             groups: List of groups to search messages by
             sort: Enables message sorting in the request
             response_formats: Response format
-            stream: List of streams (optionally with direction) to include in the response.
+            streams: List of streams (optionally with direction) to include in the response.
             fast_fail: If true, stops task execution right after first error.
 
         Returns:
