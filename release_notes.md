@@ -263,4 +263,3 @@ BugFixes without ticket
 ## BugFixes
 1. [TH2-5222] - Fix `DownloadMessagesByPageGzip`, it constructed `DownloadMessagesByPageByGroupsGzip` incorrectly.
 2. [TH2-5243] - Fix backward compatibility issues with `GetMessagesByBookByGroups` and `GetMessagesByPageByGroups`.
-3. [TH2-5249] - Return the mistakenly removed `/download/messages` endpoint. 
