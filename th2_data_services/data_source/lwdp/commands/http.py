@@ -60,6 +60,21 @@ from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
 
+# Available stream formats:
+# 1) str
+#   `['stream_abc:1']`, `['stream_abc']`, where 1 - IN, 2 - OUT.
+#
+# 2) dict
+#  ```
+#   [
+#     {
+#       "sessionAlias": "stream_abc",
+#       "directions": ["IN", "OUT"]
+#     }
+#   ]
+#  ```
+T_streams = Union[str, Stream, Streams, Dict, List[Union[str, Stream, Streams, Dict]]]
+
 
 # LOG import logging
 
@@ -1111,7 +1126,7 @@ class GetMessagesByBookByStreams(_SSEHandlerClassBase):
         self,
         start_timestamp: Union[datetime, str, int],
         book_id: str,
-        streams: Union[List[Union[str, Streams, Stream]], Streams],
+        streams: T_streams,
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -1247,7 +1262,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = None,
+        streams: Optional[T_streams] = None,
         fast_fail: bool = True,
     ):
         """DownloadMessagesByPageGzip Constructor.
@@ -1467,7 +1482,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[Dict[str, str]] = [],
+        streams: Optional[T_streams] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
@@ -1565,7 +1580,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[Dict[str, str]] = [],
+        streams: Optional[T_streams] = [],
         fast_fail: bool = True,
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
@@ -1663,7 +1678,7 @@ class GetMessagesByBookByGroupsSse(_SSEHandlerClassBase):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = None,
+        streams: Optional[T_streams] = None,
         # Non-data source args.
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -1763,7 +1778,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[Dict[str, str]] = [],
+        streams: Optional[T_streams] = [],
         fast_fail: bool = True,
         cache: bool = False,
     ):
@@ -1859,7 +1874,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: Union[List[str], List[Dict[str, str]]] = [],
+        streams: Optional[T_streams] = [],
         max_url_length: int = None,
         char_enc: str = None,
         decode_error_handler: str = None,
@@ -2162,7 +2177,7 @@ class GetMessagesByPageByGroupsSse(_SSEHandlerClassBase):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = None,
+        streams: Optional[T_streams] = None,
         # Non-data source args.
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -2253,7 +2268,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[Dict[str, str]] = [],
+        streams: Optional[T_streams] = [],
         fast_fail: bool = True,
         cache: bool = False,
     ):
@@ -2341,7 +2356,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: Union[List[str], List[Dict[str, str]]] = [],
+        streams: Optional[T_streams] = [],
         max_url_length: int = None,
         char_enc: str = None,
         decode_error_handler: str = None,
