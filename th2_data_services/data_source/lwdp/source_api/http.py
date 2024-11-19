@@ -22,6 +22,7 @@ from urllib3 import PoolManager, exceptions
 from urllib.parse import quote
 
 from th2_data_services.data_source.lwdp import Stream, Streams
+from th2_data_services.data_source.lwdp.commands.http import T_streams
 from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
 
 
@@ -352,7 +353,7 @@ class API(IHTTPSourceAPI):
         groups: List[str],
         sort: bool = False,
         response_formats: List[str] = None,
-        streams: List[Dict[str, str]] = [],
+        streams: T_streams = [],
         fast_fail: bool = True,
     ) -> Tuple[str, dict]:
         """REST-API `download` call downloads messages in specified time range in json format.
