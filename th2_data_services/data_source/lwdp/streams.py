@@ -48,6 +48,16 @@ class Stream:
             return f"&stream={self._alias}"
         return f"&stream={self._alias}:{self._direction}"
 
+    def convert_to_dict_format(self) -> dict:
+        direction_mapper = {
+            "1": ["IN"],
+            "2": ["OUT"],
+        }
+        result = {"sessionAlias": self._alias}
+        if self._direction:
+            result["direction"] = direction_mapper[self._direction]
+        return result
+
 
 class Streams:
     """General interface for composite streams of lwdp ds.
@@ -92,3 +102,6 @@ class Streams:
         if self._direction is None:
             return "&".join([f"stream={alias}" for alias in self._aliases])
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._aliases])
+
+    def convert_to_dict_format(self) -> List[dict]:
+        return [Stream(stream, self._direction).convert_to_dict_format() for stream in self._aliases]
