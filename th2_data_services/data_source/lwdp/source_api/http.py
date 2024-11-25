@@ -14,7 +14,7 @@
 
 # LOG import logging
 from http import HTTPStatus
-from typing import List, Generator, Optional, Union, Tuple, Dict
+from typing import Generator, List, Optional, Tuple, Union
 
 import requests
 from requests import Response
@@ -373,6 +373,7 @@ class API(IHTTPSourceAPI):
         Returns:
             URL for downloading messages and dictionary for request body.
         """
+
         def convert_stream_to_dict_format():
             def map_func(s):
                 if isinstance(s, Stream):
@@ -382,8 +383,8 @@ class API(IHTTPSourceAPI):
                     return s.convert_to_dict_format()
 
                 if isinstance(s, str):
-                    if ':' in s:
-                        stream_obj = Stream(*s.split(':'))
+                    if ":" in s:
+                        stream_obj = Stream(*s.split(":"))
                     else:
                         stream_obj = Stream(s)
                     return [stream_obj.convert_to_dict_format()]

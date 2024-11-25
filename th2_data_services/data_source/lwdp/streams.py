@@ -104,4 +104,6 @@ class Streams:
         return "&".join([f"stream={stream}:{self._direction}" for stream in self._aliases])
 
     def convert_to_dict_format(self) -> List[dict]:
-        return [Stream(stream, self._direction).convert_to_dict_format() for stream in self._aliases]
+        return [
+            Stream(stream, self._direction).convert_to_dict_format() for stream in self._aliases
+        ]
