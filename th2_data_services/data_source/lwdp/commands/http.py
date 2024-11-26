@@ -956,6 +956,81 @@ class GetEventsByPageByScopes(_SSEHandlerClassBase):
         ]
 
 
+class DownloadEventsGzip(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches events stream and downloads them.
+
+    Returns:
+        Nothing.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
+        book_id: str,
+        scope: str,
+        parent_event_id: str = None,
+        limit: int = None,
+        search_direction: str = "next",
+    ):
+        """DownloadEventsGzip Constructor.
+
+        Args:
+            filename: Filename of downloaded files.
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested scope.
+            scope: Scope for events.
+            parent_event_id: Parent event if for search.
+            limit: Limit for events in the response. No limit if not specified.
+            search_direction: Defines the order of the events.
+        """
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
+        self._filename = filename
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        self._parent_event_id = parent_event_id
+        self._book_id = book_id
+        self._scope = scope
+        self._limit = limit
+        self._search_direction = search_direction
+
+    def handle(self, data_source: DataSource):
+        api = data_source.source_api
+        url, body = api.post_download_events(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            parent_event_id=self._parent_event_id,
+            book_id=self._book_id,
+            scope=self._scope,
+            limit=self._limit,
+            search_direction=self._search_direction,
+        )
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        status = _download_messages(api, url, body, headers, self._filename)
+
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
+            {"Download status": status}
+        )
+
+
 class GetMessageById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 

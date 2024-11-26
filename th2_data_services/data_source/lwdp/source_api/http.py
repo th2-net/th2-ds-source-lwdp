@@ -329,6 +329,46 @@ class API(IHTTPSourceAPI):
 
         return self.__encode_url(url), kwargs
 
+    def post_download_events(
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        book_id: str,
+        scope: str,
+        parent_event_id: str = None,
+        limit: int = None,
+        search_direction: str = "next",
+    ) -> Tuple[str, dict]:
+        """REST-API `download/events` call downloads events in specified time range in json format.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested scope.
+            scope: Scope for events.
+            parent_event_id: Parent event if for search.
+            limit: Limit for events in the response. No limit if not specified.
+            search_direction: Defines the order of the events.
+
+        Returns:
+            URL for downloading events and dictionary for request body.
+        """
+        kwargs = {
+            "resource": "EVENTS",
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "parentEventId": parent_event_id,
+            "bookID": book_id,
+            "scope": scope,
+            "limit": limit,
+            "search_direction": search_direction,
+        }
+        url = f"{self._url}/download/events"
+
+        return self.__encode_url(url), kwargs
+
     def get_download(
         self,
         task_id: str,
