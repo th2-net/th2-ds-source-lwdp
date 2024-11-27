@@ -361,16 +361,18 @@ class API(IHTTPSourceAPI):
             "resource": "EVENTS",
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
-            "parentEventId": parent_event_id,
+            "parentEvent": parent_event_id,
             "bookID": book_id,
             "scope": scope,
             "limit": limit,
-            "search_direction": search_direction,
+            "searchDirection": search_direction,
             "filters": filters,
         }
-        url = f"{self._url}/download/events"
+        url = f"{self._url}/download"
 
-        return self.__encode_url(url), kwargs
+        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return self.__encode_url(url), filtered_kwargs
 
     def get_download(
         self,
