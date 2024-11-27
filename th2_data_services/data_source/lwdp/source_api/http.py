@@ -380,15 +380,17 @@ class API(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
             "bookID": book_id,
-            "sort": sort,
+            # "sort": sort,
             "responseFormats": response_formats,
             "streams": streams,
             "groups": groups,
-            "fastFail": fast_fail,
+            "failFast": fast_fail,
         }
         url = f"{self._url}/download"
 
-        return self.__encode_url(url), kwargs
+        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return self.__encode_url(url), filtered_kwargs
 
     def get_download(
         self,
