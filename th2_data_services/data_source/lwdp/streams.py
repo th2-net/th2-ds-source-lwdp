@@ -107,3 +107,24 @@ class Streams:
         return [
             Stream(stream, self._direction).convert_to_dict_format() for stream in self._aliases
         ]
+
+
+def _convert_stream_to_dict_format(streams):
+    def map_func(s):
+        if isinstance(s, Stream):
+            return [s.convert_to_dict_format()]
+
+        if isinstance(s, Streams):
+            return s.convert_to_dict_format()
+
+        if isinstance(s, str):
+            if ":" in s:
+                stream_obj = Stream(*s.split(":"))
+            else:
+                stream_obj = Stream(s)
+            return [stream_obj.convert_to_dict_format()]
+        return [s]
+
+    if isinstance(streams, List):
+        return [item for sublist in map(map_func, streams) for item in sublist]
+    return map_func(streams)

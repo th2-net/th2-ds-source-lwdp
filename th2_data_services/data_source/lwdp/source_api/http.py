@@ -15,15 +15,14 @@
 # LOG import logging
 from http import HTTPStatus
 from typing import Generator, List, Optional, Tuple, Union
+from urllib.parse import quote
 
 import requests
 from requests import Response
 from urllib3 import PoolManager, exceptions
-from urllib.parse import quote
 
-from th2_data_services.data_source.lwdp import Stream, Streams
-from th2_data_services.data_source.lwdp.commands.http import T_streams
 from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
+from th2_data_services.data_source.lwdp.streams import _convert_stream_to_dict_format
 
 
 # LOG logger = logging.getLogger("th2_data_services")
@@ -353,7 +352,7 @@ class API(IHTTPSourceAPI):
         groups: List[str],
         sort: bool = False,
         response_formats: List[str] = None,
-        streams: T_streams = [],
+        streams: List[str] = [],
         fast_fail: bool = True,
     ) -> Tuple[str, dict]:
         """REST-API `download` call downloads messages in specified time range in json format.
@@ -374,27 +373,7 @@ class API(IHTTPSourceAPI):
             URL for downloading messages and dictionary for request body.
         """
 
-        def convert_stream_to_dict_format():
-            def map_func(s):
-                if isinstance(s, Stream):
-                    return [s.convert_to_dict_format()]
-
-                if isinstance(s, Streams):
-                    return s.convert_to_dict_format()
-
-                if isinstance(s, str):
-                    if ":" in s:
-                        stream_obj = Stream(*s.split(":"))
-                    else:
-                        stream_obj = Stream(s)
-                    return [stream_obj.convert_to_dict_format()]
-                return [s]
-
-            if isinstance(streams, List):
-                return list(map(map_func, streams))
-            return map_func(streams)
-
-        streams = sum(convert_stream_to_dict_format(), [])
+        streams = _convert_stream_to_dict_format(streams)
 
         kwargs = {
             "resource": "MESSAGES",

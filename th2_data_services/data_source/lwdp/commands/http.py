@@ -1277,7 +1277,14 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
@@ -1498,6 +1505,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
                 [
                   {
                     "sessionAlias": "stream_abc",
@@ -1600,6 +1608,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
                 [
                   {
                     "sessionAlias": "stream_abc",
@@ -1797,6 +1806,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
                 [
                   {
                     "sessionAlias": "stream_abc",
@@ -2284,6 +2294,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
                 [
                   {
                     "sessionAlias": "stream_abc",
