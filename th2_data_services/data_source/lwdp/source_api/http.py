@@ -338,7 +338,7 @@ class API(IHTTPSourceAPI):
         filters: Optional[str] = None,
         parent_event_id: Optional[str] = None,
         limit: Optional[int] = None,
-        search_direction: Optional[str] = "next",
+        search_direction: str = "next",
     ) -> Tuple[str, dict]:
         """REST-API `download/events` call downloads events in specified time range in json format.
 
