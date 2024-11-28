@@ -350,10 +350,11 @@ class API(IHTTPSourceAPI):
         end_timestamp: int,
         book_id: str,
         groups: List[str],
-        sort: bool = False,
         response_formats: List[str] = None,
         streams: List[str] = [],
         fast_fail: bool = True,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
     ) -> Tuple[str, dict]:
         """REST-API `download` call downloads messages in specified time range in json format.
 
@@ -364,10 +365,11 @@ class API(IHTTPSourceAPI):
                 Expected in nanoseconds.
             book_id: book ID for requested groups.
             groups: List of groups to search messages by
-            sort: Enables message sorting in the request
             response_formats: Response format
             streams: List of streams (optionally with direction) to include in the response.
             fast_fail: If true, stops task execution right after first error.
+            limit: Limit for events in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
 
         Returns:
             URL for downloading messages and dictionary for request body.
@@ -380,11 +382,12 @@ class API(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
             "bookID": book_id,
-            # "sort": sort,
             "responseFormats": response_formats,
             "streams": streams,
             "groups": groups,
             "failFast": fast_fail,
+            "limit": limit,
+            "searchDirection": search_direction,
         }
         url = f"{self._url}/download"
 

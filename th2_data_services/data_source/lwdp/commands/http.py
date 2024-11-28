@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import asyncio
+import warnings
 from abc import abstractmethod
 from typing import List, Optional, Union, Generator, Any, Dict
 from datetime import datetime
@@ -1514,6 +1515,12 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
                 ]
             fast_fail: If true, stops task execution right after first error.
         """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         self._filename = filename
@@ -1550,7 +1557,6 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             book_id=self._book_id,
             groups=self._groups,
             streams=self._streams,
-            sort=self._sort,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
         )
@@ -1617,6 +1623,12 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                 ]
             fast_fail: If true, stops task execution right after first error.
         """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         _check_timestamp(start_timestamp)
@@ -1657,7 +1669,6 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             book_id=self._book_id,
             groups=self._groups,
             streams=self._streams,
-            sort=self._sort,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
         )
@@ -1816,6 +1827,12 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             fast_fail: If true, stops task execution right after first error.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         _check_timestamp(start_timestamp)
@@ -1852,7 +1869,6 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             book_id=self._book_id,
             groups=self._groups,
             streams=self._streams,
-            sort=self._sort,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
         )
@@ -2304,6 +2320,12 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             fast_fail: If true, stops task execution right after first error.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
         """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         self._page = page
@@ -2335,7 +2357,6 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             book_id=self._book_id,
             groups=self._groups,
             streams=self._streams,
-            sort=self._sort,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
         )
