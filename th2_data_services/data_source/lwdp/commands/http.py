@@ -38,7 +38,7 @@ from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2_data_services.data_source.lwdp.data_source.http import DataSource
 from th2_data_services.data_source.lwdp.source_api.http import API
-from th2_data_services.data_source.lwdp.streams import Streams, Stream
+from th2_data_services.data_source.lwdp.streams import Streams, Stream, _convert_stream_to_dict_format
 from th2_data_services.utils.sse_client import SSEClient
 from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
     SSEAdapter,
@@ -1533,7 +1533,7 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._page = page
         self._book_id = book_id
         self._groups = groups
-        self._streams = streams
+        self._streams = _convert_stream_to_dict_format(streams)
         self._sort = sort
         self._response_formats = response_formats
         self._fast_fail = fast_fail
@@ -1661,7 +1661,7 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         if isinstance(end_timestamp, int):
             self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
-        self._streams = streams
+        self._streams = _convert_stream_to_dict_format(streams)
         self._sort = sort
         self._response_formats = response_formats
         self._book_id = book_id
@@ -1870,7 +1870,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         if isinstance(end_timestamp, int):
             self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
-        self._streams = streams
+        self._streams = _convert_stream_to_dict_format(streams)
         self._sort = sort
         self._response_formats = response_formats
         self._book_id = book_id
@@ -2359,7 +2359,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         self._page = page
         self._book_id = book_id
         self._groups = groups
-        self._streams = streams
+        self._streams = _convert_stream_to_dict_format(streams)
         self._sort = sort
         self._response_formats = response_formats
         self._fast_fail = fast_fail

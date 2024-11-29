@@ -375,8 +375,6 @@ class API(IHTTPSourceAPI):
             URL for downloading messages and dictionary for request body.
         """
 
-        streams = _convert_stream_to_dict_format(streams)
-
         kwargs = {
             "resource": "MESSAGES",
             "startTimestamp": start_timestamp,
