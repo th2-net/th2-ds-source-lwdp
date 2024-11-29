@@ -1492,6 +1492,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         streams: Optional[T_streams] = [],
         fast_fail: bool = True,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
 
@@ -1514,6 +1516,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
                   }
                 ]
             fast_fail: If true, stops task execution right after first error.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
         """
         if sort is not None:
             warnings.warn(
@@ -1533,6 +1537,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._sort = sort
         self._response_formats = response_formats
         self._fast_fail = fast_fail
+        self._limit = limit
+        self._search_direction = search_direction
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1559,6 +1565,8 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             streams=self._streams,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
         )
 
         status = _download_messages(api, url, body, headers, self._filename)
@@ -1596,6 +1604,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         response_formats: Union[List[str], str] = None,
         streams: Optional[T_streams] = [],
         fast_fail: bool = True,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
 
@@ -1622,6 +1632,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
                   }
                 ]
             fast_fail: If true, stops task execution right after first error.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
         """
         if sort is not None:
             warnings.warn(
@@ -1654,6 +1666,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         self._response_formats = response_formats
         self._book_id = book_id
         self._fast_fail = fast_fail
+        self._limit = limit
+        self._search_direction = search_direction
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1671,6 +1685,8 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             streams=self._streams,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
         )
 
         status = _download_messages(api, url, body, headers, self._filename)
@@ -1801,6 +1817,8 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         streams: Optional[T_streams] = [],
         fast_fail: bool = True,
         cache: bool = False,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
     ):
         """GetMessagesByBookByGroupsJson Constructor.
 
@@ -1826,6 +1844,8 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
                 ]
             fast_fail: If true, stops task execution right after first error.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
         """
         if sort is not None:
             warnings.warn(
@@ -1856,6 +1876,8 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         self._book_id = book_id
         self._fast_fail = fast_fail
         self._cache = cache
+        self._limit = limit
+        self._search_direction = search_direction
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1871,6 +1893,8 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             streams=self._streams,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
         )
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
@@ -2297,6 +2321,8 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         streams: Optional[T_streams] = [],
         fast_fail: bool = True,
         cache: bool = False,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
     ):
         """GetMessagesByPageByGroupsJson Constructor.
 
@@ -2319,6 +2345,8 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
                 ]
             fast_fail: If true, stops task execution right after first error.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
         """
         if sort is not None:
             warnings.warn(
@@ -2336,6 +2364,8 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         self._response_formats = response_formats
         self._fast_fail = fast_fail
         self._cache = cache
+        self._limit = limit
+        self._search_direction = search_direction
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -2359,6 +2389,8 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             streams=self._streams,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
         )
 
         headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}

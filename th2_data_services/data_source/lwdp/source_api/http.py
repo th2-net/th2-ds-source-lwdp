@@ -368,7 +368,7 @@ class API(IHTTPSourceAPI):
             response_formats: Response format
             streams: List of streams (optionally with direction) to include in the response.
             fast_fail: If true, stops task execution right after first error.
-            limit: Limit for events in the response. No limit if not specified.
+            limit: Limit for messages in the response. No limit if not specified.
             search_direction: Defines the order of the messages.
 
         Returns:
