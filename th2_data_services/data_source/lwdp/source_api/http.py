@@ -329,6 +329,51 @@ class API(IHTTPSourceAPI):
 
         return self.__encode_url(url), kwargs
 
+    def post_download_events(
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        book_id: str,
+        scope: str,
+        filters: Optional[str] = None,
+        parent_event_id: Optional[str] = None,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
+    ) -> Tuple[str, dict]:
+        """REST-API `download/events` call downloads events in specified time range in json format.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested scope.
+            scope: Scope for events.
+            filters: Filters using in search for events.
+            parent_event_id: Parent event if for search.
+            limit: Limit for events in the response. No limit if not specified.
+            search_direction: Defines the order of the events.
+
+        Returns:
+            URL for downloading events and dictionary for request body.
+        """
+        kwargs = {
+            "resource": "EVENTS",
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "parentEvent": parent_event_id,
+            "bookID": book_id,
+            "scope": scope,
+            "limit": limit,
+            "searchDirection": search_direction,
+            "filters": filters,
+        }
+        url = f"{self._url}/download"
+
+        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return self.__encode_url(url), filtered_kwargs
+
     def get_download(
         self,
         task_id: str,

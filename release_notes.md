@@ -256,6 +256,7 @@ BugFixes without ticket
    its value is either `sse` or `json` and will dictate which method will be used to fetch messages. Added GetMessagesByBookByGroupsJson, 
    GetMessagesByPageByGroupsJson commands, they return messages in real time. Now, for example, GetMessagesByBookByGroups
    will use GetMessagesByBookByGroupsSse or GetMessagesByBookByGroupsJson depending on `request_mode` (default value is `sse`).
+2. [TH2-5218] Added `DownloadEventsByBookByScopeGzip` and `GetEventsByBookByScopeJson` commands.
 
 ## Improvements
 1. [TH2-5228] Session objects are now used to make requests.
