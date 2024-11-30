@@ -22,7 +22,6 @@ from requests import Response
 from urllib3 import PoolManager, exceptions
 
 from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
-from th2_data_services.data_source.lwdp.streams import _convert_stream_to_dict_format
 
 
 # LOG logger = logging.getLogger("th2_data_services")

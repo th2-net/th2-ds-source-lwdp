@@ -12,6 +12,7 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import asyncio
+import nest_asyncio
 import warnings
 from abc import abstractmethod
 from typing import List, Optional, Union, Generator, Any, Dict
@@ -60,6 +61,7 @@ from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
+nest_asyncio.apply()  # This patch allows nested use of asyncio.run() in environments with an existing event loop.
 
 # Available stream formats:
 # 1) str
@@ -667,15 +669,7 @@ class GetEventsById(IHTTPCommand):
 
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         # return self._sync_handle(data_source)
-        try:
-            loop = asyncio.get_running_loop()
-        except RuntimeError:
-            loop = None
-
-        if loop and loop.is_running():
-            return loop.create_task(self._async_handle(data_source)).result()
-        else:
-            return asyncio.run(self._async_handle(data_source))
+        return asyncio.run(self._async_handle(data_source))
 
     def _sync_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         result = []
