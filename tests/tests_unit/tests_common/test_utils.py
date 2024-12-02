@@ -13,11 +13,16 @@ def test_datetime_invalid_type():
 
 
 def test_convert_stream_to_dict_format():
-    streams = ['s1:1', {'sessionAlias': 's2', 'direction': ['IN']}, Stream('s3', 2), Streams(['s4'])]
+    streams = [
+        "s1:1",
+        {"sessionAlias": "s2", "direction": ["IN"]},
+        Stream("s3", 2),
+        Streams(["s4"]),
+    ]
     expected = [
-        {'sessionAlias': 's1', 'direction': ['IN']},
-        {'sessionAlias': 's2', 'direction': ['IN']},
-        {'sessionAlias': 's3', 'direction': ['OUT']},
-        {'sessionAlias': 's4'}
+        {"sessionAlias": "s1", "direction": ["IN"]},
+        {"sessionAlias": "s2", "direction": ["IN"]},
+        {"sessionAlias": "s3", "direction": ["OUT"]},
+        {"sessionAlias": "s4"},
     ]
     assert _convert_stream_to_dict_format(streams) == expected

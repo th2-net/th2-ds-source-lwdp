@@ -373,7 +373,6 @@ class API(IHTTPSourceAPI):
         Returns:
             URL for downloading messages and dictionary for request body.
         """
-
         kwargs = {
             "resource": "MESSAGES",
             "startTimestamp": start_timestamp,

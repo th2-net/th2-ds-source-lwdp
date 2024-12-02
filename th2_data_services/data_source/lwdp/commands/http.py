@@ -39,7 +39,11 @@ from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2_data_services.data_source.lwdp.data_source.http import DataSource
 from th2_data_services.data_source.lwdp.source_api.http import API
-from th2_data_services.data_source.lwdp.streams import Streams, Stream, _convert_stream_to_dict_format
+from th2_data_services.data_source.lwdp.streams import (
+    Streams,
+    Stream,
+    _convert_stream_to_dict_format,
+)
 from th2_data_services.utils.sse_client import SSEClient
 from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
     SSEAdapter,
