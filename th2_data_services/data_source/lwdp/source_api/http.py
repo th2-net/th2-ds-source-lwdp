@@ -14,12 +14,12 @@
 
 # LOG import logging
 from http import HTTPStatus
-from typing import List, Generator, Optional, Union, Tuple
+from typing import Generator, List, Optional, Tuple, Union
+from urllib.parse import quote
 
 import requests
 from requests import Response
 from urllib3 import PoolManager, exceptions
-from urllib.parse import quote
 
 from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
 
@@ -38,6 +38,7 @@ class API(IHTTPSourceAPI):
         """
         self._url = self.__normalize_url(url)
         self._chunk_length = chunk_length
+        self.__session = requests.Session()
 
     def __normalize_url(self, url):
         if url is None:
@@ -285,17 +286,18 @@ class API(IHTTPSourceAPI):
         urls = self.__split_requests(url, groups, max_url_length)
         return [self.__encode_url(url) for url in urls]
 
-    def post_download_messages(
+    def get_download_messages(
         self,
         start_timestamp: int,
         end_timestamp: int,
         book_id: str,
         groups: List[str],
-        sort: bool = False,
+        sort: bool = None,
         response_formats: List[str] = None,
-        streams: List[str] = [],
-        fast_fail: bool = True,
-    ) -> Tuple[str, dict]:
+        stream: List[str] = None,
+        keep_open: bool = None,
+        max_url_length=2048,
+    ) -> List[str]:
         """REST-API `download/messages` call downloads messages in specified time range in json format.
 
         Args:
@@ -308,7 +310,65 @@ class API(IHTTPSourceAPI):
             sort: Enables message sorting in the request
             response_formats: Response format
             stream: List of streams (optionally with direction) to include in the response.
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range
+            max_url_length: API request url max length.
+
+        Returns:
+            URL for downloading messages.
+        """
+        kwargs = {
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "bookId": book_id,
+            "sort": sort,
+            "responseFormat": response_formats,
+            "keepOpen": keep_open,
+            "stream": stream,
+        }
+        groups = [f"&group={x}" for x in groups]  # "&group=".join(groups)  #
+        options = []
+        url = f"{self._url}/download/messages?"
+
+        for k, v in kwargs.items():
+            if v is None:
+                continue
+            if k in ["responseFormat", "stream"]:
+                for item in v:
+                    options.append(self._option(k, item))
+            else:
+                options.append(self._option(k, v))
+
+        options_url = "&".join(options)
+        url = f"{url}{options_url}"
+        urls = self.__split_requests(url, groups, max_url_length)
+        return [self.__encode_url(url) for url in urls]
+
+    def post_download_messages(
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        book_id: str,
+        groups: List[str],
+        response_formats: List[str] = None,
+        streams: List[str] = [],
+        fast_fail: bool = True,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
+    ) -> Tuple[str, dict]:
+        """REST-API `download` call downloads messages in specified time range in json format.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages by
+            response_formats: Response format
+            streams: List of streams (optionally with direction) to include in the response.
             fast_fail: If true, stops task execution right after first error.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
 
         Returns:
             URL for downloading messages and dictionary for request body.
@@ -318,15 +378,63 @@ class API(IHTTPSourceAPI):
             "startTimestamp": start_timestamp,
             "endTimestamp": end_timestamp,
             "bookID": book_id,
-            "sort": sort,
             "responseFormats": response_formats,
             "streams": streams,
             "groups": groups,
-            "fastFail": fast_fail,
+            "failFast": fast_fail,
+            "limit": limit,
+            "searchDirection": search_direction,
         }
         url = f"{self._url}/download"
 
-        return self.__encode_url(url), kwargs
+        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return self.__encode_url(url), filtered_kwargs
+
+    def post_download_events(
+        self,
+        start_timestamp: int,
+        end_timestamp: int,
+        book_id: str,
+        scope: str,
+        filters: Optional[str] = None,
+        parent_event_id: Optional[str] = None,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
+    ) -> Tuple[str, dict]:
+        """REST-API `download/events` call downloads events in specified time range in json format.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested scope.
+            scope: Scope for events.
+            filters: Filters using in search for events.
+            parent_event_id: Parent event if for search.
+            limit: Limit for events in the response. No limit if not specified.
+            search_direction: Defines the order of the events.
+
+        Returns:
+            URL for downloading events and dictionary for request body.
+        """
+        kwargs = {
+            "resource": "EVENTS",
+            "startTimestamp": start_timestamp,
+            "endTimestamp": end_timestamp,
+            "parentEvent": parent_event_id,
+            "bookID": book_id,
+            "scope": scope,
+            "limit": limit,
+            "searchDirection": search_direction,
+            "filters": filters,
+        }
+        url = f"{self._url}/download"
+
+        filtered_kwargs = {k: v for k, v in kwargs.items() if v is not None}
+
+        return self.__encode_url(url), filtered_kwargs
 
     def get_download(
         self,
@@ -394,7 +502,7 @@ class API(IHTTPSourceAPI):
         Returns:
             requests.Response: Response data.
         """
-        return requests.get(url, headers=headers, stream=stream)
+        return self.__session.get(url, headers=headers, stream=stream)
 
     def execute_post(
         self, url: str, request_body: dict, headers: dict = None, stream=False
@@ -414,7 +522,7 @@ class API(IHTTPSourceAPI):
             headers.update({"content-type": "application/json"})
         else:
             headers = {"content-type": "application/json"}
-        return requests.post(url, json=request_body, headers=headers, stream=stream)
+        return self.__session.post(url, json=request_body, headers=headers, stream=stream)
 
     def execute_delete(self, url: str) -> Response:
         """Sends a DELETE request to provider.
@@ -425,7 +533,7 @@ class API(IHTTPSourceAPI):
         Returns:
             requests.Response: Response data.
         """
-        return requests.delete(url)
+        return self.__session.delete(url)
 
     def __split_requests(self, fixed_url: str, optional: List[str], max_url_len: int):
         if len(fixed_url + max(optional, key=len)) >= max_url_len:

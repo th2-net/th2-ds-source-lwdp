@@ -12,19 +12,22 @@
 #  See the License for the specific language governing permissions and
 #  limitations under the License.
 import asyncio
+import nest_asyncio
+import warnings
 from abc import abstractmethod
-from typing import List, Optional, Union, Generator, Any
+from typing import List, Optional, Union, Generator, Any, Dict
 from datetime import datetime
 from functools import partial
 from shutil import copyfileobj
+from warnings import warn
 
-import http as aiohttp
+import aiohttp
 from deprecated.classic import deprecated
-import json
+import orjson
 
 import requests
 from th2_data_services.data import Data
-from th2_data_services.exceptions import EventNotFound, MessageNotFound
+from th2_data_services.exceptions import EventNotFound, MessageNotFound, CommandError
 from th2_data_services.utils.converters import (
     UniversalDatetimeStringConverter,
     UnixTimestampConverter,
@@ -36,7 +39,11 @@ from th2_data_services.data_source.lwdp import Page
 from th2_data_services.data_source.lwdp.interfaces.command import IHTTPCommand
 from th2_data_services.data_source.lwdp.data_source.http import DataSource
 from th2_data_services.data_source.lwdp.source_api.http import API
-from th2_data_services.data_source.lwdp.streams import Streams, Stream
+from th2_data_services.data_source.lwdp.streams import (
+    Streams,
+    Stream,
+    _convert_stream_to_dict_format,
+)
 from th2_data_services.utils.sse_client import SSEClient
 from th2_data_services.data_source.lwdp.adapters.adapter_sse import (
     SSEAdapter,
@@ -49,14 +56,31 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
+from th2_data_services.data_source.lwdp.utils.iter_status_manager import StatusUpdateManager
 from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
     _get_response_format,
 )
-from th2_data_services.data_source.lwdp.utils.json import BufferedJSONProcessor
+from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
+nest_asyncio.apply()  # This patch allows nested use of asyncio.run() in environments with an existing event loop.
+
+# Available stream formats:
+# 1) str
+#   `['stream_abc:1']`, `['stream_abc']`, where 1 - IN, 2 - OUT.
+#
+# 2) dict
+#  ```
+#   [
+#     {
+#       "sessionAlias": "stream_abc",
+#       "directions": ["IN", "OUT"]
+#     }
+#   ]
+#  ```
+T_streams = Union[str, Stream, Streams, Dict, List[Union[str, Stream, Streams, Dict]]]
 
 
 # LOG import logging
@@ -620,7 +644,7 @@ class GetEventById(IHTTPCommand):
                     # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
                     raise EventNotFound(self._id, "Unable to find the event")
                 else:
-                    return json.loads(json_response)
+                    return orjson.loads(json_response)
 
 
 class GetEventsById(IHTTPCommand):
@@ -946,6 +970,173 @@ class GetEventsByPageByScopes(_SSEHandlerClassBase):
         ]
 
 
+class DownloadEventsByBookByScopeGzip(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    It searches events stream and downloads them.
+
+    Returns:
+        Nothing.
+    """
+
+    def __init__(
+        self,
+        filename: str,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
+        book_id: str,
+        scope: str,
+        filters: Union[EventFilter, List[EventFilter]] = None,
+        parent_event_id: str = None,
+        limit: int = None,
+        search_direction: str = "next",
+    ):
+        """DownloadEventsByBookByScopeGzip Constructor.
+
+        Args:
+            filename: Filename of downloaded files.
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested scope.
+            filters: Filters using in search for events.
+            scope: Scope for events.
+            parent_event_id: Parent event if for search.
+            limit: Limit for events in the response. No limit if not specified.
+            search_direction: Defines the order of the events.
+        """
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
+        self._filename = filename
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        self._book_id = book_id
+        self._scope = scope
+        self._filters = filters
+        self._parent_event_id = parent_event_id
+        self._limit = limit
+        self._search_direction = search_direction
+        if isinstance(filters, EventFilter):
+            self._filters = filters.url()
+        elif isinstance(filters, (tuple, list)):
+            self._filters = "".join([filter_.url() for filter_ in filters])
+
+    def handle(self, data_source: DataSource):
+        api = data_source.source_api
+        url, body = api.post_download_events(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            parent_event_id=self._parent_event_id,
+            book_id=self._book_id,
+            scope=self._scope,
+            limit=self._limit,
+            search_direction=self._search_direction,
+        )
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        status = _download_messages(api, url, body, headers, self._filename)
+
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
+            {"Download status": status}
+        )
+
+
+class GetEventsByBookByScopeJson(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    Creates a generator that returns events stream by book & scope in real time.
+
+    Returns:
+        Generator: Stream of Th2 messages.
+    """
+
+    def __init__(
+        self,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
+        book_id: str,
+        scope: str,
+        filters: Union[EventFilter, List[EventFilter]] = None,
+        parent_event_id: str = None,
+        limit: int = None,
+        search_direction: str = "next",
+        cache: bool = False,
+    ):
+        """GetEventsByBookByScopeJson Constructor.
+
+        Args:
+            start_timestamp: Sets the search starting point. Expected in nanoseconds. One of the 'start_timestamp'
+                or 'resume_from_id' must not absent.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'.
+                Expected in nanoseconds.
+            book_id: book ID for requested scope.
+            filters: Filters using in search for events.
+            scope: Scope for events.
+            parent_event_id: Parent event if for search.
+            limit: Limit for events in the response. No limit if not specified.
+            search_direction: Defines the order of the events.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+        """
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        self._book_id = book_id
+        self._scope = scope
+        self._filters = filters
+        self._parent_event_id = parent_event_id
+        self._limit = limit
+        self._search_direction = search_direction
+        self._cache = cache
+        if isinstance(filters, EventFilter):
+            self._filters = filters.url()
+        elif isinstance(filters, (tuple, list)):
+            self._filters = "".join([filter_.url() for filter_ in filters])
+
+    def handle(self, data_source: DataSource):
+        api = data_source.source_api
+        url, body = api.post_download_events(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            parent_event_id=self._parent_event_id,
+            book_id=self._book_id,
+            scope=self._scope,
+            limit=self._limit,
+            search_direction=self._search_direction,
+        )
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        def lazy_fetch():
+            status_update_manager = StatusUpdateManager(data)
+            download_gen = _iterate_messages(api, url, body, headers, status_update_manager)
+            for item in download_gen:
+                yield item
+
+        data = Data(lazy_fetch).use_cache(self._cache)
+        return data
+
+
 class GetMessageById(IHTTPCommand):
     """A Class-Command for request to lw-data-provider.
 
@@ -1022,7 +1213,7 @@ class GetMessageById(IHTTPCommand):
                     # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
                     raise MessageNotFound(self._id, "Unable to find the message")
                 else:
-                    return json.loads(json_response)
+                    return orjson.loads(json_response)
 
 
 class GetMessagesById(IHTTPCommand):
@@ -1101,7 +1292,7 @@ class GetMessagesByBookByStreams(_SSEHandlerClassBase):
         self,
         start_timestamp: Union[datetime, str, int],
         book_id: str,
-        streams: Union[List[Union[str, Streams, Stream]], Streams],
+        streams: T_streams,
         message_ids: List[str] = None,
         search_direction: str = "next",
         result_count_limit: int = None,
@@ -1237,7 +1428,7 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = None,
+        streams: Optional[T_streams] = None,
         fast_fail: bool = True,
     ):
         """DownloadMessagesByPageGzip Constructor.
@@ -1252,7 +1443,14 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
         """
         response_formats = _get_response_format(response_formats)
@@ -1297,20 +1495,64 @@ class DownloadMessagesByPageGzip(IHTTPCommand):
             book_id=self._book_id,
             sort=self._sort,
             response_formats=self._response_formats,
-            keep_open=self._keep_open,
             fast_fail=self._fast_fail,
         )
+
+
+def _iterate_messages(api, url, raw_body, headers, status_update_manager, buffer_limit=250):
+    """Fetches messages from LwDP in real time and iterates over them.
+
+    Args:
+        api: The API object for making requests.
+        url: The URL to send the initial POST request.
+        raw_body: The raw body of the POST request.
+        headers: The headers for the request.
+        status_update_manager: Manager for updating the status.
+        buffer_limit: The limit for the buffered JSON processor. Defaults to 250.
+    """
+    task_id = None
+    json_processor = BufferedJSONProcessor(buffer_limit)
+    try:
+        response = api.execute_post(url, raw_body)
+        if not response.ok:
+            raise CommandError(
+                "Error during doing request to LwDP. \n"
+                f"URL: {url}\n"
+                f"raw_body: {raw_body}\n"
+                f"headers: {headers}\n"
+                f"server response: {response.text}"
+            )
+
+        task_id = orjson.loads(response.text)["taskID"]
+        task_request_url = api.get_download(task_id)
+        messages_response = api.execute_request(task_request_url, headers=headers, stream=True)
+
+        for line in messages_response.iter_lines():
+            yield from json_processor.decode(line.decode("utf-8"))
+        yield from json_processor.fin()
+
+    except requests.exceptions.HTTPError as e:
+        raise Exception(e)
+
+    finally:
+        status_url = api.get_download_status(task_id)
+        status_response = api.execute_request(status_url)
+        status = orjson.loads(status_response.text)
+        status_update_manager.update(status)
+
+        if task_id:
+            api.execute_delete(task_request_url)
 
 
 def _download_messages(api, url, raw_body, headers, filename):
     """Downloads messages from LwDP and store to jsons.gz files.
 
     Args:
-        api:
-        urls:
-        body:
-        headers:
-        filename:
+        api: The API object for making requests.
+        url: The URL to send the initial POST request.
+        raw_body: The raw body of the POST request.
+        headers: The headers for the request.
+        filename: Name of the file to write the response.
 
     Returns:
         Status dictionary
@@ -1321,7 +1563,16 @@ def _download_messages(api, url, raw_body, headers, filename):
             task_id = None
             try:
                 response = api.execute_post(url, raw_body)
-                task_id = json.loads(response.text)["taskID"]
+                if not response.ok:
+                    raise CommandError(
+                        "Error during doing request to LwDP. \n"
+                        f"URL: {url}\n"
+                        f"raw_body: {raw_body}\n"
+                        f"headers: {headers}\n"
+                        f"server response: {response.text}"
+                    )
+
+                task_id = orjson.loads(response.text)["taskID"]
                 task_request_url = api.get_download(task_id)
                 messages_response = api.execute_request(
                     task_request_url, headers=headers, stream=True
@@ -1331,7 +1582,7 @@ def _download_messages(api, url, raw_body, headers, filename):
                 status_url = api.get_download_status(task_id)
                 status_response = api.execute_request(status_url)
 
-                return json.loads(status_response.text)
+                return orjson.loads(status_response.text)
 
             except requests.exceptions.HTTPError as e:
                 raise Exception(e)
@@ -1341,6 +1592,42 @@ def _download_messages(api, url, raw_body, headers, filename):
                     api.execute_delete(task_request_url)
 
     return do_req_and_store(f"{filename}.gz", headers, url, raw_body)
+
+
+def _download_messages_old(api, urls, headers, filename):
+    """Downloads messages from LwDP and store to jsons.gz files.
+
+    Args:
+        api:
+        urls:
+        headers:
+        filename:
+
+    Returns:
+        None
+    """
+
+    def do_req_and_store(fn, headers, url):
+        with open(fn, "wb") as file:
+            try:
+                response = api.execute_request(url, headers=headers, stream=True)
+                response.raise_for_status()
+
+                copyfileobj(response.raw, file)
+            except requests.exceptions.HTTPError as e:
+                print(e)
+                print()
+                raise
+
+    if filename.endswith(".gz"):
+        filename = filename[:-3]
+
+    if len(urls) == 1:
+        do_req_and_store(f"{filename}.gz", headers, urls[0])
+
+    else:
+        for num, url in enumerate(urls):
+            do_req_and_store(f"{filename}.{num + 1}.gz", headers, url)
 
 
 class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
@@ -1368,8 +1655,10 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         book_id: str = None,
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
+        streams: Optional[T_streams] = [],
         fast_fail: bool = True,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
     ):
         """DownloadMessagesByPageByGroupsGzip Constructor.
 
@@ -1383,9 +1672,24 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
         """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         self._filename = filename
@@ -1394,10 +1698,12 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
         self._page = page
         self._book_id = book_id
         self._groups = groups
-        self._streams = streams
+        self._streams = _convert_stream_to_dict_format(streams)
         self._sort = sort
         self._response_formats = response_formats
         self._fast_fail = fast_fail
+        self._limit = limit
+        self._search_direction = search_direction
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1412,24 +1718,26 @@ class DownloadMessagesByPageByGroupsGzip(IHTTPCommand):
             else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
         )
         self._book_id = page.book
+
         api = data_source.source_api
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
         url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
             streams=self._streams,
-            sort=self._sort,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
         )
-
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
         status = _download_messages(api, url, body, headers, self._filename)
 
         return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
-            {"Task status": status}
+            {"Download status": status}
         )
 
 
@@ -1459,8 +1767,10 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         groups: List[str],
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
-        streams: List[str] = [],
+        streams: Optional[T_streams] = [],
         fast_fail: bool = True,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
     ):
         """DownloadMessagesByBookByGroupsGzip Constructor.
 
@@ -1478,9 +1788,24 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
             streams: List of streams to search messages from the specified groups.
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
-                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+                e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
             fast_fail: If true, stops task execution right after first error.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
         """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
         response_formats = _get_response_format(response_formats)
         _check_response_formats(response_formats)
         _check_timestamp(start_timestamp)
@@ -1501,11 +1826,13 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
         if isinstance(end_timestamp, int):
             self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
         self._groups = groups
-        self._streams = streams
+        self._streams = _convert_stream_to_dict_format(streams)
         self._sort = sort
         self._response_formats = response_formats
         self._book_id = book_id
         self._fast_fail = fast_fail
+        self._limit = limit
+        self._search_direction = search_direction
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -1513,24 +1840,28 @@ class DownloadMessagesByBookByGroupsGzip(IHTTPCommand):
 
     def handle(self, data_source: DataSource):
         api = data_source.source_api
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
         url, body = api.post_download_messages(
             start_timestamp=self._start_timestamp,
             end_timestamp=self._end_timestamp,
             book_id=self._book_id,
             groups=self._groups,
             streams=self._streams,
-            sort=self._sort,
             response_formats=self._response_formats,
             fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
         )
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
 
         status = _download_messages(api, url, body, headers, self._filename)
 
-        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(status)
+        return Data.from_json(f"{self._filename}.gz", gzip=True).update_metadata(
+            {"Download status": status}
+        )
 
 
-class GetMessagesByBookByGroups(_SSEHandlerClassBase):
+class GetMessagesByBookByGroupsSse(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by groups.
@@ -1548,7 +1879,7 @@ class GetMessagesByBookByGroups(_SSEHandlerClassBase):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = None,
+        streams: Optional[T_streams] = None,
         # Non-data source args.
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -1556,12 +1887,11 @@ class GetMessagesByBookByGroups(_SSEHandlerClassBase):
         cache: bool = False,
         buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
-        """GetMessagesByBookByGroups Constructor.
+        """GetMessagesByBookByGroupsSse Constructor.
 
         Args:
             start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
             end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
-
             book_id: book ID for requested groups.
             groups: List of groups to search messages from.
             sort: Enables message sorting within a group. It is not sorted between groups.
@@ -1573,10 +1903,10 @@ class GetMessagesByBookByGroups(_SSEHandlerClassBase):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         response_formats = _get_response_format(response_formats)
@@ -1630,6 +1960,247 @@ class GetMessagesByBookByGroups(_SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
+
+
+class GetMessagesByBookByGroupsJson(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    Creates a generator that returns messages stream by book & groups in real time.
+
+    Returns:
+        Generator: Stream of Th2 messages.
+    """
+
+    def __init__(
+        self,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        streams: Optional[T_streams] = [],
+        fast_fail: bool = True,
+        cache: bool = False,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
+    ):
+        """GetMessagesByBookByGroupsJson Constructor.
+
+        Args:
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+                  (You cannot specify a direction in groups unlike streams.
+                  It's possible to add it to the CradleAPI by request to dev team.)
+            response_formats: The format of the response
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
+            fast_fail: If true, stops task execution right after first error.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
+        """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        _check_timestamp(start_timestamp)
+        _check_timestamp(end_timestamp)
+        if isinstance(start_timestamp, datetime):
+            self._start_timestamp = DatetimeConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, str):
+            self._start_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(start_timestamp)
+        if isinstance(start_timestamp, int):
+            self._start_timestamp = UnixTimestampConverter.to_nanoseconds(start_timestamp)
+        if isinstance(end_timestamp, datetime):
+            self._end_timestamp = DatetimeConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, str):
+            self._end_timestamp = UniversalDatetimeStringConverter.to_nanoseconds(end_timestamp)
+        if isinstance(end_timestamp, int):
+            self._end_timestamp = UnixTimestampConverter.to_nanoseconds(end_timestamp)
+        self._groups = groups
+        self._streams = _convert_stream_to_dict_format(streams)
+        self._sort = sort
+        self._response_formats = response_formats
+        self._book_id = book_id
+        self._fast_fail = fast_fail
+        self._cache = cache
+        self._limit = limit
+        self._search_direction = search_direction
+
+        _check_list_or_tuple(self._groups, var_name="groups")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
+
+    def handle(self, data_source: DataSource):
+        api = data_source.source_api
+        url, body = api.post_download_messages(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            book_id=self._book_id,
+            groups=self._groups,
+            streams=self._streams,
+            response_formats=self._response_formats,
+            fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
+        )
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        def lazy_fetch():
+            status_update_manager = StatusUpdateManager(data)
+            download_gen = _iterate_messages(api, url, body, headers, status_update_manager)
+            for item in download_gen:
+                yield item
+
+        data = Data(lazy_fetch).use_cache(self._cache)
+        return data
+
+
+class GetMessagesByBookByGroups(IHTTPCommand):
+    """A class that provides messages by book and groups.
+
+    This class retrieves messages organized by book and groups, using either SSE
+    or JSON format based on the user's choice.
+    """
+
+    def __init__(
+        self,
+        start_timestamp: Union[datetime, str, int],
+        end_timestamp: Union[datetime, str, int],
+        book_id: str,
+        groups: List[str],
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        streams: Optional[T_streams] = [],
+        max_url_length: int = None,
+        char_enc: str = None,
+        decode_error_handler: str = None,
+        cache: bool = False,
+        buffer_limit: int = None,
+        fast_fail: bool = None,
+        request_mode: str = "json",
+    ):
+        """GetMessagesByBookByGroups Constructor.
+
+        Args:
+            start_timestamp: Sets the search starting point. Can be datetime object, datetime string or unix timestamp integer.
+            end_timestamp: Sets the timestamp to which the search will be performed, starting with 'start_timestamp'. Can be datetime object, datetime string or unix timestamp integer.
+            book_id: book ID for requested groups.
+            groups: List of groups to search messages from.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+                  (You cannot specify a direction in groups unlike streams.
+                  It's possible to add it to the CradleAPI by request to dev team.)
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            fast_fail: If true, stops task execution right after first error.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
+
+        Raises:
+            ValueError: If request_mode is not either json or sse.
+        """
+        self._start_timestamp = start_timestamp
+        self._end_timestamp = end_timestamp
+        self._groups = groups
+        self._request_mode = request_mode
+        self._book_id = book_id
+        self._sort = sort
+        self._response_formats = response_formats
+        self._streams = streams
+        self._fast_fail = fast_fail
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._cache = cache
+        self._buffer_limit = buffer_limit
+
+        if self._request_mode == "sse":
+            if fast_fail is not None:
+                warn(
+                    '"fast_fail" parameter is not used when "request_mode" is "sse".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if not max_url_length:
+                self._max_url_length = 2048
+            if not char_enc:
+                self._char_enc = "utf-8"
+            if not decode_error_handler:
+                self._decode_error_handler = UNICODE_REPLACE_HANDLER
+            if not buffer_limit:
+                self._buffer_limit = DEFAULT_BUFFER_LIMIT
+
+            self.handler = GetMessagesByBookByGroupsSse(
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                book_id=self._book_id,
+                groups=self._groups,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                keep_open=self._keep_open,
+                streams=self._streams,
+                max_url_length=self._max_url_length,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
+            )
+        elif self._request_mode == "json":
+            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+                warn(
+                    '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
+                    ' parameters are not used when "request_mode" is "json".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if fast_fail is None:
+                self._fast_fail = True
+
+            self.handler = GetMessagesByBookByGroupsJson(
+                start_timestamp=self._start_timestamp,
+                end_timestamp=self._end_timestamp,
+                book_id=self._book_id,
+                groups=self._groups,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                streams=self._streams,
+                fast_fail=self._fast_fail,
+                cache=self._cache,
+            )
+        else:
+            raise ValueError('Request mode parameter should be either "sse" or "json".')
+
+    def handle(self, data_source: DataSource):
+        return self.handler.handle(data_source)
 
 
 class GetMessagesByPage(IHTTPCommand):
@@ -1703,7 +2274,7 @@ class GetMessagesByPage(IHTTPCommand):
         )
         self._book_id = page.book
         return data_source.command(
-            GetMessagesByPageByGroups(
+            GetMessagesByPageByGroupsSse(
                 page=self._page,
                 groups=groups,
                 book_id=self._book_id,
@@ -1804,7 +2375,7 @@ class GetMessagesByPageByStreams(_SSEHandlerClassBase):
         )
 
 
-class GetMessagesByPageByGroups(_SSEHandlerClassBase):
+class GetMessagesByPageByGroupsSse(_SSEHandlerClassBase):
     """A Class-Command for request to lw-data-provider.
 
     It searches messages stream by page & groups.
@@ -1821,7 +2392,7 @@ class GetMessagesByPageByGroups(_SSEHandlerClassBase):
         sort: bool = None,
         response_formats: Union[List[str], str] = None,
         keep_open: bool = None,
-        streams: List[str] = None,
+        streams: Optional[T_streams] = None,
         # Non-data source args.
         max_url_length: int = 2048,
         char_enc: str = "utf-8",
@@ -1829,12 +2400,12 @@ class GetMessagesByPageByGroups(_SSEHandlerClassBase):
         cache: bool = False,
         buffer_limit=DEFAULT_BUFFER_LIMIT,
     ):
-        """GetMessagesByPageByGroups Constructor.
+        """GetMessagesByPageByGroupsSse Constructor.
 
         Args:
             page: Page to search with.
-            book_id: Book to search page by name. If page is string, book_id should be passed.
             groups: List of groups to search messages from.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
             sort: Enables message sorting within a group. It is not sorted between groups.
             response_formats: The format of the response
             keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
@@ -1842,10 +2413,10 @@ class GetMessagesByPageByGroups(_SSEHandlerClassBase):
                 You will receive only the specified streams and directions for them.
                 You can specify direction for your streams.
                 e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
             char_enc: Encoding for the byte stream.
             decode_error_handler: Registered decode error handler.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
-            max_url_length: API request url max length.
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
         """
         super().__init__(
@@ -1894,6 +2465,232 @@ class GetMessagesByPageByGroups(_SSEHandlerClassBase):
             book_id=self._book_id,
             max_url_length=self._max_url_length,
         )
+
+
+class GetMessagesByPageByGroupsJson(IHTTPCommand):
+    """A Class-Command for request to lw-data-provider.
+
+    Creates a generator that returns messages stream by page & groups in real time.
+
+    Returns:
+        Generator: Stream of Th2 messages.
+    """
+
+    def __init__(
+        self,
+        page: Union[Page, str],
+        groups: List[str],
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        streams: Optional[T_streams] = [],
+        fast_fail: bool = True,
+        cache: bool = False,
+        limit: Optional[int] = None,
+        search_direction: str = "next",
+    ):
+        """GetMessagesByPageByGroupsJson Constructor.
+
+        Args:
+            page: Page to search with.
+            groups: List of groups to search messages from.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g.:
+                ['stream_abc:1']. 1 - IN, 2 - OUT.
+                [
+                  {
+                    "sessionAlias": "stream_abc",
+                    "directions": ["IN"]
+                  }
+                ]
+            fast_fail: If true, stops task execution right after first error.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            limit: Limit for messages in the response. No limit if not specified.
+            search_direction: Defines the order of the messages.
+        """
+        if sort is not None:
+            warnings.warn(
+                "The 'sort' parameter is deprecated and will be removed in a future version.",
+                DeprecationWarning,
+            )
+
+        response_formats = _get_response_format(response_formats)
+        _check_response_formats(response_formats)
+        self._page = page
+        self._book_id = book_id
+        self._groups = groups
+        self._streams = _convert_stream_to_dict_format(streams)
+        self._sort = sort
+        self._response_formats = response_formats
+        self._fast_fail = fast_fail
+        self._cache = cache
+        self._limit = limit
+        self._search_direction = search_direction
+
+        _check_list_or_tuple(self._groups, var_name="groups")
+        if streams is not None:
+            _check_list_or_tuple(self._streams, var_name="streams")
+
+    def handle(self, data_source: DataSource) -> Data:
+        page = _get_page_object(self._book_id, self._page, data_source)
+        self._start_timestamp = ProtobufTimestampConverter.to_nanoseconds(page.start_timestamp)
+        self._end_timestamp = (
+            get_utc_datetime_now()
+            if page.end_timestamp is None
+            else ProtobufTimestampConverter.to_nanoseconds(page.end_timestamp)
+        )
+        self._book_id = page.book
+        api = data_source.source_api
+        url, body = api.post_download_messages(
+            start_timestamp=self._start_timestamp,
+            end_timestamp=self._end_timestamp,
+            book_id=self._book_id,
+            groups=self._groups,
+            streams=self._streams,
+            response_formats=self._response_formats,
+            fast_fail=self._fast_fail,
+            limit=self._limit,
+            search_direction=self._search_direction,
+        )
+
+        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+
+        def lazy_fetch():
+            status_update_manager = StatusUpdateManager(data)
+            download_gen = _iterate_messages(api, url, body, headers, status_update_manager)
+            for item in download_gen:
+                yield item
+
+        data = Data(lazy_fetch).use_cache(self._cache)
+        return data
+
+
+class GetMessagesByPageByGroups(IHTTPCommand):
+    """A class that provides messages by book and groups.
+
+    This class retrieves messages organized by page and groups, using either SSE
+    or JSON format based on the user's choice.
+    """
+
+    def __init__(
+        self,
+        page: Union[Page, str],
+        groups: List[str],
+        book_id: str = None,
+        sort: bool = None,
+        response_formats: Union[List[str], str] = None,
+        keep_open: bool = None,
+        streams: Optional[T_streams] = [],
+        max_url_length: int = None,
+        char_enc: str = None,
+        decode_error_handler: str = None,
+        cache: bool = False,
+        buffer_limit: int = None,
+        fast_fail: bool = None,
+        request_mode: str = "json",
+    ):
+        """GetMessagesByPagesByGroups Constructor.
+
+        Args:
+            page: Page to search with.
+            groups: List of groups to search messages from.
+            book_id: Book to search page by name. If page is string, book_id should be passed.
+            sort: Enables message sorting within a group. It is not sorted between groups.
+            response_formats: The format of the response
+            keep_open: If true, keeps pulling for new message until don't have one outside the requested range.
+            streams: List of streams to search messages from the specified groups.
+                You will receive only the specified streams and directions for them.
+                You can specify direction for your streams.
+                e.g. ['stream_abc:1']. 1 - IN, 2 - OUT.
+            max_url_length: API request url max length.
+            char_enc: Encoding for the byte stream.
+            decode_error_handler: Registered decode error handler.
+            cache: If True, all requested data from lw-data-provider will be saved to cache.
+            buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
+            fast_fail: If true, stops task execution right after first error.
+            request_mode: The mode of request. Currently, supports 'json' and 'sse'.
+
+        Raises:
+            ValueError: If request_mode is not either json or sse.
+        """
+        self._page = page
+        self._groups = groups
+        self._request_mode = request_mode
+        self._book_id = book_id
+        self._sort = sort
+        self._response_formats = response_formats
+        self._streams = streams
+        self._fast_fail = fast_fail
+        self._keep_open = keep_open
+        self._max_url_length = max_url_length
+        self._char_enc = char_enc
+        self._decode_error_handler = decode_error_handler
+        self._cache = cache
+        self._buffer_limit = buffer_limit
+
+        if self._request_mode == "sse":
+            if fast_fail is not None:
+                warn(
+                    "'fast_fail' parameter is not used when 'request_mode' is 'sse'.",
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if not max_url_length:
+                self._max_url_length = 2048
+            if not char_enc:
+                self._char_enc = "utf-8"
+            if not decode_error_handler:
+                self._decode_error_handler = UNICODE_REPLACE_HANDLER
+            if not buffer_limit:
+                self._buffer_limit = DEFAULT_BUFFER_LIMIT
+
+            self.handler = GetMessagesByPageByGroupsSse(
+                page=self._page,
+                groups=self._groups,
+                book_id=self._book_id,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                keep_open=self._keep_open,
+                streams=self._streams,
+                max_url_length=self._max_url_length,
+                char_enc=self._char_enc,
+                decode_error_handler=self._decode_error_handler,
+                cache=self._cache,
+                buffer_limit=self._buffer_limit,
+            )
+        elif self._request_mode == "json":
+            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+                warn(
+                    '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
+                    ' parameters are not used when "request_mode" is "json".',
+                    RuntimeWarning,
+                    stacklevel=2,
+                )
+
+            if fast_fail is None:
+                self._fast_fail = True
+
+            self.handler = GetMessagesByPageByGroupsJson(
+                page=self._page,
+                groups=self._groups,
+                book_id=self._book_id,
+                sort=self._sort,
+                response_formats=self._response_formats,
+                streams=self._streams,
+                fast_fail=self._fast_fail,
+                cache=self._cache,
+            )
+        else:
+            raise ValueError('Request mode parameter should be either "sse" or "json".')
+
+    def handle(self, data_source: DataSource):
+        return self.handler.handle(data_source)
 
 
 def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # noqa
