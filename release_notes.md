@@ -265,3 +265,8 @@ BugFixes without ticket
 1. [TH2-5222] - Fix `DownloadMessagesByPageGzip`, it constructed `DownloadMessagesByPageByGroupsGzip` incorrectly.
 2. [TH2-5243] - Fix backward compatibility issues with `GetMessagesByBookByGroups` and `GetMessagesByPageByGroups`,
    added 'limit' and 'search_direction' parameters to 'post_download_messages'.
+
+# v3.1.2.0
+
+## Improvements
+1. [TH2-5258] Added `gzip: bool` parameter that indicates whether to include or not `gzip` in the Accept-Encoding header.
