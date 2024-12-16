@@ -2189,7 +2189,10 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 buffer_limit=self._buffer_limit,
             )
         elif self._request_mode == "json":
-            if any(_ is not None for _ in [max_url_length, char_enc, decode_error_handler, buffer_limit, keep_open]):
+            if any(
+                _ is not None
+                for _ in [max_url_length, char_enc, decode_error_handler, buffer_limit, keep_open]
+            ):
                 warn(
                     '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
                     ' parameters are not used when "request_mode" is "json".',
@@ -2212,7 +2215,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 streams=self._streams,
                 fast_fail=self._fast_fail,
                 cache=self._cache,
-                gzip=self._gzip
+                gzip=self._gzip,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2713,7 +2716,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 streams=self._streams,
                 fast_fail=self._fast_fail,
                 cache=self._cache,
-                gzip=self._gzip
+                gzip=self._gzip,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
