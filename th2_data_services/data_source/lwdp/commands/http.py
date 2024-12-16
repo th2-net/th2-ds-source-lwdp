@@ -1128,10 +1128,7 @@ class GetEventsByBookByScopeJson(IHTTPCommand):
             limit=self._limit,
             search_direction=self._search_direction,
         )
-        accept_encoding = "deflate"
-        if self._gzip:
-            accept_encoding = "gzip, " + accept_encoding
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": accept_encoding}
+        headers = _generate_headers(self._gzip)
 
         def lazy_fetch():
             status_update_manager = StatusUpdateManager(data)
@@ -2070,10 +2067,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             limit=self._limit,
             search_direction=self._search_direction,
         )
-        accept_encoding = "deflate"
-        if self._gzip:
-            accept_encoding = "gzip, " + accept_encoding
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": accept_encoding}
+        headers = _generate_headers(self._gzip)
 
         def lazy_fetch():
             status_update_manager = StatusUpdateManager(data)
@@ -2581,10 +2575,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             limit=self._limit,
             search_direction=self._search_direction,
         )
-        accept_encoding = "deflate"
-        if self._gzip:
-            accept_encoding = "gzip, " + accept_encoding
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": accept_encoding}
+        headers = _generate_headers(self._gzip)
 
         def lazy_fetch():
             status_update_manager = StatusUpdateManager(data)
@@ -2735,3 +2726,11 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         return page
     else:
         raise Exception("Wrong type. page should be Page object or string (page name)!")
+
+
+def _generate_headers(gzip):
+    accept_encoding = "deflate"
+    if gzip:
+        accept_encoding = "gzip, " + accept_encoding
+    headers = {"Accept": "application/stream+json", "Accept-Encoding": accept_encoding}
+    return headers

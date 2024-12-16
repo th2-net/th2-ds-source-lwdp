@@ -268,5 +268,5 @@ BugFixes without ticket
 
 # v3.1.2.0
 
-## Improvements
+## Features
 1. [TH2-5258] Added `gzip: bool` parameter that indicates whether to include or not `gzip` in the Accept-Encoding header.
