@@ -270,3 +270,6 @@ BugFixes without ticket
 
 ## Features
 1. [TH2-5258] Added `gzip: bool` parameter that indicates whether to include or not `gzip` in the Accept-Encoding header.
+
+## Improvements
+1. [TH2-5260] More details are provided in case an exception occurs in `StatusUpdateManager.update()`.
