@@ -63,6 +63,7 @@ from th2_data_services.data_source.lwdp.utils._misc import (
 )
 from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
+from retry.api import retry_call
 
 Event = dict
 retry_call(
