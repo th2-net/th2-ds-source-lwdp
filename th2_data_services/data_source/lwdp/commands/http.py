@@ -65,7 +65,9 @@ from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
-nest_asyncio.apply()  # This patch allows nested use of asyncio.run() in environments with an existing event loop.
+retry_call(
+    nest_asyncio.apply, delay=5, tries=5
+)  # This patch allows nested use of asyncio.run() in environments with an existing event loop.
 
 # Available stream formats:
 # 1) str
