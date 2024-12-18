@@ -23,4 +23,3 @@ jobs:
 
     secrets:
       pypi-password: ${{ secrets.PYPI_PASSWORD }}
-
