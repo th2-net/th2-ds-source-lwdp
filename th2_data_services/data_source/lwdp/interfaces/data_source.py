@@ -25,6 +25,8 @@ from th2_data_services.interfaces.data_source import IDataSource
 from th2_data_services.data_source.lwdp.interfaces.source_api import IHTTPSourceAPI
 from th2_data_services.data_source.lwdp.struct import IEventStruct, IMessageStruct
 from th2_data_services.data_source.lwdp.stub_builder import IEventStub, IMessageStub
+from th2_data_services.data_source.lwdp.utils._retry_logger import RetryLogger
+from retry import retry
 
 CommandT = TypeVar("CommandT", bound="ILwDPCommand")
 EventStructT = TypeVar("EventStructT", bound="IEventStruct")
@@ -110,6 +112,10 @@ class IHTTPDataSource(
     def command(self, cmd):
         """Execute the transmitted HTTP command."""
 
+    @retry(tries=5, delay=5, logger=RetryLogger("check_connect"))
+    # This Retry mechanism is required as workaround because we often face
+    #   "Only one usage of each socket address (protocol/network address/port)
+    #   is normally permitted" issue on Windows
     def check_connect(self, timeout: Tuple[int, float], certification: bool = True) -> None:
         """Checks whether url is working.
 
