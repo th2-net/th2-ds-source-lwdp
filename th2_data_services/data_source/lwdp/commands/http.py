@@ -56,6 +56,7 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
+from th2_data_services.data_source.lwdp.utils._retry_logger import RetryLogger
 from th2_data_services.data_source.lwdp.utils.iter_status_manager import StatusUpdateManager
 from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
@@ -75,6 +76,7 @@ retry_call(
     nest_asyncio.apply,
     delay=5,
     tries=10,
+    logger=RetryLogger(nest_asyncio.apply),
 )
 
 # Available stream formats:
@@ -683,7 +685,7 @@ class GetEventsById(IHTTPCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
-    @retry(tries=5, delay=5)
+    @retry(tries=5, delay=5, logger=RetryLogger("handle"))
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         # return self._sync_handle(data_source)
         return asyncio.run(self._async_handle(data_source))
