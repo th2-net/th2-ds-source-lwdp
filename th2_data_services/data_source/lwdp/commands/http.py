@@ -64,6 +64,7 @@ from th2_data_services.data_source.lwdp.utils._misc import (
 from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 from retry.api import retry_call
+from retry import retry
 
 Event = dict
 retry_call(
@@ -682,6 +683,7 @@ class GetEventsById(IHTTPCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
+    @retry(tries=5, delay=5)
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         # return self._sync_handle(data_source)
         return asyncio.run(self._async_handle(data_source))
@@ -696,7 +698,7 @@ class GetEventsById(IHTTPCommand):
 
     async def _async_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         coros = []
-        with aiohttp.ClientSession() as session:
+        async with aiohttp.ClientSession() as session:
             for event_id in self._ids:
                 co_event = GetEventById(event_id, use_stub=self._stub_status).async_handle(
                     data_source, session
