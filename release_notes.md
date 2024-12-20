@@ -273,3 +273,5 @@ BugFixes without ticket
 
 ## Improvements
 1. [TH2-5260] More details are provided in case an exception occurs in `StatusUpdateManager.update()`.
+2. [TH2-5263] Retries are added to `IHTTPDataSource.check_connect()`.
+3. [TH2-5264] Retries are added to `nest_asyncio.apply()`.
