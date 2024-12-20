@@ -56,6 +56,7 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
+from th2_data_services.data_source.lwdp.utils._retry_logger import RetryLogger
 from th2_data_services.data_source.lwdp.utils.iter_status_manager import StatusUpdateManager
 from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
@@ -63,9 +64,20 @@ from th2_data_services.data_source.lwdp.utils._misc import (
 )
 from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
+from retry.api import retry_call
+from retry import retry
 
 Event = dict
-nest_asyncio.apply()  # This patch allows nested use of asyncio.run() in environments with an existing event loop.
+retry_call(
+    # This patch allows nested use of asyncio.run() in environments with an existing event loop.
+    # This Retry mechanism is required as workaround because we often face
+    #   "Only one usage of each socket address (protocol/network address/port)
+    #   is normally permitted" issue on Windows.
+    nest_asyncio.apply,
+    delay=5,
+    tries=10,
+    logger=RetryLogger(nest_asyncio.apply),
+)
 
 # Available stream formats:
 # 1) str
@@ -627,24 +639,26 @@ class GetEventById(IHTTPCommand):
         else:
             return response.json()
 
-    async def async_handle(self, data_source: DataSource) -> dict:  # noqa: D102
+    async def async_handle(self, data_source: DataSource, session=None) -> dict:  # noqa: D102
         api: API = data_source.source_api
         url = api.get_url_find_event_by_id(self._id)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                json_response = await response.text()
+        if session is None:
+            session = aiohttp.ClientSession()
 
-                if response.status == 404 and self._stub_status:
-                    stub = data_source.event_stub_builder.build(
-                        {data_source.event_struct.EVENT_ID: self._id}
-                    )
-                    return stub
-                elif response.status == 404:
-                    # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-                    raise EventNotFound(self._id, "Unable to find the event")
-                else:
-                    return orjson.loads(json_response)
+        async with session.get(url) as response:
+            json_response = await response.text()
+
+            if response.status == 404 and self._stub_status:
+                stub = data_source.event_stub_builder.build(
+                    {data_source.event_struct.EVENT_ID: self._id}
+                )
+                return stub
+            elif response.status == 404:
+                # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
+                raise EventNotFound(self._id, "Unable to find the event")
+            else:
+                return orjson.loads(json_response)
 
 
 class GetEventsById(IHTTPCommand):
@@ -671,6 +685,7 @@ class GetEventsById(IHTTPCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
+    @retry(tries=5, delay=5, logger=RetryLogger("handle"))
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         # return self._sync_handle(data_source)
         return asyncio.run(self._async_handle(data_source))
@@ -685,13 +700,16 @@ class GetEventsById(IHTTPCommand):
 
     async def _async_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         coros = []
-        for event_id in self._ids:
-            co_event = GetEventById(event_id, use_stub=self._stub_status).async_handle(data_source)
-            coros.append(co_event)
+        async with aiohttp.ClientSession() as session:
+            for event_id in self._ids:
+                co_event = GetEventById(event_id, use_stub=self._stub_status).async_handle(
+                    data_source, session
+                )
+                coros.append(co_event)
 
-        events = await asyncio.gather(*coros)
+            events = await asyncio.gather(*coros)
 
-        return events
+            return events
 
 
 class GetEventsByPage(IHTTPCommand):
