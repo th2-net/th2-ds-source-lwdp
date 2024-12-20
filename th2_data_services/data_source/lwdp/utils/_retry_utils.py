@@ -15,5 +15,12 @@ import warnings
 
 
 def retry_warning(retry_state):
+    """Warns about a retry attempt.
+
+    Args:
+        retry_state: An object containing information about the retry attempt,
+                     including the attempt number and outcome exception.
+    """
     warnings.warn(
-        f"Retry attempt {retry_state.attempt_number} after {retry_state.outcome.exception()}")
+        f"Retry attempt {retry_state.attempt_number} after {retry_state.outcome.exception()}"
+    )
