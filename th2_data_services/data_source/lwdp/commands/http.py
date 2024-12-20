@@ -70,6 +70,10 @@ Event = dict
 
 retrying = Retrying(stop=stop_after_attempt(10), wait=(wait_fixed(5)), after=retry_warning)
 
+# This patch allows nested use of asyncio.run() in environments with an existing event loop.
+# This Retry mechanism is required as workaround because we often face
+#   "Only one usage of each socket address (protocol/network address/port)
+#   is normally permitted" issue on Windows.
 for attempt in retrying:
     with attempt:
         nest_asyncio.apply()
