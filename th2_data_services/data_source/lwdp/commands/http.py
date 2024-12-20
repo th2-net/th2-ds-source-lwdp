@@ -26,6 +26,7 @@ from deprecated.classic import deprecated
 import orjson
 
 import requests
+from tenacity import retry, Retrying, stop_after_attempt, wait_fixed
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound, CommandError
 from th2_data_services.utils.converters import (
@@ -56,7 +57,7 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
-from th2_data_services.data_source.lwdp.utils._retry_logger import RetryLogger
+from th2_data_services.data_source.lwdp.utils._retry_utils import retry_warning
 from th2_data_services.data_source.lwdp.utils.iter_status_manager import StatusUpdateManager
 from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
@@ -64,20 +65,14 @@ from th2_data_services.data_source.lwdp.utils._misc import (
 )
 from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
-from retry.api import retry_call
-from retry import retry
 
 Event = dict
-retry_call(
-    # This patch allows nested use of asyncio.run() in environments with an existing event loop.
-    # This Retry mechanism is required as workaround because we often face
-    #   "Only one usage of each socket address (protocol/network address/port)
-    #   is normally permitted" issue on Windows.
-    nest_asyncio.apply,
-    delay=5,
-    tries=10,
-    logger=RetryLogger(nest_asyncio.apply),
-)
+
+retrying = Retrying(stop=stop_after_attempt(10), wait=(wait_fixed(5)), after=retry_warning)
+
+for attempt in retrying:
+    with attempt:
+        nest_asyncio.apply()
 
 # Available stream formats:
 # 1) str
@@ -685,7 +680,7 @@ class GetEventsById(IHTTPCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
-    @retry(tries=5, delay=5, logger=RetryLogger("handle"))
+    @retry(stop=stop_after_attempt(5), wait=(wait_fixed(5)), after=retry_warning)
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         # return self._sync_handle(data_source)
         return asyncio.run(self._async_handle(data_source))

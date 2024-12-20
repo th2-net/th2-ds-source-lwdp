@@ -8,4 +8,4 @@ orjson>=3.10,<4
 aiohttp>=3.9.5,<4
 nest-asyncio>=1.6.0,<2
 attrs!=24.3.0  # Temporary solution to license problem
-retry>=0.9,<1
+tenacity>=9,<10
