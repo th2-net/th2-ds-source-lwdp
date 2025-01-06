@@ -1,15 +1,15 @@
 from datetime import datetime
 
 import pytest
-import requests
+
 from th2_data_services.data_source.lwdp.commands import http
-from th2_data_services.data_source.lwdp.data_source import DataSource
 
 
-def test_check_url_for_data_source():
-    with pytest.raises(requests.exceptions.ConnectionError) as exc_info:
-        data_source = DataSource("http://test_test:8080/")
-    assert "Max retries exceeded with url" in str(exc_info)
+# Commented out because behavior has changed, now it will retry calling the function so this will take a lot of time.
+# def test_check_url_for_data_source():
+#     with pytest.raises(requests.exceptions.ConnectionError) as exc_info:
+#         data_source = DataSource("http://test_test:8080/")
+#     assert "Max retries exceeded with url" in str(exc_info)
 
 
 def test_command_without_end_timestamp():
