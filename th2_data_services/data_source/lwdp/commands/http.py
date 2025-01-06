@@ -26,6 +26,7 @@ from deprecated.classic import deprecated
 import orjson
 
 import requests
+from tenacity import retry, Retrying, stop_after_attempt, wait_fixed
 from th2_data_services.data import Data
 from th2_data_services.exceptions import EventNotFound, MessageNotFound, CommandError
 from th2_data_services.utils.converters import (
@@ -56,6 +57,7 @@ from th2_data_services.data_source.lwdp.utils import (
     _check_list_or_tuple,
     _check_response_formats,
 )
+from th2_data_services.data_source.lwdp.utils._retry_utils import retry_warning
 from th2_data_services.data_source.lwdp.utils.iter_status_manager import StatusUpdateManager
 from th2_data_services.data_source.lwdp.utils._misc import (
     get_utc_datetime_now,
@@ -65,7 +67,16 @@ from th2_data_services.utils._json import BufferedJSONProcessor
 from th2_data_services.data_source.lwdp.page import PageNotFound
 
 Event = dict
-nest_asyncio.apply()  # This patch allows nested use of asyncio.run() in environments with an existing event loop.
+
+retrying = Retrying(stop=stop_after_attempt(10), wait=(wait_fixed(5)), after=retry_warning)
+
+# This patch allows nested use of asyncio.run() in environments with an existing event loop.
+# This Retry mechanism is required as workaround because we often face
+#   "Only one usage of each socket address (protocol/network address/port)
+#   is normally permitted" issue on Windows.
+for attempt in retrying:
+    with attempt:
+        nest_asyncio.apply()
 
 # Available stream formats:
 # 1) str
@@ -627,24 +638,26 @@ class GetEventById(IHTTPCommand):
         else:
             return response.json()
 
-    async def async_handle(self, data_source: DataSource) -> dict:  # noqa: D102
+    async def async_handle(self, data_source: DataSource, session=None) -> dict:  # noqa: D102
         api: API = data_source.source_api
         url = api.get_url_find_event_by_id(self._id)
 
-        async with aiohttp.ClientSession() as session:
-            async with session.get(url) as response:
-                json_response = await response.text()
+        if session is None:
+            session = aiohttp.ClientSession()
 
-                if response.status == 404 and self._stub_status:
-                    stub = data_source.event_stub_builder.build(
-                        {data_source.event_struct.EVENT_ID: self._id}
-                    )
-                    return stub
-                elif response.status == 404:
-                    # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
-                    raise EventNotFound(self._id, "Unable to find the event")
-                else:
-                    return orjson.loads(json_response)
+        async with session.get(url) as response:
+            json_response = await response.text()
+
+            if response.status == 404 and self._stub_status:
+                stub = data_source.event_stub_builder.build(
+                    {data_source.event_struct.EVENT_ID: self._id}
+                )
+                return stub
+            elif response.status == 404:
+                # LOG             logger.error(f"Unable to find the message. Id: {self._id}")
+                raise EventNotFound(self._id, "Unable to find the event")
+            else:
+                return orjson.loads(json_response)
 
 
 class GetEventsById(IHTTPCommand):
@@ -671,6 +684,7 @@ class GetEventsById(IHTTPCommand):
         self._ids: ids = ids
         self._stub_status = use_stub
 
+    @retry(stop=stop_after_attempt(5), wait=(wait_fixed(5)), after=retry_warning)
     def handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         # return self._sync_handle(data_source)
         return asyncio.run(self._async_handle(data_source))
@@ -685,13 +699,16 @@ class GetEventsById(IHTTPCommand):
 
     async def _async_handle(self, data_source: DataSource) -> List[dict]:  # noqa: D102
         coros = []
-        for event_id in self._ids:
-            co_event = GetEventById(event_id, use_stub=self._stub_status).async_handle(data_source)
-            coros.append(co_event)
+        async with aiohttp.ClientSession() as session:
+            for event_id in self._ids:
+                co_event = GetEventById(event_id, use_stub=self._stub_status).async_handle(
+                    data_source, session
+                )
+                coros.append(co_event)
 
-        events = await asyncio.gather(*coros)
+            events = await asyncio.gather(*coros)
 
-        return events
+            return events
 
 
 class GetEventsByPage(IHTTPCommand):
@@ -1072,6 +1089,7 @@ class GetEventsByBookByScopeJson(IHTTPCommand):
         limit: int = None,
         search_direction: str = "next",
         cache: bool = False,
+        gzip: bool = True,
     ):
         """GetEventsByBookByScopeJson Constructor.
 
@@ -1087,6 +1105,7 @@ class GetEventsByBookByScopeJson(IHTTPCommand):
             limit: Limit for events in the response. No limit if not specified.
             search_direction: Defines the order of the events.
             cache: If True, all requested data from lw-data-provider will be saved to cache.
+            gzip: Indicates whether to include or not gzip in the Accept-Encoding header.
         """
         _check_timestamp(start_timestamp)
         _check_timestamp(end_timestamp)
@@ -1109,6 +1128,7 @@ class GetEventsByBookByScopeJson(IHTTPCommand):
         self._limit = limit
         self._search_direction = search_direction
         self._cache = cache
+        self._gzip = gzip
         if isinstance(filters, EventFilter):
             self._filters = filters.url()
         elif isinstance(filters, (tuple, list)):
@@ -1125,7 +1145,7 @@ class GetEventsByBookByScopeJson(IHTTPCommand):
             limit=self._limit,
             search_direction=self._search_direction,
         )
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+        headers = _generate_headers(self._gzip)
 
         def lazy_fetch():
             status_update_manager = StatusUpdateManager(data)
@@ -1984,6 +2004,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         cache: bool = False,
         limit: Optional[int] = None,
         search_direction: str = "next",
+        gzip: bool = True,
     ):
         """GetMessagesByBookByGroupsJson Constructor.
 
@@ -2011,6 +2032,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             limit: Limit for messages in the response. No limit if not specified.
             search_direction: Defines the order of the messages.
+            gzip: Indicates whether to include or not gzip in the Accept-Encoding header.
         """
         if sort is not None:
             warnings.warn(
@@ -2043,6 +2065,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
         self._cache = cache
         self._limit = limit
         self._search_direction = search_direction
+        self._gzip = gzip
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -2061,7 +2084,7 @@ class GetMessagesByBookByGroupsJson(IHTTPCommand):
             limit=self._limit,
             search_direction=self._search_direction,
         )
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+        headers = _generate_headers(self._gzip)
 
         def lazy_fetch():
             status_update_manager = StatusUpdateManager(data)
@@ -2097,6 +2120,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         buffer_limit: int = None,
         fast_fail: bool = None,
         request_mode: str = "json",
+        gzip: bool = None,
     ):
         """GetMessagesByBookByGroups Constructor.
 
@@ -2121,6 +2145,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
             fast_fail: If true, stops task execution right after first error.
             request_mode: The mode of request. Currently, supports 'json' and 'sse'.
+            gzip: Indicates whether to include or not gzip in the Accept-Encoding header.
 
         Raises:
             ValueError: If request_mode is not either json or sse.
@@ -2140,11 +2165,12 @@ class GetMessagesByBookByGroups(IHTTPCommand):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._buffer_limit = buffer_limit
+        self._gzip = gzip
 
         if self._request_mode == "sse":
-            if fast_fail is not None:
+            if fast_fail is not None or gzip is not None:
                 warn(
-                    '"fast_fail" parameter is not used when "request_mode" is "sse".',
+                    '"fast_fail" and "gzip" parameters are not used when "request_mode" is "sse".',
                     RuntimeWarning,
                     stacklevel=2,
                 )
@@ -2174,7 +2200,10 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 buffer_limit=self._buffer_limit,
             )
         elif self._request_mode == "json":
-            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+            if any(
+                _ is not None
+                for _ in [max_url_length, char_enc, decode_error_handler, buffer_limit, keep_open]
+            ):
                 warn(
                     '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
                     ' parameters are not used when "request_mode" is "json".',
@@ -2184,6 +2213,8 @@ class GetMessagesByBookByGroups(IHTTPCommand):
 
             if fast_fail is None:
                 self._fast_fail = True
+            if gzip is None:
+                self._gzip = True
 
             self.handler = GetMessagesByBookByGroupsJson(
                 start_timestamp=self._start_timestamp,
@@ -2195,6 +2226,7 @@ class GetMessagesByBookByGroups(IHTTPCommand):
                 streams=self._streams,
                 fast_fail=self._fast_fail,
                 cache=self._cache,
+                gzip=self._gzip,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2488,6 +2520,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         cache: bool = False,
         limit: Optional[int] = None,
         search_direction: str = "next",
+        gzip: bool = True,
     ):
         """GetMessagesByPageByGroupsJson Constructor.
 
@@ -2512,6 +2545,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             cache: If True, all requested data from lw-data-provider will be saved to cache.
             limit: Limit for messages in the response. No limit if not specified.
             search_direction: Defines the order of the messages.
+            gzip: Indicates whether to include or not gzip in the Accept-Encoding header.
         """
         if sort is not None:
             warnings.warn(
@@ -2531,6 +2565,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
         self._cache = cache
         self._limit = limit
         self._search_direction = search_direction
+        self._gzip = gzip
 
         _check_list_or_tuple(self._groups, var_name="groups")
         if streams is not None:
@@ -2557,8 +2592,7 @@ class GetMessagesByPageByGroupsJson(IHTTPCommand):
             limit=self._limit,
             search_direction=self._search_direction,
         )
-
-        headers = {"Accept": "application/stream+json", "Accept-Encoding": "gzip, deflate"}
+        headers = _generate_headers(self._gzip)
 
         def lazy_fetch():
             status_update_manager = StatusUpdateManager(data)
@@ -2593,6 +2627,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         buffer_limit: int = None,
         fast_fail: bool = None,
         request_mode: str = "json",
+        gzip: bool = None,
     ):
         """GetMessagesByPagesByGroups Constructor.
 
@@ -2614,6 +2649,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
             buffer_limit: SSEAdapter BufferedJSONProcessor buffer limit.
             fast_fail: If true, stops task execution right after first error.
             request_mode: The mode of request. Currently, supports 'json' and 'sse'.
+            gzip: Indicates whether to include or not gzip in the Accept-Encoding header.
 
         Raises:
             ValueError: If request_mode is not either json or sse.
@@ -2632,11 +2668,12 @@ class GetMessagesByPageByGroups(IHTTPCommand):
         self._decode_error_handler = decode_error_handler
         self._cache = cache
         self._buffer_limit = buffer_limit
+        self._gzip = gzip
 
         if self._request_mode == "sse":
-            if fast_fail is not None:
+            if fast_fail is not None or gzip is not None:
                 warn(
-                    "'fast_fail' parameter is not used when 'request_mode' is 'sse'.",
+                    '"fast_fail" and "gzip" parameters are not used when "request_mode" is "sse".',
                     RuntimeWarning,
                     stacklevel=2,
                 )
@@ -2665,7 +2702,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 buffer_limit=self._buffer_limit,
             )
         elif self._request_mode == "json":
-            if max_url_length or char_enc or decode_error_handler or buffer_limit or keep_open:
+            if any([max_url_length, char_enc, decode_error_handler, buffer_limit, keep_open]):
                 warn(
                     '"max_url_length", "char_enc", "decode_error_handler, "buffer_limit", "keep_open"'
                     ' parameters are not used when "request_mode" is "json".',
@@ -2675,6 +2712,8 @@ class GetMessagesByPageByGroups(IHTTPCommand):
 
             if fast_fail is None:
                 self._fast_fail = True
+            if gzip is None:
+                self._gzip = True
 
             self.handler = GetMessagesByPageByGroupsJson(
                 page=self._page,
@@ -2685,6 +2724,7 @@ class GetMessagesByPageByGroups(IHTTPCommand):
                 streams=self._streams,
                 fast_fail=self._fast_fail,
                 cache=self._cache,
+                gzip=self._gzip,
             )
         else:
             raise ValueError('Request mode parameter should be either "sse" or "json".')
@@ -2703,3 +2743,11 @@ def _get_page_object(book_id, page: Union[Page, str], data_source) -> Page:  # n
         return page
     else:
         raise Exception("Wrong type. page should be Page object or string (page name)!")
+
+
+def _generate_headers(gzip):
+    accept_encoding = "deflate"
+    if gzip:
+        accept_encoding = "gzip, " + accept_encoding
+    headers = {"Accept": "application/stream+json", "Accept-Encoding": accept_encoding}
+    return headers

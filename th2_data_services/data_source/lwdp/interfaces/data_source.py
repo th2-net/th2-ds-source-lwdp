@@ -17,6 +17,9 @@ from typing import TYPE_CHECKING, TypeVar, Generic, Tuple
 
 import requests
 import urllib3
+from tenacity import retry, stop_after_attempt, wait_fixed
+
+from th2_data_services.data_source.lwdp.utils._retry_utils import retry_warning
 
 if TYPE_CHECKING:
     from th2_data_services.interfaces import ILwDPCommand
@@ -110,6 +113,10 @@ class IHTTPDataSource(
     def command(self, cmd):
         """Execute the transmitted HTTP command."""
 
+    @retry(stop=stop_after_attempt(5), wait=(wait_fixed(5)), after=retry_warning)
+    # This Retry mechanism is required as workaround because we often face
+    #   "Only one usage of each socket address (protocol/network address/port)
+    #   is normally permitted" issue on Windows
     def check_connect(self, timeout: Tuple[int, float], certification: bool = True) -> None:
         """Checks whether url is working.
 

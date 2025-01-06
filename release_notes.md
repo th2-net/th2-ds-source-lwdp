@@ -265,3 +265,13 @@ BugFixes without ticket
 1. [TH2-5222] - Fix `DownloadMessagesByPageGzip`, it constructed `DownloadMessagesByPageByGroupsGzip` incorrectly.
 2. [TH2-5243] - Fix backward compatibility issues with `GetMessagesByBookByGroups` and `GetMessagesByPageByGroups`,
    added 'limit' and 'search_direction' parameters to 'post_download_messages'.
+
+# v3.1.2.0
+
+## Features
+1. [TH2-5258] Added `gzip: bool` parameter that indicates whether to include or not `gzip` in the Accept-Encoding header.
+
+## Improvements
+1. [TH2-5260] More details are provided in case an exception occurs in `StatusUpdateManager.update()`.
+2. [TH2-5263] Retries are added to `IHTTPDataSource.check_connect()`.
+3. [TH2-5264] Retries are added to `nest_asyncio.apply()`.
