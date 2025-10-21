@@ -266,7 +266,7 @@ BugFixes without ticket
 2. [TH2-5243] - Fix backward compatibility issues with `GetMessagesByBookByGroups` and `GetMessagesByPageByGroups`,
    added 'limit' and 'search_direction' parameters to 'post_download_messages'.
 
-# v3.1.2.0
+# 3.1.2.0
 
 ## Features
 1. [TH2-5258] Added `gzip: bool` parameter that indicates whether to include or not `gzip` in the Accept-Encoding header.
@@ -275,3 +275,9 @@ BugFixes without ticket
 1. [TH2-5260] More details are provided in case an exception occurs in `StatusUpdateManager.update()`.
 2. [TH2-5263] Retries are added to `IHTTPDataSource.check_connect()`.
 3. [TH2-5264] Retries are added to `nest_asyncio.apply()`.
+
+# 3.1.2.1
+
+## Improvements
+1. Used version range for dependencies.
+2. Migrated to common GitHub workflows.
