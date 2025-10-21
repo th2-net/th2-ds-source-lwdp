@@ -281,3 +281,8 @@ BugFixes without ticket
 ## Improvements
 1. Used version range for dependencies.
 2. Migrated to common GitHub workflows.
+
+# 3.1.2.2
+
+## BugFixes
+1. Restored missed project files
